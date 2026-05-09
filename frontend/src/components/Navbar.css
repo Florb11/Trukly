@@ -1,0 +1,20 @@
+.trukly-navbar {
+  width: 100%;
+  min-height: 64px;
+  background: linear-gradient(90deg, #0b2d4d, #0f5f8f);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+}
+
+.trukly-navbar h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.trukly-navbar span {
+  font-size: 14px;
+}
