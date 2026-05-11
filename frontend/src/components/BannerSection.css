@@ -1,0 +1,53 @@
+.banner-section {
+  width: 100%;
+  min-height: 420px;
+  background: linear-gradient(rgba(6, 17, 31, 0.78), rgba(6, 17, 31, 0.78)),
+    url("../assets/banner-trukly.png");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  padding: 70px 72px;
+}
+
+.banner-overlay {
+  max-width: 760px;
+  color: white;
+}
+
+.banner-overlay span {
+  color: #7dd3fc;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.banner-overlay h2 {
+  font-size: 40px;
+  line-height: 1.15;
+  margin: 16px 0 28px;
+}
+
+.role-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.role-list p {
+  margin: 0;
+  border: 1px solid rgba(125, 211, 252, 0.45);
+  border-radius: 999px;
+  padding: 10px 16px;
+  color: #e0f2fe;
+}
+
+@media (max-width: 750px) {
+  .banner-section {
+    padding: 56px 24px;
+  }
+
+  .banner-overlay h2 {
+    font-size: 30px;
+  }
+}

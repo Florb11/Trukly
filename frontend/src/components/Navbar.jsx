@@ -6,34 +6,50 @@ import logoTrukly from "../assets/logo-truklynav.png";
 function Navbar() {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
+  const cerrarMenu = () => {
+    setMenuAbierto(false);
+  };
+
   return (
     <nav className="trukly-navbar">
-      <div className="navbar-brand">
+      <Link to="/" className="navbar-brand" onClick={cerrarMenu}>
         <img src={logoTrukly} alt="Logo de Trukly" />
         <span>Trukly</span>
-      </div>
+      </Link>
 
       <button
         className="navbar-toggle"
         onClick={() => setMenuAbierto(!menuAbierto)}
+        aria-label="Abrir menú"
       >
         ☰
       </button>
 
       <div className={`navbar-menu ${menuAbierto ? "active" : ""}`}>
         <div className="navbar-links">
-          <Link to="/">Inicio</Link>
-          <a href="#funcionalidades">Funcionalidades</a>
-          <a href="#roles">Roles</a>
-          <a href="#contacto">Contacto</a>
+          <Link to="/" onClick={cerrarMenu}>
+            Inicio
+          </Link>
+
+          <a href="#funcionalidades" onClick={cerrarMenu}>
+            Funcionalidades
+          </a>
+
+          <a href="#roles" onClick={cerrarMenu}>
+            Roles
+          </a>
+
+          <a href="#contacto" onClick={cerrarMenu}>
+            Contacto
+          </a>
         </div>
 
         <div className="navbar-actions">
-          <Link to="/" className="login-link">
+          <Link to="/login" className="login-link" onClick={cerrarMenu}>
             Iniciar sesión
           </Link>
 
-          <Link to="/registro" className="register-button">
+          <Link to="/registro" className="register-button" onClick={cerrarMenu}>
             Registrarse
           </Link>
         </div>
