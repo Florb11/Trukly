@@ -1,7 +1,7 @@
 .trukly-navbar {
   width: 100%;
-  min-height: 64px;
-  background: linear-gradient(90deg, #0b2d4d, #0f5f8f);
+  min-height: 66px;
+  background-color: #06111f;
   color: white;
   display: flex;
   align-items: center;
@@ -9,12 +9,67 @@
   padding: 0 48px;
 }
 
-.trukly-navbar h2 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 700;
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 42px;
 }
 
-.trukly-navbar span {
-  font-size: 14px;
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.navbar-brand img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.navbar-brand span {
+  line-height: 1;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.navbar-links a,
+.login-link {
+  color: #edf6ff;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.navbar-links a:hover,
+.login-link:hover {
+  color: #38bdf8;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.register-button {
+  background: linear-gradient(90deg, #0ea5e9, #2563eb);
+  color: white;
+  text-decoration: none;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.register-button:hover {
+  background: linear-gradient(90deg, #0284c7, #1d4ed8);
+  color: white;
 }
