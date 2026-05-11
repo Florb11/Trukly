@@ -7,12 +7,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 48px;
-}
-
-.navbar-left {
-  display: flex;
-  align-items: center;
-  gap: 42px;
+  position: relative;
 }
 
 .navbar-brand {
@@ -30,8 +25,10 @@
   object-fit: contain;
 }
 
-.navbar-brand span {
-  line-height: 1;
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 42px;
 }
 
 .navbar-links {
@@ -72,4 +69,61 @@
 .register-button:hover {
   background: linear-gradient(90deg, #0284c7, #1d4ed8);
   color: white;
+}
+
+.navbar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 850px) {
+  .trukly-navbar {
+    padding: 0 24px;
+    min-height: 64px;
+  }
+
+  .navbar-toggle {
+    display: block;
+  }
+
+  .navbar-menu {
+    display: none;
+    position: absolute;
+    top: 64px;
+    left: 0;
+    width: 100%;
+    background-color: #06111f;
+    padding: 20px 24px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 22px;
+    z-index: 10;
+  }
+
+  .navbar-menu.active {
+    display: flex;
+  }
+
+  .navbar-links {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  .navbar-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .register-button {
+    width: 100%;
+    text-align: center;
+  }
 }

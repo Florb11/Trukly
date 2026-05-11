@@ -1,0 +1,118 @@
+.registro-page {
+  min-height: calc(100vh - 66px);
+  width: 100%;
+  background: linear-gradient(135deg, #e4f2fb, #b7d9ee);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 20px;
+}
+
+.registro-card {
+  width: 100%;
+  max-width: 560px;
+  background-color: white;
+  border-radius: 24px;
+  padding: 34px;
+  box-shadow: 0 18px 45px rgba(16, 80, 120, 0.25);
+}
+
+.registro-header {
+  text-align: center;
+  margin-bottom: 26px;
+}
+
+.registro-badge {
+  display: inline-block;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+.registro-header h1 {
+  margin: 0;
+  color: #0b2d4d;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.registro-header p {
+  margin: 10px 0 0;
+  color: #527086;
+  font-size: 15px;
+}
+
+.registro-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.registro-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.registro-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.registro-field label {
+  color: #0b2d4d;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.registro-field input {
+  width: 100%;
+  border: 1px solid #b8cfe0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 15px;
+  outline: none;
+}
+
+.registro-field input:focus {
+  border-color: #1683bd;
+  box-shadow: 0 0 0 3px rgba(22, 131, 189, 0.18);
+}
+
+.registro-form button {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #0b5f8f, #1683bd);
+  color: white;
+  padding: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+.registro-form button:hover {
+  background: linear-gradient(90deg, #08496e, #0b6fa5);
+}
+
+.registro-info {
+  margin: 22px 0 0;
+  color: #5b7284;
+  font-size: 14px;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .registro-row {
+    grid-template-columns: 1fr;
+  }
+
+  .registro-card {
+    padding: 28px 22px;
+  }
+}
