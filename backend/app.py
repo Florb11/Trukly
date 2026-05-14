@@ -4,6 +4,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from sqlalchemy import text
 from db import db
+from models.usuario import Usuario
 
 load_dotenv()
 
@@ -45,6 +46,11 @@ def db_test():
             "mensaje": "Error al conectar con MySQL",
             "error": str(error)
         }), 500
+        
+@app.route("/api/usuarios")
+def listar_usuarios():
+    usuarios = Usuario.query.all()
+    return jsonify([usuario.to_dict() for usuario in usuarios])        
 
 
 if __name__ == "__main__":
