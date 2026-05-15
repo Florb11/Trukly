@@ -1,18 +1,19 @@
 .trukly-footer {
   width: 100%;
   background-color: #06111f;
-  color: white;
-  padding: 28px 48px;
+  color: #ffffff;
+  padding: 30px 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+  border-top: 1px solid rgba(125, 211, 252, 0.14);
 }
 
 .footer-brand h3 {
   margin: 0;
   font-size: 24px;
-  font-weight: 800;
+  font-weight: 850;
   color: #ffffff;
 }
 
@@ -37,7 +38,7 @@
   margin-top: 4px;
   color: #ffffff;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .footer-social a {
@@ -45,11 +46,13 @@
   font-size: 28px;
   display: flex;
   align-items: center;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .footer-social a:hover {
-  color: #38bdf8;
+  color: #7dd3fc;
   transform: translateY(-2px);
 }
 
@@ -57,7 +60,7 @@
   .trukly-footer {
     flex-direction: column;
     text-align: center;
-    padding: 26px 22px;
+    padding: 28px 22px;
   }
 
   .footer-brand p {

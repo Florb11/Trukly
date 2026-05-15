@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { FaBars } from "react-icons/fa";
 import "./Navbar.css";
 import logoTrukly from "../assets/logo-truklynav.png";
 
@@ -21,8 +22,9 @@ function Navbar() {
         className="navbar-toggle"
         onClick={() => setMenuAbierto(!menuAbierto)}
         aria-label="Abrir menú"
+        aria-expanded={menuAbierto}
       >
-        ☰
+        <FaBars />
       </button>
 
       <div className={`navbar-menu ${menuAbierto ? "active" : ""}`}>

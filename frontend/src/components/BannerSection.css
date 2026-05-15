@@ -1,53 +1,104 @@
 .banner-section {
   width: 100%;
-  min-height: 420px;
-  background: linear-gradient(rgba(6, 17, 31, 0.78), rgba(6, 17, 31, 0.78)),
-    url("../assets/banner-trukly.png");
+  background:
+    linear-gradient(135deg, rgba(6, 17, 31, 0.96), rgba(13, 64, 84, 0.95)),
+    url("../assets/fallas-trukly.png");
   background-size: cover;
   background-position: center;
-  display: flex;
+  color: #ffffff;
+  padding: 82px 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(420px, 1.2fr);
+  gap: 44px;
   align-items: center;
-  padding: 70px 72px;
 }
 
-.banner-overlay {
-  max-width: 760px;
-  color: white;
+.banner-copy {
+  max-width: 520px;
+  justify-self: end;
 }
 
-.banner-overlay span {
-  color: #7dd3fc;
+.banner-copy span {
+  color: #9be7ff;
   text-transform: uppercase;
-  font-weight: 800;
+  font-weight: 850;
   font-size: 13px;
 }
 
-.banner-overlay h2 {
-  font-size: 40px;
-  line-height: 1.15;
-  margin: 16px 0 28px;
+.banner-copy h2 {
+  font-size: 39px;
+  line-height: 1.13;
+  margin: 14px 0 18px;
+}
+
+.banner-copy p {
+  color: #c8dce9;
+  line-height: 1.7;
+  margin: 0;
 }
 
 .role-list {
-  display: flex;
-  flex-wrap: wrap;
+  width: 100%;
+  max-width: 660px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
-.role-list p {
-  margin: 0;
-  border: 1px solid rgba(125, 211, 252, 0.45);
-  border-radius: 999px;
-  padding: 10px 16px;
-  color: #e0f2fe;
+.role-card {
+  min-height: 178px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  border-radius: 8px;
+  padding: 20px;
+  backdrop-filter: blur(12px);
 }
 
-@media (max-width: 750px) {
+.role-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #082033;
+  background: #9be7ff;
+  margin-bottom: 16px;
+}
+
+.role-card h3 {
+  font-size: 18px;
+  margin: 0 0 8px;
+}
+
+.role-card p {
+  color: #d8e9f3;
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+@media (max-width: 920px) {
   .banner-section {
-    padding: 56px 24px;
+    grid-template-columns: 1fr;
   }
 
-  .banner-overlay h2 {
-    font-size: 30px;
+  .banner-copy,
+  .role-list {
+    max-width: 760px;
+    justify-self: center;
+  }
+}
+
+@media (max-width: 620px) {
+  .banner-section {
+    padding: 58px 18px;
+  }
+
+  .banner-copy h2 {
+    font-size: 29px;
+  }
+
+  .role-list {
+    grid-template-columns: 1fr;
   }
 }
