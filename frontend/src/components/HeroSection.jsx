@@ -6,37 +6,57 @@ function HeroSection() {
     <section className="hero-section">
       <div className="hero-container">
         <div className="hero-content">
-          <span className="hero-badge">Gestión logística</span>
+          <span className="hero-badge">Gestión logística para flotas</span>
 
-          <h1>
-            Controlá tus viajes, camiones y reportes desde un solo lugar.
-          </h1>
+          <h1>Operá tus viajes, camiones y reportes sin perder el control.</h1>
 
           <p>
-            Trukly ayuda a centralizar la operación logística, evitando registros
-            manuales y mejorando el seguimiento de choferes, camiones y fallas.
+            Trukly centraliza la operación diaria: asignaciones, estados de
+            viaje, choferes, unidades y fallas mecánicas en una experiencia
+            simple para equipos en movimiento.
           </p>
 
           <div className="hero-actions">
             <a href="/registro" className="hero-primary">
-              Registrarse
+              Crear cuenta
             </a>
             <a href="#contacto" className="hero-secondary">
-              Contacto
+              Hablar con el equipo
             </a>
+          </div>
+
+          <div className="hero-stats" aria-label="Resumen de funcionalidades">
+            <div>
+              <strong>24/7</strong>
+              <span>Seguimiento operativo</span>
+            </div>
+            <div>
+              <strong>4 roles</strong>
+              <span>Accesos organizados</span>
+            </div>
+            <div>
+              <strong>1 panel</strong>
+              <span>Viajes y fallas</span>
+            </div>
           </div>
         </div>
 
         <div className="hero-media">
-  <video
-    src={heroVideo}
-    autoPlay
-    muted
-    loop
-    playsInline
-    className="hero-video"
-  />
-</div>
+          <video
+            src={heroVideo}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="hero-video"
+          />
+
+          <div className="hero-media-card">
+            <span>Estado de flota</span>
+            <strong>Viajes activos</strong>
+            <p>Choferes, camiones y reportes en una sola vista.</p>
+          </div>
+        </div>
       </div>
     </section>
   );
