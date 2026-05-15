@@ -1,76 +1,115 @@
+import { Link } from "react-router-dom";
+import { FaIdCard, FaShieldAlt, FaTruckMoving } from "react-icons/fa";
 import "./RegistroPage.css";
+import logoTrukly from "../assets/logo-trukly.png";
 
 function RegistroPage() {
   return (
-    <section className="registro-page">
-      <div className="registro-card">
-        <div className="registro-header">
-          <span className="registro-badge">Registro de chofer</span>
-          <h1>Crear cuenta</h1>
-          <p>
-            Completá tus datos para solicitar el acceso como chofer dentro de
-            Trukly.
-          </p>
-        </div>
+    <section className="auth-page registro-page">
+      <div className="registro-shell">
+        <aside className="registro-panel">
+          <span className="registro-panel-badge">
+            <FaTruckMoving />
+            Alta de chofer
+          </span>
 
-        <form className="registro-form">
-          <div className="registro-row">
-            <div className="registro-field">
-              <label htmlFor="nombre">Nombre</label>
-              <input type="text" id="nombre" placeholder="Ingresá tu nombre" />
+          <h1>Pedí tu acceso y empezá a operar desde Trukly.</h1>
+          <p>
+            El registro permite solicitar una cuenta de chofer. Luego un
+            administrador valida los datos y habilita el acceso correspondiente.
+          </p>
+
+          <div className="registro-panel-list">
+            <div>
+              <span>
+                <FaIdCard />
+              </span>
+              <strong>Datos personales</strong>
+              <p>Nombre, usuario y licencia para identificar tu perfil.</p>
+            </div>
+            <div>
+              <span>
+                <FaShieldAlt />
+              </span>
+              <strong>Validación interna</strong>
+              <p>Las cuentas operativas se revisan antes de quedar activas.</p>
+            </div>
+          </div>
+        </aside>
+
+        <div className="registro-card">
+          <div className="auth-brand">
+            <img src={logoTrukly} alt="Logo de Trukly" />
+            <span>Trukly</span>
+          </div>
+
+          <div className="registro-header">
+            <span className="registro-badge">Registro de chofer</span>
+            <h2>Crear cuenta</h2>
+            <p>Completá tus datos para solicitar acceso a la plataforma.</p>
+          </div>
+
+          <form className="registro-form">
+            <div className="registro-row">
+              <label className="registro-field" htmlFor="nombre">
+                <span>Nombre</span>
+                <input type="text" id="nombre" placeholder="Ingresá tu nombre" />
+              </label>
+
+              <label className="registro-field" htmlFor="apellido">
+                <span>Apellido</span>
+                <input
+                  type="text"
+                  id="apellido"
+                  placeholder="Ingresá tu apellido"
+                />
+              </label>
             </div>
 
-            <div className="registro-field">
-              <label htmlFor="apellido">Apellido</label>
+            <label className="registro-field" htmlFor="username-registro">
+              <span>Usuario</span>
               <input
                 type="text"
-                id="apellido"
-                placeholder="Ingresá tu apellido"
+                id="username-registro"
+                placeholder="Elegí un nombre de usuario"
               />
-            </div>
-          </div>
-
-          <div className="registro-field">
-            <label htmlFor="username">Usuario</label>
-            <input
-              type="text"
-              id="username"
-              placeholder="Elegí un nombre de usuario"
-            />
-          </div>
-
-          <div className="registro-field">
-            <label htmlFor="licencia">Licencia</label>
-            <input
-              type="text"
-              id="licencia"
-              placeholder="Ingresá tu número de licencia"
-            />
-          </div>
-
-          <div className="registro-field">
-            <label htmlFor="vencimientoLicencia">
-              Vencimiento de licencia
             </label>
-            <input type="date" id="vencimientoLicencia" />
-          </div>
 
-          <div className="registro-field">
-            <label htmlFor="password">Contraseña</label>
-            <input
-              type="password"
-              id="password"
-              placeholder="Creá una contraseña"
-            />
-          </div>
+            <label className="registro-field" htmlFor="licencia">
+              <span>Licencia</span>
+              <input
+                type="text"
+                id="licencia"
+                placeholder="Ingresá tu número de licencia"
+              />
+            </label>
 
-          <button type="submit">Solicitar registro</button>
-        </form>
+            <label className="registro-field" htmlFor="vencimientoLicencia">
+              <span>Vencimiento de licencia</span>
+              <input type="date" id="vencimientoLicencia" />
+            </label>
 
-        <p className="registro-info">
-          Las cuentas de administrador, operador logístico y mecánico son
-          creadas internamente por un administrador.
-        </p>
+            <label className="registro-field" htmlFor="password-registro">
+              <span>Contraseña</span>
+              <input
+                type="password"
+                id="password-registro"
+                placeholder="Creá una contraseña"
+              />
+            </label>
+
+            <button type="submit">Solicitar registro</button>
+          </form>
+
+          <p className="registro-info">
+            Las cuentas de administrador, operador logístico y mecánico son
+            creadas internamente por un administrador.
+          </p>
+
+          <p className="auth-switch">
+            ¿Ya tenés cuenta? <Link to="/login">Iniciá sesión</Link>
+          </p>
+        </div>
       </div>
     </section>
   );
