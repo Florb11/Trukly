@@ -1,72 +1,88 @@
-import { useState } from "react";
+import { NavLink } from "react-router-dom";
+import {
+  FaChartLine,
+  FaCog,
+  FaHome,
+  FaMapMarkedAlt,
+  FaSignOutAlt,
+  FaTruckLoading,
+  FaUser,
+  FaWrench,
+} from "react-icons/fa";
 import "./SidebarNav.css";
 
 const navItems = [
   {
     section: "Principal",
     items: [
-      { label: "Inicio", path: "/" },
-      { label: "Mis Cargas", path: "/cargas" },
-      { label: "Rutas", path: "/rutas" },
+      { label: "Inicio", path: "/dashboardTrucker", icon: <FaHome /> },
+      { label: "Mis viajes", path: "/dashboardTrucker/viajes", icon: <FaTruckLoading /> },
+      { label: "Rutas", path: "/dashboardTrucker/rutas", icon: <FaMapMarkedAlt /> },
     ],
   },
   {
     section: "Gestión",
     items: [
-      { label: "Pedidos", path: "/pedidos" },
-      { label: "Ingresos", path: "/ingresos" },
-      { label: "Estadísticas", path: "/estadisticas" },
+      { label: "Reportar falla", path: "/dashboardTrucker/fallas", icon: <FaWrench /> },
+      {
+        label: "Estadísticas",
+        path: "/dashboardTrucker/estadisticas",
+        icon: <FaChartLine />,
+      },
     ],
   },
   {
     section: "Cuenta",
     items: [
-      { label: "Perfil", path: "/perfil" },
-      { label: "Configuración", path: "/configuracion" },
-      { label: "Cerrar sesión", path: "/logout" },
+      { label: "Perfil", path: "/dashboardTrucker/perfil", icon: <FaUser /> },
+      { label: "Configuración", path: "/dashboardTrucker/configuracion", icon: <FaCog /> },
+      { label: "Cerrar sesión", path: "/login", icon: <FaSignOutAlt /> },
     ],
   },
 ];
 
-export default function SidebarNav({ isOpen, onClose }) {
-  const [activeItem, setActiveItem] = useState("Inicio");
-
+function SidebarNav({ isOpen, onClose }) {
   return (
     <>
       {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
 
       <aside className={`sidebar ${isOpen ? "sidebar--open" : ""}`}>
         <div className="sidebar__header">
-          <div className="sidebar__logo">
-            <span className="sidebar__logo-icon"></span>
-            <span className="sidebar__logo-text">TruckerHub</span>
-          </div>
-          <button className="sidebar__close-btn" onClick={onClose}>
-            ✕
+          <NavLink to="/dashboardTrucker" className="sidebar__logo" onClick={onClose}>
+            <span className="sidebar__logo-icon">T</span>
+            <span className="sidebar__logo-text">Trukly</span>
+          </NavLink>
+          <button
+            className="sidebar__close-btn"
+            onClick={onClose}
+            type="button"
+            aria-label="Cerrar menú"
+          >
+            x
           </button>
         </div>
 
-        <nav className="sidebar__nav">
+        <nav className="sidebar__nav" aria-label="Navegación del chofer">
           {navItems.map((group) => (
             <div key={group.section} className="sidebar__group">
               <span className="sidebar__group-label">{group.section}</span>
               <ul className="sidebar__list">
                 {group.items.map((item) => (
                   <li key={item.label}>
-                    <button
-                      className={`sidebar__item ${activeItem === item.label ? "sidebar__item--active" : ""
-                        }`}
-                      onClick={() => {
-                        setActiveItem(item.label);
-                        onClose();
-                      }}
+                    <NavLink
+                      to={item.path}
+                      end={item.path === "/dashboardTrucker"}
+                      className={({ isActive }) =>
+                        `sidebar__item ${
+                          isActive ? "sidebar__item--active" : ""
+                        }`
+                      }
+                      onClick={onClose}
                     >
                       <span className="sidebar__item-icon">{item.icon}</span>
                       <span className="sidebar__item-label">{item.label}</span>
-                      {activeItem === item.label && (
-                        <span className="sidebar__item-indicator" />
-                      )}
-                    </button>
+                      <span className="sidebar__item-indicator" />
+                    </NavLink>
                   </li>
                 ))}
               </ul>
@@ -76,10 +92,10 @@ export default function SidebarNav({ isOpen, onClose }) {
 
         <div className="sidebar__footer">
           <div className="sidebar__user">
-            <div className="sidebar__avatar">JD</div>
+            <div className="sidebar__avatar">CH</div>
             <div className="sidebar__user-info">
-              <span className="sidebar__user-name">Juan Díaz</span>
-              <span className="sidebar__user-role">Camionero verificado</span>
+              <span className="sidebar__user-name">Chofer Trukly</span>
+              <span className="sidebar__user-role">Usuario operativo</span>
             </div>
           </div>
         </div>
@@ -87,3 +103,5 @@ export default function SidebarNav({ isOpen, onClose }) {
     </>
   );
 }
+
+export default SidebarNav;

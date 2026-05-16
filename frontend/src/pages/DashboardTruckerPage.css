@@ -1,0 +1,71 @@
+.chofer-page {
+  width: 100%;
+}
+
+.chofer-page__header {
+  max-width: 760px;
+  margin-bottom: 28px;
+}
+
+.chofer-page__header span {
+  color: #1683bd;
+  font-size: 13px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.chofer-page__header h1 {
+  color: #0b2d4d;
+  font-size: 36px;
+  line-height: 1.12;
+  margin: 8px 0 12px;
+}
+
+.chofer-page__header p {
+  color: #527086;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.chofer-page__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.chofer-page__grid article {
+  min-height: 132px;
+  background: #ffffff;
+  border: 1px solid #dceaf3;
+  border-radius: 8px;
+  padding: 22px;
+  box-shadow: 0 12px 28px rgba(11, 45, 77, 0.07);
+}
+
+.chofer-page__grid span,
+.chofer-page__grid strong {
+  display: block;
+}
+
+.chofer-page__grid span {
+  color: #527086;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.chofer-page__grid strong {
+  color: #0b2d4d;
+  font-size: 38px;
+  line-height: 1;
+  margin-top: 14px;
+}
+
+@media (max-width: 760px) {
+  .chofer-page__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chofer-page__header h1 {
+    font-size: 30px;
+  }
+}
