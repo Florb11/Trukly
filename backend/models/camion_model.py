@@ -3,8 +3,6 @@ from db import db
 
 class CamionModel(db.Model):
     ()
-
-
 __tablename__ = "Camion"
 
 

@@ -11,7 +11,7 @@ class MecanicoModel(db.Model):
     )
 
     legajo = db.Column(db.String(20), nullable=False)
-    especialidad = db.Column(db.String(45), nullable=False)
+    especialidad = db.Column(db.String(30), nullable=False)
 
     def to_dict(self):
         return {

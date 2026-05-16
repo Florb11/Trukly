@@ -10,7 +10,7 @@ class ReporteModel(db.Model):
     estado = db.Column(db.String(20), nullable = False)
 #    Claves Foraneas, esto lo voy a revisar despues con postman para ver si funciona
     Camion_id_camion = db.Column(db.Integer, db.ForeignKey('Camion.id_camion'), nullable=False)
-    Mecanico_Usuario_id_usuario = db.Column(db.Integer, db.ForeignKey('Mecanico.Usuario_id_usuario'), nullable=False)
+    Mecanico_Usuario_idUsuario = db.Column(db.Integer, db.ForeignKey('Mecanico.Usuario_idUsuario'), nullable=False)
     Chofer_Usuario_idUsuario = db.Column(db.Integer, db.ForeignKey('Chofer.Usuario_idUsuario'), nullable=False)
      
 
@@ -21,6 +21,6 @@ class ReporteModel(db.Model):
             "descripcion": self.descripcion,
             "estado": self.estado,
             "Camion_id_camion": self.Camion_id_camion,
-            "Mecanico_Usuario_id_usuario": self.Mecanico_Usuario_id_usuario,
+            "Mecanico_Usuario_idUsuario": self.Mecanico_Usuario_idUsuario,
             "Chofer_Usuario_idUsuario": self.Chofer_Usuario_idUsuario
         }
