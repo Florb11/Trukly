@@ -73,7 +73,7 @@
   padding: 22px 14px;
 }
 
-.sidebar_group + .sidebar_group {
+.sidebar__group + .sidebar__group {
   margin-top: 24px;
 }
 
@@ -148,8 +148,35 @@
   background: #9be7ff;
 }
 
-.sidebar_item--active .sidebar_item-indicator {
+.sidebar__item--active .sidebar__item-indicator {
   display: block;
+}
+
+.sidebar--admin {
+  background: #160909;
+  border-right-color: rgba(248, 113, 113, 0.22);
+}
+
+.sidebar--admin .sidebar__header,
+.sidebar--admin .sidebar__footer {
+  border-color: rgba(248, 113, 113, 0.18);
+}
+
+.sidebar--admin .sidebar__logo-icon {
+  color: #450a0a;
+  background: #fecaca;
+}
+
+.sidebar--admin .sidebar__item-icon {
+  color: #f87171;
+}
+
+.sidebar--admin .sidebar__item--active {
+  background: rgba(220, 38, 38, 0.22);
+}
+
+.sidebar--admin .sidebar__item-indicator {
+  background: #fca5a5;
 }
 
 .sidebar__footer {
