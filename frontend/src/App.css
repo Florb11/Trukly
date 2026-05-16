@@ -66,6 +66,19 @@
   padding: 34px 28px;
 }
 
+.app-shell--admin {
+  background: #f8fafc;
+}
+
+.app-shell--admin .dashboard-topbar span {
+  color: #dc2626;
+}
+
+.app-shell--admin .dashboard-menu-btn {
+  color: #7f1d1d;
+  border-color: #fecaca;
+}
+
 @media (max-width: 860px) {
   .dashboard-area {
     margin-left: 0;
