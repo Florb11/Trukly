@@ -2,3 +2,80 @@
   width: 100%;
   min-height: 100vh;
 }
+
+.app-shell {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.app-shell--dashboard {
+  min-height: 100vh;
+  background: #f5f9fc;
+}
+
+.dashboard-area {
+  min-height: 100vh;
+  margin-left: 286px;
+}
+
+.dashboard-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 28px;
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid #dceaf3;
+  backdrop-filter: blur(12px);
+}
+
+.dashboard-topbar span,
+.dashboard-topbar strong {
+  display: block;
+}
+
+.dashboard-topbar span {
+  color: #1683bd;
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.dashboard-topbar strong {
+  color: #0b2d4d;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.dashboard-menu-btn {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #c9ddea;
+  border-radius: 8px;
+  color: #0b2d4d;
+  background: #ffffff;
+  cursor: pointer;
+  place-items: center;
+}
+
+.dashboard-content {
+  padding: 34px 28px;
+}
+
+@media (max-width: 860px) {
+  .dashboard-area {
+    margin-left: 0;
+  }
+
+  .dashboard-menu-btn {
+    display: grid;
+  }
+
+  .dashboard-content {
+    padding: 26px 18px;
+  }
+}
