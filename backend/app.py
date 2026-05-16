@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from sqlalchemy import text
 from db import db
 from routes.usuario_routes import usuario_routes
+from routes.chofer_routes import chofer_routes
 
 load_dotenv()
 
@@ -28,7 +29,7 @@ db.init_app(app)
 
 # registro las rutas de usuarios
 app.register_blueprint(usuario_routes)
-
+app.register_blueprint(chofer_routes)
 
 @app.route("/")
 def home():
