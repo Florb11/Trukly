@@ -17,5 +17,5 @@ class UsuarioModel(db.Model):
             "username": self.username,
             "nombre": self.nombre,
             "apellido": self.apellido,
-            "estado": self.estado
+            "estado": self.estado,
         }
