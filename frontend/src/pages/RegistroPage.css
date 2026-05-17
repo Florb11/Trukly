@@ -219,6 +219,21 @@
   margin-top: 16px;
 }
 
+.registro-mensaje {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.registro-mensaje.exito {
+  color: #0369a1;
+}
+
+.registro-mensaje.error {
+  color: #dc2626;
+}
+
 @media (max-width: 980px) {
   .registro-shell {
     grid-template-columns: 1fr;
