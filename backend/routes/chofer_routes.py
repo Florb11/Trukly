@@ -20,7 +20,7 @@ def ruta_obtener_chofer(id_usuario):
     return obtener_chofer(id_usuario)
 
 
-@chofer_routes.route("/api/choferes", methods=["POST"]) #POST /api/choferes
+@chofer_routes.route("/api/choferes", methods=["POST"]) 
 def ruta_crear_chofer():
     # llamo al controller para crear un chofer nuevo
     return crear_chofer()

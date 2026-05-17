@@ -36,6 +36,6 @@ def crear_mecanico():
     return jsonify(
         {
             "mensaje": "Mecanico creado correctamente",
-            "mecanico": nuevo_mecanico.to_dict(),
+            "mecanico": nuevo_mecanico.to_dict()
         }
     )
