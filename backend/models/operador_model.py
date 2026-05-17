@@ -1,6 +1,6 @@
 from db import db
 
-class OperadorModel(db.model):
+class OperadorModel(db.Model):
     __tablename__ = "OperadorLogistico"
 
     Usuario_idUsuario = db.Column(

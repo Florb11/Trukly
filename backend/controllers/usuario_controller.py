@@ -24,7 +24,7 @@ def obtener_usuario(id_usuario):
 
 
 def crear_usuario():
-    # leo los datos que llegan en formato json desde el frontend 
+    # leo los datos que llegan en formato json desde el frontend
     datos = request.get_json()
 
     # creo un nuevo usuario con los datos recibidos
@@ -33,7 +33,7 @@ def crear_usuario():
         password=datos["password"],
         nombre=datos["nombre"],
         apellido=datos["apellido"],
-        estado=datos["estado"]
+        estado=datos["estado"],
     )
 
     # agrego el usuario a la sesion de la base
@@ -43,7 +43,12 @@ def crear_usuario():
     db.session.commit()
 
     # devuelvo un mensaje y los datos del usuario creado
-    return jsonify({
-        "mensaje": "Usuario creado correctamente",
-        "usuario": nuevo_usuario.to_dict()
-    }), 201
+    return (
+        jsonify(
+            {
+                "mensaje": "Usuario creado correctamente",
+                "usuario": nuevo_usuario.to_dict(),
+            }
+        ),
+        201,
+    )
