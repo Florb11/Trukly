@@ -8,6 +8,9 @@ from routes.usuario_routes import usuario_routes
 from routes.chofer_routes import chofer_routes
 from routes.auth_routes import auth_routes
 from routes.administrador_routes import administrador_routes
+from routes.operador_routes import operador_routes
+from routes.mecanico_routes import mecanico_routes
+from routes.camion_routes import camion_routes
 
 load_dotenv()
 
@@ -34,6 +37,9 @@ app.register_blueprint(usuario_routes)
 app.register_blueprint(chofer_routes)
 app.register_blueprint(auth_routes)
 app.register_blueprint(administrador_routes)
+app.register_blueprint(operador_routes)
+app.register_blueprint(mecanico_routes)
+app.register_blueprint(camion_routes)
 
 @app.route("/")
 def home():
