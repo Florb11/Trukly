@@ -16,7 +16,7 @@ def registrar_chofer():
         "apellido",
         "licencia",
         "vencimientoLicencia",
-        "legajo"
+        "legajo",
     ]
 
     for campo in campos_obligatorios:
@@ -35,25 +35,30 @@ def registrar_chofer():
         password=datos["password"],
         nombre=datos["nombre"],
         apellido=datos["apellido"],
-        estado="pendiente"
+        estado="pendiente",
     )
 
     db.session.add(nuevo_usuario)
-    db.session.flush() #Eso sirve para que SQLAlchemy genere el id_usuario antes del commit, asi podemos usarlo para crear el Chofer
+    db.session.flush()  # Eso sirve para que SQLAlchemy genere el id_usuario antes del commit, asi podemos usarlo para crear el Chofer
 
     # creo el chofer asociado al usuario creado
     nuevo_chofer = ChoferModel(
         Usuario_idUsuario=nuevo_usuario.id_usuario,
         licencia=datos["licencia"],
         vencimientoLicencia=datos["vencimientoLicencia"],
-        legajo=datos["legajo"]
+        legajo=datos["legajo"],
     )
 
     db.session.add(nuevo_chofer)
     db.session.commit()
 
-    return jsonify({
-        "mensaje": "Solicitud de registro enviada correctamente",
-        "usuario": nuevo_usuario.to_dict(),
-        "chofer": nuevo_chofer.to_dict()
-    }), 201
+    return (
+        jsonify(
+            {
+                "mensaje": "Solicitud de registro enviada correctamente",
+                "usuario": nuevo_usuario.to_dict(),
+                "chofer": nuevo_chofer.to_dict(),
+            }
+        ),
+        201,
+    )
