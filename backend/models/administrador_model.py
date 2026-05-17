@@ -1,7 +1,7 @@
 from db import db
 
 
-class Administrador(db.Model):
+class AdministradorModel(db.Model):
     __tablename__ = "Administrador"
 
     Usuario_idUsuario = db.Column(
