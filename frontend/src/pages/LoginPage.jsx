@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaBolt,
   FaClipboardList,
@@ -9,6 +10,54 @@ import "./LoginPage.css";
 import logoTrukly from "../assets/logo-trukly.png";
 
 function LoginPage() {
+  const navigate = useNavigate();
+  const [formulario, setFormulario] = useState({
+    username: "",
+    password: "",
+  });
+
+  const [mensaje, setMensaje] = useState("");
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setFormulario({
+      ...formulario,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setMensaje("");
+    setError("");
+
+    try {
+      const respuesta = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formulario),
+      });
+
+      const data = await respuesta.json();
+
+      if (respuesta.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("usuario", JSON.stringify(data.usuario));
+
+        setMensaje("Inicio de sesion correcto");
+
+        navigate("/dashboardTrucker"); // faltaba agregar el navigate para redirigir
+      } else {
+        setError(data.mensaje || "No se pudo iniciar sesion");
+      }
+    } catch (error) {
+      setError("No se pudo conectar con el backend");
+    }
+  };
+
   return (
     <section className="auth-page login-page">
       <div className="auth-shell">
@@ -66,15 +115,29 @@ function LoginPage() {
             <p>Usá tus credenciales para continuar con la gestión logística.</p>
           </div>
 
-          <form className="auth-form">
+          <form className="auth-form" onSubmit={handleSubmit}>
             <label className="auth-field" htmlFor="username">
               <span>Usuario</span>
-              <input type="text" id="username" placeholder="tu.usuario" />
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value={formulario.username}
+                onChange={handleChange}
+                placeholder="tu.usuario"
+              />
             </label>
 
             <label className="auth-field" htmlFor="password">
               <span>Contraseña</span>
-              <input type="password" id="password" placeholder="••••••••" />
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formulario.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+              />
             </label>
 
             <div className="auth-options">
@@ -87,6 +150,9 @@ function LoginPage() {
 
             <button type="submit">Entrar</button>
           </form>
+
+          {mensaje && <p className="login-mensaje exito">{mensaje}</p>}
+          {error && <p className="login-mensaje error">{error}</p>}
 
           <p className="auth-switch">
             ¿Todavía no tenés cuenta? <Link to="/registro">Solicitá acceso</Link>

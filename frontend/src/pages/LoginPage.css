@@ -270,6 +270,21 @@
   font-size: 14px;
 }
 
+.login-mensaje {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.login-mensaje.exito {
+  color: #0369a1;
+}
+
+.login-mensaje.error {
+  color: #dc2626;
+}
+
 @media (max-width: 920px) {
   .auth-shell {
     grid-template-columns: 1fr;

@@ -6,3 +6,13 @@ class Usuario:
         self.nombre = nombre
         self.apellido = apellido
         self.estado = estado
+        
+    def iniciar_sesion(self, password_ingresada, bcrypt):
+        return bcrypt.check_password_hash(self.password, password_ingresada)
+
+    def esta_activo(self):
+        return self.estado == "activo"
+
+    def cerrar_sesion(self):
+        return True
+        
