@@ -4,6 +4,8 @@ from models.usuario_model import UsuarioModel
 from models.chofer_model import ChoferModel
 from extensions import bcrypt
 from flask_jwt_extended import create_access_token
+from src.Usuario import Usuario
+
 
 
 
@@ -82,17 +84,24 @@ def login():
     if usuario is None:
         return jsonify({"mensaje": "Usuario o contraseña incorrectos"}), 401
 
-    # comparo la contraseña ingresada con la contraseña hasheada
-    password_correcta = bcrypt.check_password_hash(
+    # creo un objeto de la clase Usuario para poder usar sus metodos
+    usuario_clase = Usuario(
+        usuario.id_usuario,
+        usuario.username,
         usuario.password,
-        datos["password"]
+        usuario.nombre,
+        usuario.apellido,
+        usuario.estado
     )
+
+    # uso el metodo iniciar_sesion de la clase Usuario
+    password_correcta = usuario_clase.iniciar_sesion(datos["password"], bcrypt)
 
     if not password_correcta:
         return jsonify({"mensaje": "Usuario o contraseña incorrectos"}), 401
 
-    # verifico que la cuenta este activa
-    if usuario.estado != "activo":
+    # uso el metodo de la clase Usuario para revisar si esta activo
+    if not usuario_clase.esta_activo():
         return jsonify({
             "mensaje": "La cuenta todavia no esta activa"
         }), 403
@@ -123,4 +132,4 @@ def login():
             "estado": usuario.estado,
             "rol": rol
         }
-    }), 200    
+    }), 200
