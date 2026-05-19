@@ -34,6 +34,7 @@ def crear_usuario():
         nombre=datos["nombre"],
         apellido=datos["apellido"],
         estado=datos["estado"],
+        rol=datos["rol"]
     )
 
     # agrego el usuario a la sesion de la base
