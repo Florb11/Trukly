@@ -7,7 +7,17 @@ export function AuthProvider({ children }) {
 
   const [usuario, setUsuario] = useState(() => {
     const usuarioGuardado = localStorage.getItem("usuario");
-    return usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
+
+    if (!usuarioGuardado) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(usuarioGuardado);
+    } catch (error) {
+      localStorage.removeItem("usuario");
+      return null;
+    }
   });
 
   const login = (tokenRecibido, usuarioRecibido) => {

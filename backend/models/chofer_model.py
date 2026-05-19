@@ -10,14 +10,14 @@ class ChoferModel(db.Model):
         primary_key=True
     )
 
-    licencia = db.Column(db.String(45), nullable = False)
-    vencimientoLicencia = db.Column(db.Date, nullable = False)
-    legajo = db.Column(db.String(30), nullable = False)
+    licencia = db.Column(db.String(50), nullable=False)
+    vencimientoLicencia = db.Column(db.Date, nullable=False)
+    legajo = db.Column(db.String(50), nullable=False)
 
     def to_dict(self):
         return {
             "Usuario_idUsuario": self.Usuario_idUsuario,
-            "Licencia": self.licencia,
-            "VencimientoLicencia": self.vencimientoLicencia,
-            "Legajo": self.legajo
+            "licencia": self.licencia,
+            "vencimientoLicencia": self.vencimientoLicencia,
+            "legajo": self.legajo,
         }

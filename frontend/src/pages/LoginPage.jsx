@@ -13,6 +13,7 @@ import { useAuth } from "../context/AuthContext";
 function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+
   const [formulario, setFormulario] = useState({
     username: "",
     password: "",
@@ -26,6 +27,20 @@ function LoginPage() {
       ...formulario,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const redirigirPorRol = (rol) => {
+    if (rol === "admin") {
+      navigate("/dashboardAdmin");
+    } else if (rol === "chofer") {
+      navigate("/dashboardTrucker");
+    } else if (rol === "mecanico") {
+      navigate("/dashboardMechanic");
+    } else if (rol === "operador") {
+      navigate("/dashboardOperator");
+    } else {
+      navigate("/dashboardTrucker");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -47,10 +62,10 @@ function LoginPage() {
 
       if (respuesta.ok) {
         login(data.token, data.usuario);
-        setMensaje("Inicio de sesion correcto");
-        navigate("/dashboardTrucker");
+        setMensaje("Inicio de sesión correcto");
+        redirigirPorRol(data.usuario.rol);
       } else {
-        setError(data.mensaje || "No se pudo iniciar sesion");
+        setError(data.mensaje || "No se pudo iniciar sesión");
       }
     } catch (error) {
       setError("No se pudo conectar con el backend");

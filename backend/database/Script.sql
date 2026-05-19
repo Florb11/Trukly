@@ -9,6 +9,7 @@ CREATE TABLE Usuario (
   nombre VARCHAR(30) NOT NULL,
   apellido VARCHAR(30) NOT NULL,
   estado VARCHAR(45) NOT NULL,
+  rol VARCHAR(50) NOT NULL DEFAULT 'chofer',
   PRIMARY KEY (id_usuario)
 );
 
