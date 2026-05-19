@@ -8,8 +8,10 @@ import {
 } from "react-icons/fa";
 import "./LoginPage.css";
 import logoTrukly from "../assets/logo-trukly.png";
+import { useAuth } from "../context/AuthContext";
 
 function LoginPage() {
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [formulario, setFormulario] = useState({
     username: "",
@@ -44,12 +46,9 @@ function LoginPage() {
       const data = await respuesta.json();
 
       if (respuesta.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("usuario", JSON.stringify(data.usuario));
-
+        login(data.token, data.usuario);
         setMensaje("Inicio de sesion correcto");
-
-        navigate("/dashboardTrucker"); // faltaba agregar el navigate para redirigir
+        navigate("/dashboardTrucker");
       } else {
         setError(data.mensaje || "No se pudo iniciar sesion");
       }
