@@ -97,6 +97,25 @@
   place-items: center;
 }
 
+.navbar-user {
+  color: #e0f2fe;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.logout-button {
+  border: none;
+  background: transparent;
+  color: #edf6ff;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  color: #38bdf8;
+}
+
 @media (max-width: 850px) {
   .trukly-navbar {
     padding: 0 20px;
