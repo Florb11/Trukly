@@ -38,12 +38,13 @@ def registrar_chofer():
 
     # creo el usuario base con estado pendiente
     nuevo_usuario = UsuarioModel(
-        username=datos["username"],
-        password=password_hash,
-        nombre=datos["nombre"],
-        apellido=datos["apellido"],
-        estado="pendiente",
-    )
+    username=datos["username"],
+    password=password_hash,
+    nombre=datos["nombre"],
+    apellido=datos["apellido"],
+    estado="pendiente",
+    rol="chofer",
+)
 
     db.session.add(nuevo_usuario)
     db.session.flush()  # Eso sirve para que SQLAlchemy genere el id_usuario antes del commit, asi podemos usarlo para crear el Chofer
@@ -106,13 +107,8 @@ def login():
             "mensaje": "La cuenta todavia no esta activa"
         }), 403
 
-    # por ahora detectamos si es chofer
-    rol = None
-
-    chofer = ChoferModel.query.get(usuario.id_usuario)
-
-    if chofer:
-        rol = "chofer"
+    # uso el rol guardado en la tabla usuario
+    rol = usuario.rol
 
     # creo el token con datos basicos del usuario
     token = create_access_token(identity={
