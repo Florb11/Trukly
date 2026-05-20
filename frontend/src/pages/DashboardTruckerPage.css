@@ -60,6 +60,19 @@
   margin-top: 14px;
 }
 
+.admin-message {
+  margin: 1rem 0;
+  color: #d1d5db;
+}
+
+.admin-message--error {
+  color: #ff6b6b;
+}
+
+.admin-message--ok {
+  color: #63e68b;
+}
+
 @media (max-width: 760px) {
   .chofer-page__grid {
     grid-template-columns: 1fr;

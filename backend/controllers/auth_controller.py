@@ -143,12 +143,12 @@ def login():
 
     # el controller crea el jwt porque eso pertenece al flujo de autenticacion
     token = create_access_token(
-        identity={
-            "id_usuario": usuario_clase.id_usuario,
-            "username": usuario_clase.username,
-            "rol": usuario_clase.rol,
-        }
-    )
+    identity=str(usuario_clase.id_usuario),
+    additional_claims={
+        "username": usuario_clase.username,
+        "rol": usuario_clase.rol,
+    }
+)
 
     # el controller responde al frontend
     return jsonify(
