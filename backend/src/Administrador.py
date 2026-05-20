@@ -1,6 +1,4 @@
-from src.Usuario import Usuario #Python necesita saber que es Usuario entonces lo importo
-
-
+from src.Usuario import Usuario
 class Administrador(Usuario):
     def __init__(
         self,
@@ -10,14 +8,38 @@ class Administrador(Usuario):
         nombre,
         apellido,
         estado,
+        rol,
         legajo,
-        usuarios_gestionados=None,
-        reportes_falla=None,
-        camiones_gestionados=None,
     ):
-        #El or [] se usa para que, si no te pasan una lista, se cree una lista vacia
-        super().__init__(id_usuario, username, password, nombre, apellido, estado)
+        super().__init__(
+            id_usuario,
+            username,
+            password,
+            nombre,
+            apellido,
+            estado,
+            rol,
+        )
+
         self.legajo = legajo
-        self.usuarios_gestionados = usuarios_gestionados or []
-        self.reportes_falla = reportes_falla or []
-        self.camiones_gestionados = camiones_gestionados or []
+
+    # revisa si puede activar al usuario
+    def puede_activar_usuario(self, usuario):
+        return usuario.estado == "pendiente"
+
+    # cambia el estado del usuario recibido
+    # no guarda en la base, eso lo hace el controller
+    def activar_usuario(self, usuario):
+        usuario.estado = "activo"
+        return usuario
+
+    def to_dict(self):
+        datos_usuario = super().to_dict()
+
+        datos_usuario.update(
+            {
+                "legajo": self.legajo,
+            }
+        )
+
+        return datos_usuario
