@@ -5,6 +5,8 @@ from controllers.administrador_controller import (
     crear_administrador,
     listar_usuarios_pendientes,
     activar_usuario,
+    listar_usuarios,
+    desactivar_usuario,
 )
 
 administrador_routes = Blueprint("administrador_routes", __name__)
@@ -38,3 +40,12 @@ def ruta_listar_usuarios_pendientes():
 @administrador_routes.route("/api/admin/usuarios/<int:id_usuario>/activar", methods=["PUT"])
 def ruta_activar_usuario(id_usuario):
     return activar_usuario(id_usuario)
+
+#ruta listar usuarios todos 
+@administrador_routes.route("/api/admin/usuarios", methods=["GET"])
+def ruta_listar_usuarios():
+    return listar_usuarios()
+#ruta desactivar usuario
+@administrador_routes.route("/api/admin/usuarios/<int:id_usuario>/desactivar", methods=["PUT"])
+def ruta_desactivar_usuario(id_usuario):
+    return desactivar_usuario(id_usuario)
