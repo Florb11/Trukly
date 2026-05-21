@@ -12,6 +12,7 @@ import DashboardTruckerPage from "./pages/DashboardTruckerPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegistroPage from "./pages/RegistroPage";
+import AdminUsuariosPage from "./pages/AdminUsuariosPage";
 
 import "./App.css";
 
@@ -102,7 +103,7 @@ function AppContent() {
 
                 <Route
                   path="/dashboardAdmin/usuarios"
-                  element={<DashboardAdminPage title="Gestión de usuarios" />}
+                  element={<AdminUsuariosPage />}
                 />
 
                 <Route
