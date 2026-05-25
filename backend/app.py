@@ -13,6 +13,8 @@ from routes.operador_routes import operador_routes
 from routes.mecanico_routes import mecanico_routes
 from routes.camion_routes import camion_routes
 from routes.viaje_routes import viaje_routes
+from routes.registro_routes import registro_routes
+from routes.reporte_routes import reporte_routes
 
 load_dotenv()
 
@@ -46,6 +48,9 @@ app.register_blueprint(operador_routes)
 app.register_blueprint(mecanico_routes)
 app.register_blueprint(camion_routes)
 app.register_blueprint(viaje_routes)
+app.register_blueprint(registro_routes)
+app.register_blueprint(reporte_routes)
+
 
 @app.route("/")
 def home():

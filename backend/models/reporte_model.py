@@ -2,7 +2,7 @@ from db import db
 
 
 class ReporteModel(db.Model):
-    __tablename__ = "ReporteIngresoSalida"
+    __tablename__ = "ReporteFalla"
 
     id_reporte = db.Column(db.Integer, primary_key=True, autoincrement=True)
     fecha_hora = db.Column(db.DateTime, nullable=False)
