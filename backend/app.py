@@ -3,8 +3,10 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from sqlalchemy import text
+
 from extensions import bcrypt, jwt
-from db import db
+from db import db, database
+
 from routes.usuario_routes import usuario_routes
 from routes.chofer_routes import chofer_routes
 from routes.auth_routes import auth_routes
@@ -15,6 +17,7 @@ from routes.camion_routes import camion_routes
 from routes.viaje_routes import viaje_routes
 from routes.registro_routes import registro_routes
 from routes.reporte_routes import reporte_routes
+
 
 load_dotenv()
 
@@ -33,13 +36,14 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = os.getenv("SECRET_KEY")
 
-# inicializo sqlalchemy con la app de flask
-db.init_app(app)
-#bcrypt y jwt token
+# inicializo sqlalchemy usando el singleton de la base de datos
+database.init_app(app)
+
+# inicializo bcrypt y jwt
 bcrypt.init_app(app)
 jwt.init_app(app)
 
-# registro las rutas de usuarios
+# registro las rutas
 app.register_blueprint(usuario_routes)
 app.register_blueprint(chofer_routes)
 app.register_blueprint(auth_routes)
