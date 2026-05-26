@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   FaBolt,
   FaClipboardList,
@@ -13,6 +13,10 @@ import { useAuth } from "../context/AuthContext";
 function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const params = new URLSearchParams(location.search);
+  const sesionExpirada = params.get("sesionExpirada");
 
   const [formulario, setFormulario] = useState({
     username: "",
@@ -164,6 +168,12 @@ function LoginPage() {
 
             <button type="submit">Entrar</button>
           </form>
+
+          {sesionExpirada && (
+            <p className="login-mensaje error">
+              Tu sesión expiró, volvé a iniciar sesión.
+            </p>
+          )}
 
           {mensaje && <p className="login-mensaje exito">{mensaje}</p>}
           {error && <p className="login-mensaje error">{error}</p>}

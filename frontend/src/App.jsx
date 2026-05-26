@@ -13,6 +13,8 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegistroPage from "./pages/RegistroPage";
 import AdminUsuariosPage from "./pages/AdminUsuariosPage";
+import NoAutorizadoPage from "./pages/NoAutorizadoPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 import "./App.css";
 
@@ -29,9 +31,11 @@ function AppContent() {
     ? "Panel de administrador"
     : "Panel de chofer";
 
+  const rolPermitido = esDashboardAdmin ? "admin" : "chofer";
+
   if (esDashboard) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute rolPermitido={rolPermitido}>
         <div
           className={`app-shell app-shell--dashboard ${
             esDashboardAdmin ? "app-shell--admin" : ""
@@ -96,10 +100,7 @@ function AppContent() {
                   element={<DashboardTruckerPage title="Configuración" />}
                 />
 
-                <Route
-                  path="/dashboardAdmin"
-                  element={<DashboardAdminPage />}
-                />
+                <Route path="/dashboardAdmin" element={<DashboardAdminPage />} />
 
                 <Route
                   path="/dashboardAdmin/usuarios"
@@ -135,6 +136,8 @@ function AppContent() {
                   path="/dashboardAdmin/configuracion"
                   element={<DashboardAdminPage title="Configuración" />}
                 />
+
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </main>
           </div>
@@ -152,6 +155,8 @@ function AppContent() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/registro" element={<RegistroPage />} />
+          <Route path="/no-autorizado" element={<NoAutorizadoPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
 
