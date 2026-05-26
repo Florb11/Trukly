@@ -6,6 +6,7 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import "./DashboardAdminPage.css";
+import { fetchConToken } from "../utils/fetchConToken";
 
 const adminStats = [
   {
@@ -44,24 +45,21 @@ function DashboardAdminPage({ title = "Panel de administrador" }) {
   const [errorUsuarios, setErrorUsuarios] = useState("");
   const [mensajeUsuarios, setMensajeUsuarios] = useState("");
 
-  const token = localStorage.getItem("token");
-
   const cargarUsuariosPendientes = async () => {
     try {
       setCargandoUsuarios(true);
       setErrorUsuarios("");
 
-      const respuesta = await fetch(
+      const resultado = await fetchConToken(
         "http://localhost:5000/api/admin/usuarios-pendientes",
         {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         }
       );
 
-      const data = await respuesta.json();
+      if (!resultado) return;
+
+      const { respuesta, data } = resultado;
 
       if (!respuesta.ok) {
         throw new Error(
@@ -83,17 +81,16 @@ function DashboardAdminPage({ title = "Panel de administrador" }) {
       setMensajeUsuarios("");
       setErrorUsuarios("");
 
-      const respuesta = await fetch(
+      const resultado = await fetchConToken(
         `http://localhost:5000/api/admin/usuarios/${idUsuario}/activar`,
         {
           method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         }
       );
 
-      const data = await respuesta.json();
+      if (!resultado) return;
+
+      const { respuesta, data } = resultado;
 
       if (!respuesta.ok) {
         throw new Error(

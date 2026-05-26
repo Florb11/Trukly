@@ -20,6 +20,26 @@ function Navbar() {
     navigate("/login");
   };
 
+  const obtenerRutaDashboard = () => {
+    if (usuario?.rol === "admin") {
+      return "/dashboardAdmin";
+    }
+
+    if (usuario?.rol === "chofer") {
+      return "/dashboardTrucker";
+    }
+
+    if (usuario?.rol === "mecanico") {
+      return "/dashboardMechanic";
+    }
+
+    if (usuario?.rol === "operador") {
+      return "/dashboardOperator";
+    }
+
+    return "/login";
+  };
+
   return (
     <nav className="trukly-navbar">
       <Link to="/" className="navbar-brand" onClick={cerrarMenu}>
@@ -61,7 +81,7 @@ function Navbar() {
               <span className="navbar-user">Hola, {usuario?.nombre}</span>
 
               <Link
-                to="/dashboardTrucker"
+                to={obtenerRutaDashboard()}
                 className="login-link"
                 onClick={cerrarMenu}
               >

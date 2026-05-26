@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { fetchConToken } from "../utils/fetchConToken";
 import "./DashboardAdminPage.css";
 
 function AdminUsuariosPage() {
@@ -7,22 +8,21 @@ function AdminUsuariosPage() {
     const [errorUsuarios, setErrorUsuarios] = useState("");
     const [mensajeUsuarios, setMensajeUsuarios] = useState("");
 
-    const token = localStorage.getItem("token");
-    
-
     const cargarUsuarios = async () => {
         try {
             setCargandoUsuarios(true);
             setErrorUsuarios("");
 
-            const respuesta = await fetch("http://localhost:5000/api/admin/usuarios", {
-                method: "GET",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const resultado = await fetchConToken(
+                "http://localhost:5000/api/admin/usuarios",
+                {
+                    method: "GET",
+                }
+            );
 
-            const data = await respuesta.json();
+            if (!resultado) return;
+
+            const { respuesta, data } = resultado;
 
             if (!respuesta.ok) {
                 throw new Error(data.mensaje || data.msg || "Error al cargar usuarios");
@@ -42,17 +42,16 @@ function AdminUsuariosPage() {
             setMensajeUsuarios("");
             setErrorUsuarios("");
 
-            const respuesta = await fetch(
+            const resultado = await fetchConToken(
                 `http://localhost:5000/api/admin/usuarios/${idUsuario}/activar`,
                 {
                     method: "PUT",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
                 }
             );
 
-            const data = await respuesta.json();
+            if (!resultado) return;
+
+            const { respuesta, data } = resultado;
 
             if (!respuesta.ok) {
                 throw new Error(data.mensaje || data.msg || "Error al activar usuario");
@@ -81,17 +80,16 @@ function AdminUsuariosPage() {
             setMensajeUsuarios("");
             setErrorUsuarios("");
 
-            const respuesta = await fetch(
+            const resultado = await fetchConToken(
                 `http://localhost:5000/api/admin/usuarios/${idUsuario}/desactivar`,
                 {
                     method: "PUT",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
                 }
             );
 
-            const data = await respuesta.json();
+            if (!resultado) return;
+
+            const { respuesta, data } = resultado;
 
             if (!respuesta.ok) {
                 throw new Error(
@@ -194,7 +192,8 @@ function AdminUsuariosPage() {
 
                                         <td>
                                             <div className="admin-actions">
-                                                {(usuario.estado === "pendiente" || usuario.estado === "inactivo") && (
+                                                {(usuario.estado === "pendiente" ||
+                                                    usuario.estado === "inactivo") && (
                                                     <button
                                                         type="button"
                                                         className="admin-table__action"

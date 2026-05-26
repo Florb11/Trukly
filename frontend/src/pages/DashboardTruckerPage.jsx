@@ -1,4 +1,5 @@
 import "./DashboardTruckerPage.css";
+import { fetchConToken } from "../utils/fetchConToken";
 
 function DashboardTruckerPage({ title = "Panel del chofer" }) {
   return (
