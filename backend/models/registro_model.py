@@ -1,4 +1,5 @@
-from db import db
+from db_instance import db
+
 
 class RegistroModel(db.Model):
     __tablename__ = "RegistroIngresoSalida"

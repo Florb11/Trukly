@@ -6,7 +6,7 @@ from sqlalchemy import text
 from datetime import timedelta
 
 from extensions import bcrypt, jwt
-from db import db, database
+from db_instance import db, database
 
 from routes.usuario_routes import usuario_routes
 from routes.chofer_routes import chofer_routes

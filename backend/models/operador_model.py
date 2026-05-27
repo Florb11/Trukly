@@ -1,4 +1,5 @@
-from db import db
+from db_instance import db
+
 
 class OperadorModel(db.Model):
     __tablename__ = "OperadorLogistico"
