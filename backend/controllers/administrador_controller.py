@@ -1,7 +1,8 @@
 from flask import jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
-from db import db
+from db_instance import db
+
 from models.administrador_model import AdministradorModel
 from models.usuario_model import UsuarioModel
 from models.chofer_model import ChoferModel

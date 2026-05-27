@@ -1,5 +1,6 @@
 from flask import jsonify, request
-from db import db
+from db_instance import db
+
 from models.chofer_model import ChoferModel
 
 
