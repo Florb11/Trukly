@@ -11,7 +11,7 @@
 }
 
 .admin-dashboard__heading span {
-  color: #dc2626;
+  color: #6d28d9;
   font-size: 13px;
   font-weight: 850;
   text-transform: uppercase;
@@ -24,18 +24,52 @@
   margin: 8px 0 0;
 }
 
-.admin-dashboard__heading button,
+.admin-dashboard__heading button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  background: #059669;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.35);
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.admin-dashboard__heading button:hover {
+  background: #047857;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+  transform: translateY(-1px);
+}
+
+.admin-dashboard__heading button:active {
+  background: #065f46;
+  box-shadow: none;
+  transform: translateY(0);
+}
+
 .admin-table__action {
   border: none;
   border-radius: 7px;
   color: #ffffff;
-  background: #dc2626;
+  background: #7c3aed;
   font-weight: 800;
   cursor: pointer;
+  transition: background 0.18s;
 }
 
-.admin-dashboard__heading button {
-  padding: 11px 16px;
+.admin-table__action:hover {
+  background: #5b21b6;
+}
+
+.admin-table__action:active {
+  background: #4c1d95;
 }
 
 .admin-small-boxes {
@@ -55,18 +89,22 @@
   box-shadow: 0 12px 28px rgba(17, 24, 39, 0.12);
 }
 
+/* Usuarios activos — púrpura principal */
 .admin-small-box--danger {
-  background: #dc2626;
+  background: #7c3aed;
 }
 
+/* Camiones — oscuro neutro, se mantiene */
 .admin-small-box--dark {
   background: #1f2937;
 }
 
+/* Reportes — ámbar, alerta sin ser rojo */
 .admin-small-box--warning {
   background: #b45309;
 }
 
+/* Viajes — teal, operacional */
 .admin-small-box--info {
   background: #0f766e;
 }
@@ -114,7 +152,7 @@
 .admin-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-top: 3px solid #dc2626;
+  border-top: 3px solid #7c3aed;
   border-radius: 7px;
   box-shadow: 0 12px 28px rgba(17, 24, 39, 0.08);
 }
@@ -153,7 +191,7 @@
   flex: 1;
   min-width: 18px;
   border-radius: 7px 7px 0 0;
-  background: linear-gradient(180deg, #ef4444, #991b1b);
+  background: linear-gradient(180deg, #a78bfa, #5b21b6);
 }
 
 .admin-progress-list {
@@ -178,14 +216,14 @@
   margin-top: 8px;
   overflow: hidden;
   border-radius: 999px;
-  background: #fee2e2;
+  background: #ede9fe;
 }
 
 .admin-progress-list i {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: #dc2626;
+  background: #7c3aed;
 }
 
 .admin-table-wrap {
@@ -240,6 +278,28 @@
   padding: 7px 11px;
   font-size: 13px;
 }
+
+/* Activar — púrpura (confirmación) */
+.admin-table__action--activar {
+  background: #7c3aed;
+}
+.admin-table__action--activar:hover { background: #5b21b6; }
+.admin-table__action--activar:active { background: #4c1d95; }
+
+/* Desactivar — rojo (acción destructiva) */
+.admin-table__action--desactivar {
+  background: #dc2626;
+}
+.admin-table__action--desactivar:hover { background: #b91c1c; }
+.admin-table__action--desactivar:active { background: #991b1b; }
+
+/* Editar — ámbar (edición, sin peligro) */
+.admin-table__action--editar {
+  background: #b45309;
+}
+.admin-table__action--editar:hover { background: #92400e; }
+.admin-table__action--editar:active { background: #78350f; }
+
 .admin-actions {
   display: flex;
   gap: 0.5rem;
@@ -248,22 +308,27 @@
 }
 
 .admin-message {
-  margin: 1rem;
-  padding: 0.8rem 1rem;
-  border-radius: 10px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 20px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  border-left: 4px solid;
 }
 
 .admin-message--ok {
-  color: #0f7a3b;
-  background-color: #d9fbe7;
-  border: 1px solid #9be7b5;
+  background: #f0fdf4;
+  color: #166534;
+  border-left-color: #22c55e;
 }
 
 .admin-message--error {
-  color: #b00020;
-  background-color: #ffe1e1;
-  border: 1px solid #ff9f9f;
+  background: #fef2f2;
+  color: #991b1b;
+  border-left-color: #ef4444;
 }
 
 @media (max-width: 1080px) {

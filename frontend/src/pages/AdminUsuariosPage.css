@@ -1,0 +1,368 @@
+.app-shell--admin .dashboard-topbar {
+  background: linear-gradient(90deg, #2e1065, #5b21b6);
+}
+
+.app-shell--admin .dashboard-topbar,
+.app-shell--admin .dashboard-topbar * {
+  color: #ffffff;
+}
+
+.app-shell--admin .dashboard-menu-btn {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+}
+
+.app-shell--admin .dashboard-menu-btn:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+
+.usuarios-page {
+  width: 100%;
+  padding: 0;
+}
+
+
+.usuarios-page__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.usuarios-page__heading-text span {
+  display: block;
+  color: #6d28d9;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.usuarios-page__heading-text h1 {
+  color: #111827;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.btn-nuevo-usuario {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #059669;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.35);
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.btn-nuevo-usuario:hover {
+  background: #047857;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-nuevo-usuario:active {
+  background: #065f46;
+  box-shadow: none;
+  transform: translateY(0);
+}
+
+
+.usuarios-card {
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  border-top: 3px solid #7c3aed;
+  box-shadow: 0 1px 4px rgba(17, 24, 39, 0.06), 0 4px 16px rgba(17, 24, 39, 0.06);
+  overflow: hidden;
+}
+
+.usuarios-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.usuarios-card__header h2 {
+  color: #111827;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.usuarios-card__header span {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+
+.usuarios-feedback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 20px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  border-left: 4px solid;
+}
+
+.usuarios-feedback--ok {
+  background: #f0fdf4;
+  color: #166534;
+  border-left-color: #22c55e;
+}
+
+.usuarios-feedback--error {
+  background: #fef2f2;
+  color: #991b1b;
+  border-left-color: #ef4444;
+}
+
+.usuarios-feedback--loading {
+  background: #f5f3ff;
+  color: #5b21b6;
+  border-left-color: #7c3aed;
+}
+
+
+.usuarios-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.usuarios-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.usuarios-table thead tr {
+  background: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.usuarios-table th {
+  padding: 11px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.usuarios-table td {
+  padding: 14px 16px;
+  color: #1f2937;
+  font-size: 14px;
+  border-bottom: 1px solid #f3f4f6;
+  white-space: nowrap;
+}
+
+.usuarios-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.usuarios-table tbody tr:hover td {
+  background: #faf5ff;
+}
+
+
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.estado-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.estado-badge--activo {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.estado-badge--activo::before {
+  background: #22c55e;
+}
+
+.estado-badge--inactivo,
+.estado-badge--pendiente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.estado-badge--inactivo::before,
+.estado-badge--pendiente::before {
+  background: #f59e0b;
+}
+
+
+.btn-accion {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 13px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.btn-accion:active {
+  transform: scale(0.97);
+}
+
+
+.btn-accion--activar {
+  background: #059669;
+  color: #ffffff;
+}
+.btn-accion--activar:hover { background: #047857; }
+
+
+.btn-accion--desactivar {
+  background: #dc2626;
+  color: #ffffff;
+}
+.btn-accion--desactivar:hover { background: #b91c1c; }
+
+
+.btn-accion--editar {
+  background: #d97706;
+  color: #ffffff;
+}
+.btn-accion--editar:hover { background: #b45309; }
+
+.acciones-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+
+
+.usuarios-cards-mobile {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.usuario-card-mobile {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.usuario-card-mobile__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.usuario-card-mobile__nombre {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.usuario-card-mobile__username {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 1px;
+}
+
+.usuario-card-mobile__body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.usuario-card-mobile__field span {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #9ca3af;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.usuario-card-mobile__field p {
+  font-size: 13px;
+  color: #374151;
+  margin: 0;
+}
+
+.usuario-card-mobile__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+}
+
+
+@media (max-width: 700px) {
+  .usuarios-page__heading-text h1 {
+    font-size: 24px;
+  }
+
+
+  .usuarios-table-wrap {
+    display: none;
+  }
+
+  .usuarios-cards-mobile {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .usuarios-page__heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn-nuevo-usuario {
+    width: 100%;
+    justify-content: center;
+  }
+}
