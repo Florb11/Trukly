@@ -45,6 +45,10 @@ class AuthController:
 
         if usuario_existente:
             return jsonify({"mensaje": "Ya existe un usuario con ese username"}), 409
+        
+        password_valida, mensaje_error = Usuario.validar_password_registro(datos["password"])
+        if not password_valida:
+            return jsonify({"mensaje": mensaje_error}), 400
 
         # hashea la contraseña antes de guardarla
         password_hash = bcrypt.generate_password_hash(
@@ -159,3 +163,5 @@ class AuthController:
             "token": token,
             "usuario": usuario_clase.to_dict(),
         }), 200
+        
+        
