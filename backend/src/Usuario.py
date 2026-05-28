@@ -30,6 +30,9 @@ class Usuario:
     def cerrar_sesion(self):
         return True
     
+    #Usamos staticmethod porque la validacion pertenece a la clase
+    #pero no necesita que exista un objeto de la clase creado
+    #Antes de crear el objeto, validamos si los datos sirven para construirlo
     @staticmethod
     def validar_password_registro(password):
         if not password:

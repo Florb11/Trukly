@@ -42,14 +42,23 @@ class AuthController:
         usuario_existente = UsuarioModel.query.filter_by(
             username=datos["username"]
         ).first()
-
+   
         if usuario_existente:
             return jsonify({"mensaje": "Ya existe un usuario con ese username"}), 409
-        
+        #Valida la contraseña 
         password_valida, mensaje_error = Usuario.validar_password_registro(datos["password"])
         if not password_valida:
             return jsonify({"mensaje": mensaje_error}), 400
-
+        
+        #Validar licencia y vencimiento
+        licencia_valida, mensaje_error = Chofer.validar_licencia(datos["licencia"])
+        if not licencia_valida:
+            return jsonify({"mensaje": mensaje_error}), 400
+        
+        vencimiento_valido, mensaje_error = Chofer.validar_vencimiento_licencia(datos["vencimientoLicencia"])
+        if not vencimiento_valido:
+            return jsonify({"mensaje": mensaje_error}), 400
+    
         # hashea la contraseña antes de guardarla
         password_hash = bcrypt.generate_password_hash(
             datos["password"]
