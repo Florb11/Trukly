@@ -29,3 +29,23 @@ class Usuario:
 
     def cerrar_sesion(self):
         return True
+    
+    #Usamos staticmethod porque la validacion pertenece a la clase
+    #pero no necesita que exista un objeto de la clase creado
+    #Antes de crear el objeto, validamos si los datos sirven para construirlo
+    @staticmethod
+    def validar_password_registro(password):
+        if not password:
+            return False, "La contraseña es obligatoria"
+        if len(password) < 8:
+            return False, "La contraseña debe tener al menos 8 caracteres"
+        
+        tiene_letra = any(caracter.isalpha() for caracter in password)
+        tiene_numero = any(caracter.isdigit() for caracter in password)
+        
+        if not tiene_letra or not tiene_numero:
+            return False, "La contraseña debe contener al menos una letra y un número"
+        
+        return True, None
+    
+    
