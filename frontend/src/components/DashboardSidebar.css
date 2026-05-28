@@ -224,60 +224,60 @@
 /* Admin */
 
 .sidebar--admin {
-  background: linear-gradient(180deg, #450a0a, #111827);
-  border-right-color: rgba(248, 113, 113, 0.22);
+  background: linear-gradient(180deg, #2e1065, #111827);
+  border-right-color: rgba(167, 139, 250, 0.22);
 }
 
 .sidebar--admin .sidebar__header,
 .sidebar--admin .sidebar__footer {
-  border-color: rgba(248, 113, 113, 0.18);
+  border-color: rgba(167, 139, 250, 0.18);
 }
 
 .sidebar--admin .sidebar__logo-icon {
   color: #ffffff;
-  background: linear-gradient(135deg, #dc2626, #991b1b);
+  background: linear-gradient(135deg, #7c3aed, #4c1d95);
 }
 
 .sidebar--admin .sidebar__item-icon {
-  color: #f87171;
+  color: #c4b5fd;
 }
 
 .sidebar--admin .sidebar__item--active {
-  background-color: rgba(220, 38, 38, 0.18);
-  color: #fecaca;
+  background-color: rgba(124, 58, 237, 0.22);
+  color: #ede9fe;
 }
 
 .sidebar--admin .sidebar__item-indicator {
-  background: #dc2626;
+  background: #a78bfa;
 }
 
 .sidebar--admin .sidebar__item:hover {
-  background-color: rgba(220, 38, 38, 0.12);
-  color: #fecaca;
+  background-color: rgba(124, 58, 237, 0.14);
+  color: #ede9fe;
 }
 
 .sidebar--admin .sidebar__logout:hover {
-  background-color: rgba(220, 38, 38, 0.12);
-  color: #fecaca;
+  background-color: rgba(124, 58, 237, 0.14);
+  color: #c4b5fd;
 }
 
 .sidebar--admin .sidebar__avatar {
   color: #ffffff;
-  background: linear-gradient(135deg, #dc2626, #7f1d1d);
+  background: linear-gradient(135deg, #7c3aed, #4c1d95);
 }
 
-/* Topbar admin */
+
 
 .app-shell--admin .dashboard-topbar {
-  background: linear-gradient(90deg, #450a0a, #991b1b);
+  background: linear-gradient(90deg, #2e1065, #5b21b6);
 }
 
 .app-shell--admin .dashboard-menu-btn {
-  background-color: #dc2626;
+  background-color: #7c3aed;
   color: white;
 }
 
-/* Responsive */
+
 
 @media (max-width: 860px) {
   .sidebar {

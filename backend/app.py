@@ -38,7 +38,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = os.getenv("SECRET_KEY")
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=1)
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=60)
 
 # inicializo sqlalchemy usando el singleton de la base de datos
 database.init_app(app)
