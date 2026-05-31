@@ -19,6 +19,10 @@ function AdminUsuariosPage() {
 
     const [usuarioDetalle, setUsuarioDetalle] = useState(null);
 
+    const [busqueda, setBusqueda] = useState("");
+    const [filtroRol, setFiltroRol] = useState("todos");
+    const [filtroEstado, setFiltroEstado] = useState("todos");
+
     const [formEditar, setFormEditar] = useState({
         username: "",
         email: "",
@@ -368,6 +372,26 @@ function AdminUsuariosPage() {
         </div>
     );
 
+    const usuariosFiltrados = usuarios.filter((usuario) => {
+        const textoBusqueda = busqueda.toLowerCase();
+
+        const coincideBusqueda =
+            usuario.id_usuario?.toString().includes(textoBusqueda) ||
+            usuario.username?.toLowerCase().includes(textoBusqueda) ||
+            usuario.email?.toLowerCase().includes(textoBusqueda) ||
+            usuario.nombre?.toLowerCase().includes(textoBusqueda) ||
+            usuario.apellido?.toLowerCase().includes(textoBusqueda) ||
+            usuario.rol?.toLowerCase().includes(textoBusqueda) ||
+            usuario.estado?.toLowerCase().includes(textoBusqueda);
+
+        const coincideRol = filtroRol === "todos" || usuario.rol === filtroRol;
+
+        const coincideEstado =
+            filtroEstado === "todos" || usuario.estado === filtroEstado;
+
+        return coincideBusqueda && coincideRol && coincideEstado;
+    });
+
     return (
         <section className="usuarios-page">
             <div className="usuarios-page__heading">
@@ -391,6 +415,48 @@ function AdminUsuariosPage() {
                     <span>Administrá cuentas y roles</span>
                 </div>
 
+                <div className="usuarios-filtros">
+                    <div className="usuarios-filtro-busqueda">
+                        <label htmlFor="busqueda">Buscar usuario</label>
+                        <input
+                            type="text"
+                            id="busqueda"
+                            value={busqueda}
+                            onChange={(e) => setBusqueda(e.target.value)}
+                            placeholder="Buscar por ID, usuario, email, nombre..."
+                        />
+                    </div>
+
+                    <div className="usuarios-filtro-select">
+                        <label htmlFor="filtroRol">Rol</label>
+                        <select
+                            id="filtroRol"
+                            value={filtroRol}
+                            onChange={(e) => setFiltroRol(e.target.value)}
+                        >
+                            <option value="todos">Todos</option>
+                            <option value="admin">Admin</option>
+                            <option value="chofer">Chofer</option>
+                            <option value="mecanico">Mecánico</option>
+                            <option value="operador">Operador</option>
+                        </select>
+                    </div>
+
+                    <div className="usuarios-filtro-select">
+                        <label htmlFor="filtroEstado">Estado</label>
+                        <select
+                            id="filtroEstado"
+                            value={filtroEstado}
+                            onChange={(e) => setFiltroEstado(e.target.value)}
+                        >
+                            <option value="todos">Todos</option>
+                            <option value="activo">Activo</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+
                 {mensajeUsuarios && (
                     <p className="usuarios-feedback usuarios-feedback--ok">
                         ✓ {mensajeUsuarios}
@@ -409,12 +475,17 @@ function AdminUsuariosPage() {
                     <p className="usuarios-feedback usuarios-feedback--loading">
                         No hay usuarios registrados.
                     </p>
+                ) : usuariosFiltrados.length === 0 ? (
+                    <p className="usuarios-feedback usuarios-feedback--loading">
+                        No se encontraron usuarios con esos filtros.
+                    </p>
                 ) : (
                     <>
                         <div className="usuarios-table-wrap">
                             <table className="usuarios-table">
                                 <thead>
                                     <tr>
+                                        <th>ID</th>
                                         <th>Usuario</th>
                                         <th>Email</th>
                                         <th>Nombre</th>
@@ -427,8 +498,9 @@ function AdminUsuariosPage() {
                                 </thead>
 
                                 <tbody>
-                                    {usuarios.map((usuario) => (
+                                    {usuariosFiltrados.map((usuario) => (
                                         <tr key={usuario.id_usuario}>
+                                            <td>#{usuario.id_usuario}</td>
                                             <td>{usuario.username}</td>
                                             <td>{usuario.email || "-"}</td>
                                             <td>{usuario.nombre}</td>
@@ -448,7 +520,7 @@ function AdminUsuariosPage() {
                         </div>
 
                         <div className="usuarios-cards-mobile">
-                            {usuarios.map((usuario) => (
+                            {usuariosFiltrados.map((usuario) => (
                                 <div key={usuario.id_usuario} className="usuario-card-mobile">
                                     <div className="usuario-card-mobile__header">
                                         <div>
@@ -456,7 +528,7 @@ function AdminUsuariosPage() {
                                                 {usuario.nombre} {usuario.apellido}
                                             </p>
                                             <p className="usuario-card-mobile__username">
-                                                @{usuario.username}
+                                                #{usuario.id_usuario} · @{usuario.username}
                                             </p>
                                         </div>
 
