@@ -27,6 +27,7 @@ class AuthController:
         campos_obligatorios = [
             "username",
             "password",
+            "email",
             "nombre",
             "apellido",
             "licencia",
@@ -45,6 +46,14 @@ class AuthController:
    
         if usuario_existente:
             return jsonify({"mensaje": "Ya existe un usuario con ese username"}), 409
+        # consulta la base para revisar si ya existe ese email
+        email_existente = UsuarioModel.query.filter_by(
+            email=datos["email"]
+        ).first()
+        
+        if email_existente:
+            return jsonify({"mensaje": "Ya existe un usuario con ese email"}), 409
+        
         #Valida la contraseña 
         password_valida, mensaje_error = Usuario.validar_password_registro(datos["password"])
         if not password_valida:
@@ -68,6 +77,7 @@ class AuthController:
         chofer_clase = Chofer(
             None,
             datos["username"],
+            datos["email"],
             password_hash,
             datos["nombre"],
             datos["apellido"],
@@ -81,6 +91,7 @@ class AuthController:
         # crea el registro en la tabla usuario
         nuevo_usuario = UsuarioModel(
             username=chofer_clase.username,
+            email=chofer_clase.email,
             password=chofer_clase.password,
             nombre=chofer_clase.nombre,
             apellido=chofer_clase.apellido,
@@ -137,6 +148,7 @@ class AuthController:
         usuario_clase = Usuario(
             usuario.id_usuario,
             usuario.username,
+             usuario.email,
             usuario.password,
             usuario.nombre,
             usuario.apellido,

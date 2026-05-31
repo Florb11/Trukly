@@ -47,3 +47,8 @@ def ruta_listar_usuarios():
 @administrador_routes.route("/api/admin/usuarios/<int:id_usuario>/desactivar", methods=["PUT"])
 def ruta_desactivar_usuario(id_usuario):
     return AdministradorController.desactivar_usuario(id_usuario)
+
+# ruta modificar usuario
+@administrador_routes.route("/api/admin/usuarios/<int:id_usuario>", methods=["PUT"])
+def ruta_modificar_usuario(id_usuario):
+    return AdministradorController.modificar_usuario(id_usuario)

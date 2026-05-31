@@ -6,6 +6,7 @@ class Administrador(Usuario):
         self,
         id_usuario,
         username,
+        email,
         password,
         nombre,
         apellido,
@@ -16,6 +17,7 @@ class Administrador(Usuario):
         super().__init__(
             id_usuario,
             username,
+            email,
             password,
             nombre,
             apellido,
@@ -25,40 +27,40 @@ class Administrador(Usuario):
 
         self.legajo = legajo
 
-    # activa un usuario si esta pendiente
-    #junte estos dos metodos porque me parecia innecesario mantenerlos separados 
+    # activa un usuario si esta pendiente o inactivo
     def activar_usuario(self, usuario):
-     if usuario.estado not in ["pendiente", "inactivo"]: #agregue inactivo
-        return False
+        if usuario.estado not in ["pendiente", "inactivo"]:
+            return False
 
-     usuario.estado = "activo"
-     return True
- 
-    # desactiva un usuario pasandolo a inactivo (NO ELIMINAMOS LOS USUARIOS LOS DESACTIVAMOS)
+        usuario.estado = "activo"
+        return True
+
+    # desactiva un usuario pasandolo a inactivo
+    # no eliminamos usuarios, los desactivamos
     def desactivar_usuario(self, usuario):
-     if usuario.id_usuario == self.id_usuario:
-        return False
+        if usuario.id_usuario == self.id_usuario:
+            return False
 
-     if usuario.estado != "activo":
-        return False
+        if usuario.estado != "activo":
+            return False
 
-     usuario.estado = "inactivo"
-     return True
- 
+        usuario.estado = "inactivo"
+        return True
 
-    # modifica los datos de un usuario
-    def modificar_usuario(self, usuario, username, nombre, apellido, rol):
+    # modifica los datos generales de un usuario
+    # no modificamos el rol desde aca
+    def modificar_usuario(self, usuario, username, email, nombre, apellido, estado):
         if usuario is None:
             return False
 
         usuario.username = username
+        usuario.email = email
         usuario.nombre = nombre
         usuario.apellido = apellido
-        usuario.rol = rol
+        usuario.estado = estado
         return True
 
-
-    # registra un usuario (sin terminar)
+    # registra un usuario, queda para mas adelante
     def registrar_usuario(self, usuario):
         if usuario is None:
             return False
