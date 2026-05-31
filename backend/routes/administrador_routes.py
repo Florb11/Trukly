@@ -52,3 +52,8 @@ def ruta_desactivar_usuario(id_usuario):
 @administrador_routes.route("/api/admin/usuarios/<int:id_usuario>", methods=["PUT"])
 def ruta_modificar_usuario(id_usuario):
     return AdministradorController.modificar_usuario(id_usuario)
+
+# ruta registrar usuario desde admin
+@administrador_routes.route("/api/admin/usuarios", methods=["POST"])
+def ruta_registrar_usuario():
+    return AdministradorController.registrar_usuario()

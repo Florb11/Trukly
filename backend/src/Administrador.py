@@ -60,9 +60,31 @@ class Administrador(Usuario):
         usuario.estado = estado
         return True
 
-    # registra un usuario, queda para mas adelante
+    # registra un usuario desde el administrador
     def registrar_usuario(self, usuario):
         if usuario is None:
+            return False
+
+        roles_validos = ["admin", "chofer", "mecanico", "operador"]
+
+        if usuario.rol not in roles_validos:
+            return False
+
+        estados_validos = ["pendiente", "activo", "inactivo"]
+
+        if usuario.estado not in estados_validos:
+            return False
+
+        if not usuario.username:
+            return False
+
+        if not usuario.email:
+            return False
+
+        if not usuario.nombre:
+            return False
+
+        if not usuario.apellido:
             return False
 
         return True

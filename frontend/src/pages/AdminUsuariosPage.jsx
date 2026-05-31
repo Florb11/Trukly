@@ -1,15 +1,21 @@
 import { useEffect, useState } from "react";
 import { fetchConToken } from "../utils/fetchConToken";
+import NuevoUsuarioModal from "../components/NuevoUsuarioModal";
+import EditarUsuarioModal from "../components/EditarUsuarioModal";
 import "./AdminUsuariosPage.css";
 
-function AdminUsuariosPage() {
-const [usuarios, setUsuarios] = useState([]);
-const [cargandoUsuarios, setCargandoUsuarios] = useState(true);
-const [errorUsuarios, setErrorUsuarios] = useState("");
-const [mensajeUsuarios, setMensajeUsuarios] = useState("");
 
-const [usuarioEditando, setUsuarioEditando] = useState(null);
-const [errorEditar, setErrorEditar] = useState("");
+function AdminUsuariosPage() {
+    const [usuarios, setUsuarios] = useState([]);
+    const [cargandoUsuarios, setCargandoUsuarios] = useState(true);
+    const [errorUsuarios, setErrorUsuarios] = useState("");
+    const [mensajeUsuarios, setMensajeUsuarios] = useState("");
+
+    const [usuarioEditando, setUsuarioEditando] = useState(null);
+    const [errorEditar, setErrorEditar] = useState("");
+
+    const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false);
+    const [errorNuevo, setErrorNuevo] = useState("");
 
     const [formEditar, setFormEditar] = useState({
         username: "",
@@ -18,6 +24,21 @@ const [errorEditar, setErrorEditar] = useState("");
         apellido: "",
         estado: "",
         password: "",
+        legajo: "",
+        licencia: "",
+        vencimientoLicencia: "",
+        especialidad: "",
+        sector: "",
+    });
+
+    const [formNuevo, setFormNuevo] = useState({
+        username: "",
+        email: "",
+        password: "",
+        nombre: "",
+        apellido: "",
+        estado: "activo",
+        rol: "admin",
         legajo: "",
         licencia: "",
         vencimientoLicencia: "",
@@ -208,6 +229,75 @@ const [errorEditar, setErrorEditar] = useState("");
         }
     };
 
+    const abrirNuevoUsuario = () => {
+        setMostrarModalNuevo(true);
+        setErrorNuevo("");
+        setMensajeUsuarios("");
+        setErrorUsuarios("");
+    };
+
+    const cerrarNuevoUsuario = () => {
+        setMostrarModalNuevo(false);
+        setErrorNuevo("");
+
+        setFormNuevo({
+            username: "",
+            email: "",
+            password: "",
+            nombre: "",
+            apellido: "",
+            estado: "activo",
+            rol: "admin",
+            legajo: "",
+            licencia: "",
+            vencimientoLicencia: "",
+            especialidad: "",
+            sector: "",
+        });
+    };
+
+    const handleNuevoChange = (e) => {
+        setFormNuevo({
+            ...formNuevo,
+            [e.target.name]: e.target.value,
+        });
+    };
+
+    const guardarNuevoUsuario = async (e) => {
+        e.preventDefault();
+
+        try {
+            setErrorNuevo("");
+            setMensajeUsuarios("");
+            setErrorUsuarios("");
+
+            const resultado = await fetchConToken(
+                "http://localhost:5000/api/admin/usuarios",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formNuevo),
+                }
+            );
+
+            if (!resultado) return;
+
+            const { respuesta, data } = resultado;
+
+            if (!respuesta.ok) {
+                throw new Error(data.mensaje || data.msg || "Error al registrar usuario");
+            }
+
+            setUsuarios((prev) => [...prev, data.usuario]);
+            setMensajeUsuarios(data.mensaje || "Usuario registrado correctamente");
+            cerrarNuevoUsuario();
+        } catch (error) {
+            setErrorNuevo(error.message);
+        }
+    };
+
     useEffect(() => {
         cargarUsuarios();
     }, []);
@@ -266,7 +356,11 @@ const [errorEditar, setErrorEditar] = useState("");
                     <h1>Gestión de usuarios</h1>
                 </div>
 
-                <button type="button" className="btn-nuevo-usuario">
+                <button
+                    type="button"
+                    className="btn-nuevo-usuario"
+                    onClick={abrirNuevoUsuario}
+                >
                     + Nuevo usuario
                 </button>
             </div>
@@ -378,161 +472,25 @@ const [errorEditar, setErrorEditar] = useState("");
                 )}
             </article>
 
+            {mostrarModalNuevo && (
+                <NuevoUsuarioModal
+                    formNuevo={formNuevo}
+                    errorNuevo={errorNuevo}
+                    onChange={handleNuevoChange}
+                    onSubmit={guardarNuevoUsuario}
+                    onClose={cerrarNuevoUsuario}
+                />
+            )}
+
             {usuarioEditando && (
-                <div className="usuarios-modal-backdrop">
-                    <div className="usuarios-modal">
-                        <div className="usuarios-modal__header">
-                            <div>
-                                <span>Editar usuario</span>
-                                <h2>{usuarioEditando.username}</h2>
-                            </div>
-
-                            <button type="button" onClick={cerrarEditarUsuario}>
-                                ×
-                            </button>
-                        </div>
-
-                        {errorEditar && (
-                            <p className="usuarios-feedback usuarios-feedback--error">
-                                {errorEditar}
-                            </p>
-                        )}
-
-                        <form className="usuarios-form" onSubmit={guardarEdicionUsuario}>
-                            <label>
-                                Usuario
-                                <input
-                                    type="text"
-                                    name="username"
-                                    value={formEditar.username}
-                                    onChange={handleEditarChange}
-                                />
-                            </label>
-
-                            <label>
-                                Email
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formEditar.email}
-                                    onChange={handleEditarChange}
-                                />
-                            </label>
-
-                            <label>
-                                Nombre
-                                <input
-                                    type="text"
-                                    name="nombre"
-                                    value={formEditar.nombre}
-                                    onChange={handleEditarChange}
-                                />
-                            </label>
-
-                            <label>
-                                Apellido
-                                <input
-                                    type="text"
-                                    name="apellido"
-                                    value={formEditar.apellido}
-                                    onChange={handleEditarChange}
-                                />
-                            </label>
-
-                            <label>
-                                Estado
-                                <select
-                                    name="estado"
-                                    value={formEditar.estado}
-                                    onChange={handleEditarChange}
-                                >
-                                    <option value="pendiente">Pendiente</option>
-                                    <option value="activo">Activo</option>
-                                    <option value="inactivo">Inactivo</option>
-                                </select>
-                            </label>
-
-                            <label>
-                                Nueva contraseña
-                                <input
-                                    type="password"
-                                    name="password"
-                                    value={formEditar.password}
-                                    onChange={handleEditarChange}
-                                    placeholder="Dejar vacío para no cambiar"
-                                />
-                            </label>
-
-                            <label>
-                                Legajo
-                                <input
-                                    type="text"
-                                    name="legajo"
-                                    value={formEditar.legajo}
-                                    onChange={handleEditarChange}
-                                />
-                            </label>
-
-                            {usuarioEditando.rol === "chofer" && (
-                                <>
-                                    <label>
-                                        Licencia
-                                        <input
-                                            type="text"
-                                            name="licencia"
-                                            value={formEditar.licencia}
-                                            onChange={handleEditarChange}
-                                        />
-                                    </label>
-
-                                    <label>
-                                        Vencimiento licencia
-                                        <input
-                                            type="date"
-                                            name="vencimientoLicencia"
-                                            value={formEditar.vencimientoLicencia}
-                                            onChange={handleEditarChange}
-                                        />
-                                    </label>
-                                </>
-                            )}
-
-                            {usuarioEditando.rol === "mecanico" && (
-                                <label>
-                                    Especialidad
-                                    <input
-                                        type="text"
-                                        name="especialidad"
-                                        value={formEditar.especialidad}
-                                        onChange={handleEditarChange}
-                                    />
-                                </label>
-                            )}
-
-                            {usuarioEditando.rol === "operador" && (
-                                <label>
-                                    Sector
-                                    <input
-                                        type="text"
-                                        name="sector"
-                                        value={formEditar.sector}
-                                        onChange={handleEditarChange}
-                                    />
-                                </label>
-                            )}
-
-                            <div className="usuarios-modal__actions">
-                                <button type="button" onClick={cerrarEditarUsuario}>
-                                    Cancelar
-                                </button>
-
-                                <button type="submit">
-                                    Guardar cambios
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <EditarUsuarioModal
+                    usuarioEditando={usuarioEditando}
+                    formEditar={formEditar}
+                    errorEditar={errorEditar}
+                    onChange={handleEditarChange}
+                    onSubmit={guardarEdicionUsuario}
+                    onClose={cerrarEditarUsuario}
+                />
             )}
         </section>
     );
