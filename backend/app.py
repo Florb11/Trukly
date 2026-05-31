@@ -22,6 +22,7 @@ from routes.reporte_routes import reporte_routes
 
 
 
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -58,6 +59,7 @@ app.register_blueprint(camion_routes)
 app.register_blueprint(viaje_routes)
 app.register_blueprint(registro_routes)
 app.register_blueprint(reporte_routes)
+
 
 
 @app.route("/")
