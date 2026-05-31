@@ -16,6 +16,8 @@ import AdminUsuariosPage from "./pages/AdminUsuariosPage";
 import NoAutorizadoPage from "./pages/NoAutorizadoPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminCamionesPage from "./pages/AdminCamionesPage";
+import DashboardOperatorPage from "./pages/DashboardOperatorPage";
+import OperadorViajePage from "./pages/OperadorViajePage";
 
 import "./App.css";
 
@@ -25,14 +27,23 @@ function AppContent() {
 
   const esDashboardTrucker = location.pathname.startsWith("/dashboardTrucker");
   const esDashboardAdmin = location.pathname.startsWith("/dashboardAdmin");
+  const esDashboardOperator =
+    location.pathname.startsWith("/dashboardOperator");
 
-  const esDashboard = esDashboardTrucker || esDashboardAdmin;
+  const esDashboard =
+    esDashboardTrucker || esDashboardAdmin || esDashboardOperator;
 
   const tituloPanel = esDashboardAdmin
     ? "Panel de administrador"
-    : "Panel de chofer";
+    : esDashboardOperator
+      ? "Panel de operador logístico"
+      : "Panel de chofer";
 
-  const rolPermitido = esDashboardAdmin ? "admin" : "chofer";
+  const rolPermitido = esDashboardAdmin
+    ? "admin"
+    : esDashboardOperator
+      ? "operador"
+      : "chofer";
 
   if (esDashboard) {
     return (
@@ -101,7 +112,10 @@ function AppContent() {
                   element={<DashboardTruckerPage title="Configuración" />}
                 />
 
-                <Route path="/dashboardAdmin" element={<DashboardAdminPage />} />
+                <Route
+                  path="/dashboardAdmin"
+                  element={<DashboardAdminPage />}
+                />
 
                 <Route
                   path="/dashboardAdmin/usuarios"
@@ -109,9 +123,9 @@ function AppContent() {
                 />
 
                 <Route
-  path="/dashboardAdmin/camiones"
-  element={<AdminCamionesPage />}
-/>
+                  path="/dashboardAdmin/camiones"
+                  element={<AdminCamionesPage />}
+                />
 
                 <Route
                   path="/dashboardAdmin/reportes"
@@ -136,6 +150,17 @@ function AppContent() {
                 <Route
                   path="/dashboardAdmin/configuracion"
                   element={<DashboardAdminPage title="Configuración" />}
+                />
+
+                <Route
+                  path="/dashboardOperator"
+                  element={<DashboardOperatorPage />}
+                />
+
+              
+                <Route
+                  path="/dashboardOperator/crear-viaje"
+                  element={<OperadorViajePage />}
                 />
 
                 <Route path="*" element={<NotFoundPage />} />
