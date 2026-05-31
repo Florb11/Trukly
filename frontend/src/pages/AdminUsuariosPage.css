@@ -337,6 +337,15 @@
   border-top: 1px solid #e5e7eb;
 }
 
+.btn-accion--detalle {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.btn-accion--detalle:hover {
+    background: #1d4ed8;
+}
+
 @media (max-width: 700px) {
   .usuarios-page__heading-text h1 {
     font-size: 24px;
