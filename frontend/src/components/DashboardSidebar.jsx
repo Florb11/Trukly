@@ -184,7 +184,7 @@ const menusPorRol = {
           { label: "Inicio", path: "/dashboardOperator", icon: <FaHome /> },
           {
             label: "Viajes",
-            path: "/dashboardOperator/viajes",
+            path: "/dashboardOperator/crear-viaje",
             icon: <FaTruckLoading />,
           },
           {
