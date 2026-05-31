@@ -7,6 +7,7 @@ class Mecanico(Usuario):
         idUsuario,
         username,
         password,
+        email,
         nombre,
         apellido,
         estado,

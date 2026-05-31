@@ -9,6 +9,7 @@ function RegistroPage() {
     nombre: "",
     apellido: "",
     username: "",
+    email: "",
     licencia: "",
     vencimientoLicencia: "",
     password: "",
@@ -49,6 +50,7 @@ function RegistroPage() {
           nombre: "",
           apellido: "",
           username: "",
+          email: "",
           licencia: "",
           vencimientoLicencia: "",
           password: "",
@@ -83,8 +85,9 @@ function RegistroPage() {
                 <FaIdCard />
               </span>
               <strong>Datos personales</strong>
-              <p>Nombre, usuario y licencia para identificar tu perfil.</p>
+              <p>Nombre, usuario, email y licencia para identificar tu perfil.</p>
             </div>
+
             <div>
               <span>
                 <FaShieldAlt />
@@ -143,6 +146,18 @@ function RegistroPage() {
                 value={formulario.username}
                 onChange={handleChange}
                 placeholder="Elegí un nombre de usuario"
+              />
+            </label>
+
+            <label className="registro-field" htmlFor="email-registro">
+              <span>Email</span>
+              <input
+                type="email"
+                id="email-registro"
+                name="email"
+                value={formulario.email}
+                onChange={handleChange}
+                placeholder="Ingresá tu email"
               />
             </label>
 

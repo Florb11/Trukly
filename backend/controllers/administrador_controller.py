@@ -12,6 +12,9 @@ from models.operador_model import OperadorModel
 from src.Administrador import Administrador
 from src.Usuario import Usuario
 
+from extensions import bcrypt
+from src.Chofer import Chofer
+
 #Ahora el controlador es una clase que contiene todos los metodos
 #Usamos staticmethod porque no necesitamos crear un objeto del controlador 
 #Porque este controller no necesita guardar informacion entre requests. Cada request llega, se procesa y termina.
@@ -84,6 +87,7 @@ class AdministradorController:
         admin = Administrador(
             usuario.id_usuario,
             usuario.username,
+            usuario.email,
             usuario.password,
             usuario.nombre,
             usuario.apellido,
@@ -114,6 +118,7 @@ class AdministradorController:
         usuario_clase = Usuario(
             usuario_db.id_usuario,
             usuario_db.username,
+            usuario_db.email,
             usuario_db.password,
             usuario_db.nombre,
             usuario_db.apellido,
@@ -157,6 +162,7 @@ class AdministradorController:
         usuario_clase = Usuario(
             usuario_db.id_usuario,
             usuario_db.username,
+            usuario_db.email,
             usuario_db.password,
             usuario_db.nombre,
             usuario_db.apellido,
@@ -275,4 +281,148 @@ class AdministradorController:
         return jsonify({
             "mensaje": "Usuarios obtenidos correctamente",
             "usuarios": usuarios
+        }), 200
+        
+    @staticmethod
+    @jwt_required()
+    def modificar_usuario(id_usuario):
+        # obtengo el administrador que esta haciendo la accion
+        admin = AdministradorController.obtener_admin_actual()
+
+        if admin is None:
+            return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
+
+        datos = request.get_json()
+
+        # busco el usuario en la base
+        usuario_db = UsuarioModel.query.get(id_usuario)
+
+        if usuario_db is None:
+            return jsonify({"mensaje": "Usuario no encontrado"}), 404
+
+        # si cambia el username, reviso que no exista otro usuario con ese username
+        nuevo_username = datos.get("username", usuario_db.username)
+
+        usuario_existente = UsuarioModel.query.filter_by(
+            username=nuevo_username
+        ).first()
+
+        if usuario_existente and usuario_existente.id_usuario != usuario_db.id_usuario:
+            return jsonify({"mensaje": "Ya existe un usuario con ese username"}), 409
+        
+        #email
+        nuevo_email = datos.get("email", usuario_db.email)
+
+        email_existente = UsuarioModel.query.filter_by(
+        email=nuevo_email
+         ).first()
+
+        if email_existente and email_existente.id_usuario != usuario_db.id_usuario:
+            return jsonify({"mensaje": "Ya existe un usuario con ese email"}), 409
+
+        # paso los datos del modelo a un objeto Usuario para usar la logica de la clase
+        usuario_clase = Usuario(
+            usuario_db.id_usuario,
+            usuario_db.username,
+            usuario_db.email,
+            usuario_db.password,
+            usuario_db.nombre,
+            usuario_db.apellido,
+            usuario_db.estado,
+            usuario_db.rol,
+        )
+
+        nombre = datos.get("nombre", usuario_db.nombre)
+        apellido = datos.get("apellido", usuario_db.apellido)
+        estado = datos.get("estado", usuario_db.estado)
+
+        accion_realizada = admin.modificar_usuario(
+            usuario_clase,
+            nuevo_username,
+            nuevo_email,
+            nombre,
+            apellido,
+            estado
+        )
+
+        if not accion_realizada:
+            return jsonify({"mensaje": "No se pudo modificar el usuario"}), 400
+
+        # copio los cambios generales al modelo
+        usuario_db.username = usuario_clase.username
+        usuario_db.email = usuario_clase.email
+        usuario_db.nombre = usuario_clase.nombre
+        usuario_db.apellido = usuario_clase.apellido
+        usuario_db.estado = usuario_clase.estado
+
+        # si viene password y no esta vacio, la valido y la hasheo
+        if "password" in datos and datos["password"] != "":
+            password_valida, mensaje_error = Usuario.validar_password_registro(
+                datos["password"]
+            )
+
+            if not password_valida:
+                return jsonify({"mensaje": mensaje_error}), 400
+
+            usuario_db.password = bcrypt.generate_password_hash(
+                datos["password"]
+            ).decode("utf-8")
+
+        # actualizo datos especificos segun el rol actual del usuario
+        if usuario_db.rol == "admin":
+            administrador = AdministradorModel.query.get(usuario_db.id_usuario)
+
+            if administrador:
+                administrador.legajo = datos.get("legajo", administrador.legajo)
+
+        elif usuario_db.rol == "chofer":
+            chofer = ChoferModel.query.get(usuario_db.id_usuario)
+
+            if chofer:
+                nueva_licencia = datos.get("licencia", chofer.licencia)
+                nuevo_vencimiento = datos.get(
+                    "vencimientoLicencia",
+                    str(chofer.vencimientoLicencia)
+                )
+
+                licencia_valida, mensaje_error = Chofer.validar_licencia(
+                    nueva_licencia
+                )
+
+                if not licencia_valida:
+                    return jsonify({"mensaje": mensaje_error}), 400
+
+                vencimiento_valido, mensaje_error = Chofer.validar_vencimiento_licencia(
+                    nuevo_vencimiento
+                )
+
+                if not vencimiento_valido:
+                    return jsonify({"mensaje": mensaje_error}), 400
+
+                chofer.legajo = datos.get("legajo", chofer.legajo)
+                chofer.licencia = nueva_licencia
+                chofer.vencimientoLicencia = nuevo_vencimiento
+
+        elif usuario_db.rol == "mecanico":
+            mecanico = MecanicoModel.query.get(usuario_db.id_usuario)
+
+            if mecanico:
+                mecanico.legajo = datos.get("legajo", mecanico.legajo)
+                mecanico.especialidad = datos.get(
+                    "especialidad",
+                    mecanico.especialidad
+                )
+
+        elif usuario_db.rol == "operador":
+            operador = OperadorModel.query.get(usuario_db.id_usuario)
+
+            if operador:
+                operador.legajo = datos.get("legajo", operador.legajo)
+                operador.sector = datos.get("sector", operador.sector)
+
+        db.session.commit()
+
+        return jsonify({
+            "mensaje": "Usuario modificado correctamente",
+            "usuario": usuario_db.to_dict()
         }), 200
