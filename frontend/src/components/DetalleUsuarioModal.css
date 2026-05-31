@@ -1,0 +1,145 @@
+.detalle-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.detalle-modal {
+  width: 100%;
+  max-width: 720px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+  overflow: hidden;
+}
+
+.detalle-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 28px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.detalle-modal-kicker {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  color: #dc2626;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.detalle-modal-header h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 1.5rem;
+}
+
+.detalle-modal-close {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.detalle-modal-close:hover {
+  color: #dc2626;
+}
+
+.detalle-modal-body {
+  padding: 24px 28px;
+}
+
+.detalle-section {
+  margin-bottom: 24px;
+}
+
+.detalle-section:last-child {
+  margin-bottom: 0;
+}
+
+.detalle-section h3 {
+  margin: 0 0 14px;
+  color: #111827;
+  font-size: 1rem;
+}
+
+.detalle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.detalle-grid div {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.detalle-grid span {
+  display: block;
+  margin-bottom: 5px;
+  color: #6b7280;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.detalle-grid p {
+  margin: 0;
+  color: #111827;
+  font-weight: 600;
+}
+
+.detalle-empty {
+  margin: 0;
+  color: #6b7280;
+  background: #f9fafb;
+  border: 1px dashed #d1d5db;
+  padding: 14px;
+  border-radius: 12px;
+}
+
+.detalle-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 18px 28px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.detalle-btn-cerrar {
+  border: none;
+  border-radius: 10px;
+  background: #111827;
+  color: #ffffff;
+  padding: 10px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.detalle-btn-cerrar:hover {
+  background: #374151;
+}
+
+@media (max-width: 640px) {
+  .detalle-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detalle-modal-header,
+  .detalle-modal-body,
+  .detalle-modal-footer {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}

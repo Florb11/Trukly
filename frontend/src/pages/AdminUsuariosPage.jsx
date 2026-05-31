@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { fetchConToken } from "../utils/fetchConToken";
 import NuevoUsuarioModal from "../components/NuevoUsuarioModal";
 import EditarUsuarioModal from "../components/EditarUsuarioModal";
+import DetalleUsuarioModal from "../components/DetalleUsuarioModal";
 import "./AdminUsuariosPage.css";
-
 
 function AdminUsuariosPage() {
     const [usuarios, setUsuarios] = useState([]);
@@ -16,6 +16,8 @@ function AdminUsuariosPage() {
 
     const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false);
     const [errorNuevo, setErrorNuevo] = useState("");
+
+    const [usuarioDetalle, setUsuarioDetalle] = useState(null);
 
     const [formEditar, setFormEditar] = useState({
         username: "",
@@ -131,6 +133,16 @@ function AdminUsuariosPage() {
         } catch (error) {
             setErrorUsuarios(error.message);
         }
+    };
+
+    const abrirDetalleUsuario = (usuario) => {
+        setUsuarioDetalle(usuario);
+        setMensajeUsuarios("");
+        setErrorUsuarios("");
+    };
+
+    const cerrarDetalleUsuario = () => {
+        setUsuarioDetalle(null);
     };
 
     const abrirEditarUsuario = (usuario) => {
@@ -318,6 +330,14 @@ function AdminUsuariosPage() {
 
     const renderAcciones = (usuario) => (
         <div className="acciones-group">
+            <button
+                type="button"
+                className="btn-accion btn-accion--detalle"
+                onClick={() => abrirDetalleUsuario(usuario)}
+            >
+                Ver detalle
+            </button>
+
             {(usuario.estado === "pendiente" || usuario.estado === "inactivo") && (
                 <button
                     type="button"
@@ -490,6 +510,13 @@ function AdminUsuariosPage() {
                     onChange={handleEditarChange}
                     onSubmit={guardarEdicionUsuario}
                     onClose={cerrarEditarUsuario}
+                />
+            )}
+
+            {usuarioDetalle && (
+                <DetalleUsuarioModal
+                    usuario={usuarioDetalle}
+                    onClose={cerrarDetalleUsuario}
                 />
             )}
         </section>
