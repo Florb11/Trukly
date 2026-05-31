@@ -1,0 +1,103 @@
+.usuarios-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(8, 12, 24, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.usuarios-modal {
+  width: min(620px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.usuarios-modal__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.usuarios-modal__header span {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.85rem;
+}
+
+.usuarios-modal__header h2 {
+  margin: 4px 0 0;
+  color: #ffffff;
+}
+
+.usuarios-modal__header button {
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 30px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.usuarios-form {
+  display: grid;
+  gap: 14px;
+}
+
+.usuarios-form label {
+  display: grid;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.9rem;
+}
+
+.usuarios-form input,
+.usuarios-form select {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 11px 12px;
+  outline: none;
+}
+
+.usuarios-form select option {
+  color: #111827;
+}
+
+.usuarios-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.usuarios-modal__actions button {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.usuarios-modal__actions button[type="button"] {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.usuarios-modal__actions button[type="submit"] {
+  background: #059669;
+  color: #ffffff;
+}
+
+.usuarios-modal .usuarios-feedback {
+  margin: 0 0 14px;
+}

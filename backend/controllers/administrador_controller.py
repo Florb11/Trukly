@@ -426,3 +426,178 @@ class AdministradorController:
             "mensaje": "Usuario modificado correctamente",
             "usuario": usuario_db.to_dict()
         }), 200
+        
+    @staticmethod
+    @jwt_required()
+    def registrar_usuario():
+        # obtengo el administrador que esta haciendo la accion
+        admin = AdministradorController.obtener_admin_actual()
+
+        if admin is None:
+            return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
+
+        datos = request.get_json()
+
+        campos_obligatorios = [
+            "username",
+            "email",
+            "password",
+            "nombre",
+            "apellido",
+            "estado",
+            "rol",
+            "legajo",
+        ]
+
+        for campo in campos_obligatorios:
+            if campo not in datos or datos[campo] == "":
+                return jsonify({"mensaje": f"Falta el campo {campo}"}), 400
+
+        roles_validos = ["admin", "chofer", "mecanico", "operador"]
+
+        if datos["rol"] not in roles_validos:
+            return jsonify({"mensaje": "Rol no valido"}), 400
+
+        estados_validos = ["pendiente", "activo", "inactivo"]
+
+        if datos["estado"] not in estados_validos:
+            return jsonify({"mensaje": "Estado no valido"}), 400
+
+        usuario_existente = UsuarioModel.query.filter_by(
+            username=datos["username"]
+        ).first()
+
+        if usuario_existente:
+            return jsonify({"mensaje": "Ya existe un usuario con ese username"}), 409
+
+        email_existente = UsuarioModel.query.filter_by(
+            email=datos["email"]
+        ).first()
+
+        if email_existente:
+            return jsonify({"mensaje": "Ya existe un usuario con ese email"}), 409
+
+        password_valida, mensaje_error = Usuario.validar_password_registro(
+            datos["password"]
+        )
+
+        if not password_valida:
+            return jsonify({"mensaje": mensaje_error}), 400
+
+        if datos["rol"] == "chofer":
+            if "licencia" not in datos or datos["licencia"] == "":
+                return jsonify({"mensaje": "Falta el campo licencia"}), 400
+
+            if "vencimientoLicencia" not in datos or datos["vencimientoLicencia"] == "":
+                return jsonify({"mensaje": "Falta el campo vencimientoLicencia"}), 400
+
+            licencia_valida, mensaje_error = Chofer.validar_licencia(
+                datos["licencia"]
+            )
+
+            if not licencia_valida:
+                return jsonify({"mensaje": mensaje_error}), 400
+
+            vencimiento_valido, mensaje_error = Chofer.validar_vencimiento_licencia(
+                datos["vencimientoLicencia"]
+            )
+
+            if not vencimiento_valido:
+                return jsonify({"mensaje": mensaje_error}), 400
+
+        if datos["rol"] == "mecanico":
+            if "especialidad" not in datos or datos["especialidad"] == "":
+                return jsonify({"mensaje": "Falta el campo especialidad"}), 400
+
+        if datos["rol"] == "operador":
+            if "sector" not in datos or datos["sector"] == "":
+                return jsonify({"mensaje": "Falta el campo sector"}), 400
+
+        password_hash = bcrypt.generate_password_hash(
+            datos["password"]
+        ).decode("utf-8")
+
+        usuario_clase = Usuario(
+            None,
+            datos["username"],
+            datos["email"],
+            password_hash,
+            datos["nombre"],
+            datos["apellido"],
+            datos["estado"],
+            datos["rol"],
+        )
+
+        accion_realizada = admin.registrar_usuario(usuario_clase)
+
+        if not accion_realizada:
+            return jsonify({"mensaje": "No se pudo registrar el usuario"}), 400
+
+        nuevo_usuario = UsuarioModel(
+            username=usuario_clase.username,
+            email=usuario_clase.email,
+            password=usuario_clase.password,
+            nombre=usuario_clase.nombre,
+            apellido=usuario_clase.apellido,
+            estado=usuario_clase.estado,
+            rol=usuario_clase.rol,
+        )
+
+        db.session.add(nuevo_usuario)
+        db.session.flush()
+
+        if datos["rol"] == "admin":
+            nuevo_especifico = AdministradorModel(
+                Usuario_idUsuario=nuevo_usuario.id_usuario,
+                legajo=datos["legajo"],
+            )
+
+        elif datos["rol"] == "chofer":
+            nuevo_especifico = ChoferModel(
+                Usuario_idUsuario=nuevo_usuario.id_usuario,
+                licencia=datos["licencia"],
+                vencimientoLicencia=datos["vencimientoLicencia"],
+                legajo=datos["legajo"],
+            )
+
+        elif datos["rol"] == "mecanico":
+            nuevo_especifico = MecanicoModel(
+                Usuario_idUsuario=nuevo_usuario.id_usuario,
+                legajo=datos["legajo"],
+                especialidad=datos["especialidad"],
+            )
+
+        elif datos["rol"] == "operador":
+            nuevo_especifico = OperadorModel(
+                Usuario_idUsuario=nuevo_usuario.id_usuario,
+                legajo=datos["legajo"],
+                sector=datos["sector"],
+            )
+
+        db.session.add(nuevo_especifico)
+        db.session.commit()
+
+        datos_usuario = nuevo_usuario.to_dict()
+
+        if datos["rol"] == "admin":
+            datos_usuario["legajo"] = nuevo_especifico.legajo
+
+        elif datos["rol"] == "chofer":
+            datos_usuario["legajo"] = nuevo_especifico.legajo
+            datos_usuario["licencia"] = nuevo_especifico.licencia
+            datos_usuario["vencimientoLicencia"] = str(
+                nuevo_especifico.vencimientoLicencia
+            )
+
+        elif datos["rol"] == "mecanico":
+            datos_usuario["legajo"] = nuevo_especifico.legajo
+            datos_usuario["especialidad"] = nuevo_especifico.especialidad
+
+        elif datos["rol"] == "operador":
+            datos_usuario["legajo"] = nuevo_especifico.legajo
+            datos_usuario["sector"] = nuevo_especifico.sector
+
+        return jsonify({
+            "mensaje": "Usuario registrado correctamente",
+            "usuario": datos_usuario
+        }), 201    
