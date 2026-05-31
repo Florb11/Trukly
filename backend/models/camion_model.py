@@ -4,7 +4,6 @@ from db_instance import db
 class CamionModel(db.Model):
     __tablename__ = "Camion"
 
-    
     id_camion = db.Column(db.Integer, primary_key=True, autoincrement=True)
     matricula = db.Column(db.String(15), nullable=False, unique=True)
     marca = db.Column(db.String(20), nullable=False)
@@ -21,5 +20,5 @@ class CamionModel(db.Model):
             "modelo": self.modelo,
             "capacidad_carga": self.capacidad_carga,
             "estado": self.estado,
-            "nroTanque": self.nroTanque
+            "nroTanque": self.nroTanque,
         }

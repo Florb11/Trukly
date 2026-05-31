@@ -100,3 +100,36 @@ class Administrador(Usuario):
         )
 
         return datos_usuario
+    
+     # registra un camion desde el administrador
+    def registrar_camion(self, camion):
+        if camion is None:
+            return False
+
+        if not camion.validar_datos():
+            return False
+
+        if not camion.validar_estado():
+            return False
+
+        return True
+
+    # modifica los datos de un camion
+    def modificar_camion(self, camion):
+        if camion is None:
+            return False
+
+        if not camion.validar_datos():
+            return False
+
+        if not camion.validar_estado():
+            return False
+
+        return True
+
+    # cambia el estado de un camion
+    def cambiar_estado_camion(self, camion, nuevo_estado):
+        if camion is None:
+            return False
+
+        return camion.cambiar_estado(nuevo_estado)

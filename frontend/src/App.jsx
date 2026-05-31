@@ -15,6 +15,7 @@ import RegistroPage from "./pages/RegistroPage";
 import AdminUsuariosPage from "./pages/AdminUsuariosPage";
 import NoAutorizadoPage from "./pages/NoAutorizadoPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import AdminCamionesPage from "./pages/AdminCamionesPage";
 
 import "./App.css";
 
@@ -108,9 +109,9 @@ function AppContent() {
                 />
 
                 <Route
-                  path="/dashboardAdmin/camiones"
-                  element={<DashboardAdminPage title="Gestión de camiones" />}
-                />
+  path="/dashboardAdmin/camiones"
+  element={<AdminCamionesPage />}
+/>
 
                 <Route
                   path="/dashboardAdmin/reportes"
