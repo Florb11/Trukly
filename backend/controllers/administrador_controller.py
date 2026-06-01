@@ -8,9 +8,11 @@ from models.usuario_model import UsuarioModel
 from models.chofer_model import ChoferModel
 from models.mecanico_model import MecanicoModel
 from models.operador_model import OperadorModel
+from models.camion_model import CamionModel
 
 from src.Administrador import Administrador
 from src.Usuario import Usuario
+from src.Camion import Camion
 
 from extensions import bcrypt
 from src.Chofer import Chofer
@@ -600,4 +602,66 @@ class AdministradorController:
         return jsonify({
             "mensaje": "Usuario registrado correctamente",
             "usuario": datos_usuario
-        }), 201    
+        }), 201 
+        
+    @staticmethod
+    @jwt_required()
+    def obtener_resumen_dashboard():
+        admin = AdministradorController.obtener_admin_actual()
+
+        if admin is None:
+            return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
+
+        usuarios_activos = UsuarioModel.query.filter_by(estado="activo").count()
+
+        camiones_registrados = CamionModel.query.count()
+        camiones_disponibles = CamionModel.query.filter_by(estado="disponible").count()
+
+        porcentaje_flota_disponible = Camion.calcular_porcentaje_disponible(
+            camiones_disponibles,
+            camiones_registrados
+        )
+
+        usuarios_pendientes = UsuarioModel.query.filter_by(
+            estado="pendiente",
+            rol="chofer"
+        ).all()
+
+        choferes_pendientes = []
+
+        for usuario in usuarios_pendientes:
+            chofer = ChoferModel.query.filter_by(
+                Usuario_idUsuario=usuario.id_usuario
+            ).first()
+
+            datos_usuario = usuario.to_dict()
+
+            if chofer:
+                datos_usuario["licencia"] = chofer.licencia
+                datos_usuario["legajo"] = chofer.legajo
+                datos_usuario["vencimientoLicencia"] = chofer.vencimientoLicencia
+            else:
+                datos_usuario["licencia"] = "-"
+
+            choferes_pendientes.append(datos_usuario)
+
+        return jsonify({
+            "usuarios_activos": usuarios_activos,
+            "camiones_registrados": camiones_registrados,
+            "camiones_disponibles": camiones_disponibles,
+
+            "reportes_abiertos": 0,
+            "reportes_prioridad_alta": 0,
+            "viajes_del_dia": 0,
+            "viajes_en_curso": 0,
+
+            "estado_general": {
+                "flota_disponible": porcentaje_flota_disponible,
+                "reportes_resueltos": 0,
+                "viajes_finalizados": 0,
+            },
+
+            "actividad_operativa": [0, 0, 0, 0, 0, 0, 0],
+
+            "usuarios_pendientes": choferes_pendientes,
+        }), 200   

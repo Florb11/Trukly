@@ -57,3 +57,8 @@ def ruta_modificar_usuario(id_usuario):
 @administrador_routes.route("/api/admin/usuarios", methods=["POST"])
 def ruta_registrar_usuario():
     return AdministradorController.registrar_usuario()
+
+#ruta para el resumen del dashboard de admin
+@administrador_routes.route("/api/admin/dashboard/resumen", methods=["GET"])
+def ruta_obtener_resumen_dashboard():
+    return AdministradorController.obtener_resumen_dashboard()
