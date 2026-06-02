@@ -18,6 +18,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import AdminCamionesPage from "./pages/AdminCamionesPage";
 import DashboardOperatorPage from "./pages/DashboardOperatorPage";
 import OperadorViajePage from "./pages/OperadorViajePage";
+import ViajesTruckerPage from "./pages/ViajesTruckerPage";
 
 import "./App.css";
 
@@ -27,8 +28,7 @@ function AppContent() {
 
   const esDashboardTrucker = location.pathname.startsWith("/dashboardTrucker");
   const esDashboardAdmin = location.pathname.startsWith("/dashboardAdmin");
-  const esDashboardOperator =
-    location.pathname.startsWith("/dashboardOperator");
+  const esDashboardOperator =location.pathname.startsWith("/dashboardOperator");
 
   const esDashboard =
     esDashboardTrucker || esDashboardAdmin || esDashboardOperator;
@@ -84,7 +84,7 @@ function AppContent() {
 
                 <Route
                   path="/dashboardTrucker/viajes"
-                  element={<DashboardTruckerPage title="Mis viajes" />}
+                  element={<ViajesTruckerPage title="Mis viajes" />}
                 />
 
                 <Route
