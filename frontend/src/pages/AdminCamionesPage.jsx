@@ -2,12 +2,24 @@ import { useEffect, useState } from "react";
 import { fetchConToken } from "../utils/fetchConToken";
 import "./AdminCamionesPage.css";
 import DetalleCamionModal from "../components/DetalleCamionModal";
+import NuevoCamionModal from "../components/NuevoCamionModal";
 
 function AdminCamionesPage() {
     const [camiones, setCamiones] = useState([]);
     const [cargandoCamiones, setCargandoCamiones] = useState(true);
     const [errorCamiones, setErrorCamiones] = useState("");
     const [camionDetalle, setCamionDetalle] = useState(null);
+    const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false);
+const [errorNuevo, setErrorNuevo] = useState("");
+
+const [formNuevo, setFormNuevo] = useState({
+    matricula: "",
+    marca: "",
+    modelo: "",
+    capacidad_carga: "",
+    estado: "disponible",
+    nroTanque: "",
+});
 
     const cargarCamiones = async () => {
         try {
@@ -80,6 +92,72 @@ const cerrarDetalleCamion = () => {
     setCamionDetalle(null);
 };
 
+const abrirNuevoCamion = () => {
+    setMostrarModalNuevo(true);
+    setErrorNuevo("");
+    setErrorCamiones("");
+};
+
+const cerrarNuevoCamion = () => {
+    setMostrarModalNuevo(false);
+    setErrorNuevo("");
+
+    setFormNuevo({
+        matricula: "",
+        marca: "",
+        modelo: "",
+        capacidad_carga: "",
+        estado: "disponible",
+        nroTanque: "",
+    });
+};
+
+const handleNuevoChange = (e) => {
+    setFormNuevo({
+        ...formNuevo,
+        [e.target.name]: e.target.value,
+    });
+};
+
+const guardarNuevoCamion = async (e) => {
+    e.preventDefault();
+
+    try {
+        setErrorNuevo("");
+        setErrorCamiones("");
+
+        const datosCamion = {
+            ...formNuevo,
+            capacidad_carga: Number(formNuevo.capacidad_carga),
+            nroTanque: Number(formNuevo.nroTanque),
+        };
+
+        const resultado = await fetchConToken(
+            "http://localhost:5000/api/admin/camiones",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(datosCamion),
+            }
+        );
+
+        if (!resultado) return;
+
+        const { respuesta, data } = resultado;
+
+        if (!respuesta.ok) {
+            throw new Error(data.mensaje || data.msg || "Error al registrar camión");
+        }
+
+        setCamiones((prev) => [...prev, data.camion]);
+        cerrarNuevoCamion();
+    } catch (error) {
+        setErrorNuevo(error.message);
+    }
+};
+
     return (
         <section className="camiones-page">
             <div className="camiones-page__heading">
@@ -88,9 +166,13 @@ const cerrarDetalleCamion = () => {
                     <h1>Gestión de camiones</h1>
                 </div>
 
-                <button type="button" className="btn-nuevo-camion">
-                    + Nuevo camión
-                </button>
+                <button
+    type="button"
+    className="btn-nuevo-camion"
+    onClick={abrirNuevoCamion}
+>
+    + Nuevo camión
+</button>
             </div>
 
             <article className="camiones-card">
@@ -189,6 +271,15 @@ const cerrarDetalleCamion = () => {
     <DetalleCamionModal
         camion={camionDetalle}
         onClose={cerrarDetalleCamion}
+    />
+)}
+{mostrarModalNuevo && (
+    <NuevoCamionModal
+        formNuevo={formNuevo}
+        errorNuevo={errorNuevo}
+        onChange={handleNuevoChange}
+        onSubmit={guardarNuevoCamion}
+        onClose={cerrarNuevoCamion}
     />
 )}
         </section>
