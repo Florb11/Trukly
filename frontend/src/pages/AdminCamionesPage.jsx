@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { fetchConToken } from "../utils/fetchConToken";
 import "./AdminCamionesPage.css";
+import DetalleCamionModal from "../components/DetalleCamionModal";
 
 function AdminCamionesPage() {
     const [camiones, setCamiones] = useState([]);
     const [cargandoCamiones, setCargandoCamiones] = useState(true);
     const [errorCamiones, setErrorCamiones] = useState("");
+    const [camionDetalle, setCamionDetalle] = useState(null);
 
     const cargarCamiones = async () => {
         try {
@@ -54,17 +56,29 @@ function AdminCamionesPage() {
         return "camion-estado camion-estado--inactivo";
     };
 
-    const renderAcciones = () => (
-        <div className="camiones-actions">
-            <button type="button" className="btn-camion btn-camion--detalle">
-                Ver detalle
-            </button>
+    const renderAcciones = (camion) => (
+    <div className="camiones-actions">
+        <button
+            type="button"
+            className="btn-camion btn-camion--detalle"
+            onClick={() => abrirDetalleCamion(camion)}
+        >
+            Ver detalle
+        </button>
 
-            <button type="button" className="btn-camion btn-camion--editar">
-                Editar
-            </button>
-        </div>
-    );
+        <button type="button" className="btn-camion btn-camion--editar">
+            Editar
+        </button>
+    </div>
+);
+
+    const abrirDetalleCamion = (camion) => {
+    setCamionDetalle(camion);
+};
+
+const cerrarDetalleCamion = () => {
+    setCamionDetalle(null);
+};
 
     return (
         <section className="camiones-page">
@@ -124,7 +138,7 @@ function AdminCamionesPage() {
                                                 </span>
                                             </td>
                                             <td>{camion.nroTanque}</td>
-                                            <td>{renderAcciones()}</td>
+                                            <td>{renderAcciones(camion)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -163,7 +177,7 @@ function AdminCamionesPage() {
                                     </div>
 
                                     <div className="camion-card-mobile__actions">
-                                        {renderAcciones()}
+                                        {renderAcciones(camion)}
                                     </div>
                                 </div>
                             ))}
@@ -171,6 +185,12 @@ function AdminCamionesPage() {
                     </>
                 )}
             </article>
+            {camionDetalle && (
+    <DetalleCamionModal
+        camion={camionDetalle}
+        onClose={cerrarDetalleCamion}
+    />
+)}
         </section>
     );
 }
