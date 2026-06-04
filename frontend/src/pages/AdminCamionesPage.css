@@ -270,7 +270,64 @@
     display: none;
 }
 
-/* Aca pasamos antes a cards para evitar la barra horizontal */
+.camiones-filtros {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 14px;
+    padding: 18px 24px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    background: #ffffff;
+}
+
+.camiones-filtro-busqueda,
+.camiones-filtro-select {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.camiones-filtro-busqueda label,
+.camiones-filtro-select label {
+    color: #374151;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.camiones-filtro-busqueda input,
+.camiones-filtro-select select {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 11px 12px;
+    color: #111827;
+    font-size: 14px;
+    background: #ffffff;
+    outline: none;
+}
+
+.camiones-filtro-busqueda input:focus,
+.camiones-filtro-select select:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+.btn-camion--activar {
+    background: #059669;
+    color: #ffffff;
+}
+
+.btn-camion--desactivar {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+@media (max-width: 950px) {
+    .camiones-filtros {
+        grid-template-columns: 1fr;
+        padding: 16px;
+    }
+}
+
+
 @media (max-width: 950px) {
     .camiones-page__heading {
         margin-bottom: 22px;
