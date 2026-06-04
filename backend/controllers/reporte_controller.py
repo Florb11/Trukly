@@ -1,41 +1,191 @@
+from datetime import datetime
+
 from flask import jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
+
 from db_instance import db
-
 from models.reporte_model import ReporteModel
-
-def listar_reportes():
-
-    reportes = ReporteModel.query.all()
-
-    return jsonify ([reporte.to_dict() for reporte in reportes])
-
-def obtener_reporte(id_reporte):
+from models.camion_model import CamionModel
+from models.chofer_model import ChoferModel
+from models.mecanico_model import MecanicoModel
+from src.ReporteFalla import ReporteFalla
 
 
-    reporte = ReporteModel.query.get(id_reporte)
+class ReporteController:
 
-    if reporte is None:
-        return jsonify({"mensaje": "Reporte no encontrado"}),404
-    
-    return jsonify(reporte.to_dict())
+    @staticmethod
+    def validar_rol(roles_permitidos):
+        datos_token = get_jwt()
+        rol = datos_token.get("rol")
 
-def crear_reporte():
-    
-    datos = request.get_json()
+        return rol in roles_permitidos
 
-    nuevo_reporte = ReporteModel(
-        fecha_hora=datos["fecha_hora"],
-        descripcion=datos["descripcion"],
-        estado=datos["estado"],
-        Camion_id_camion=datos["Camion_id_camion"],
-        Mecanico_Usuario_idUsuario=datos["Mecanico_Usuario_idUsuario"],
-        Chofer_Usuario_idUsuario=datos["Chofer_Usuario_idUsuario"]
-    )
+    @staticmethod
+    @jwt_required()
+    def listar_reportes():
+        if not ReporteController.validar_rol(["admin", "mecanico", "operador"]):
+            return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
 
-    db.session.add(nuevo_reporte)
-    db.session.commit()
+        reportes = ReporteModel.query.all()
 
-    return jsonify({
-        "mensaje": "Reporte creado correctamente",
-        "reporte": nuevo_reporte.to_dict()
-    })
+        return jsonify({
+            "reportes": [reporte.to_dict() for reporte in reportes]
+        }), 200
+
+    @staticmethod
+    @jwt_required()
+    def obtener_reporte(id_reporte):
+        if not ReporteController.validar_rol(["admin", "mecanico", "operador", "chofer"]):
+            return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
+
+        reporte = ReporteModel.query.get(id_reporte)
+
+        if reporte is None:
+            return jsonify({"mensaje": "Reporte no encontrado"}), 404
+
+        datos_token = get_jwt()
+        id_usuario = int(get_jwt_identity())
+
+        if datos_token.get("rol") == "chofer" and reporte.Chofer_Usuario_idUsuario != id_usuario:
+            return jsonify({"mensaje": "No tenes permiso para ver este reporte"}), 403
+
+        return jsonify({
+            "reporte": reporte.to_dict()
+        }), 200
+
+    @staticmethod
+    @jwt_required()
+    def crear_reporte():
+        if not ReporteController.validar_rol(["chofer"]):
+            return jsonify({"mensaje": "Solo un chofer puede crear reportes"}), 403
+
+        datos = request.get_json()
+        id_chofer = int(get_jwt_identity())
+
+        camion_id = datos.get("Camion_id_camion")
+        descripcion = datos.get("descripcion")
+
+        chofer = ChoferModel.query.filter_by(
+            Usuario_idUsuario=id_chofer
+        ).first()
+
+        if chofer is None:
+            return jsonify({"mensaje": "Chofer no encontrado"}), 404
+
+        camion = CamionModel.query.get(camion_id)
+
+        if camion is None:
+            return jsonify({"mensaje": "Camion no encontrado"}), 404
+
+        reporte_clase = ReporteFalla(
+            None,
+            datetime.now(),
+            descripcion,
+            "pendiente",
+            camion_id,
+            None,
+            id_chofer,
+        )
+
+        if not reporte_clase.validar_datos():
+            return jsonify({"mensaje": "Faltan datos obligatorios"}), 400
+
+        if not reporte_clase.validar_estado():
+            return jsonify({"mensaje": "Estado invalido"}), 400
+
+        nuevo_reporte = ReporteModel(
+            fecha_hora=reporte_clase.fecha_hora,
+            descripcion=reporte_clase.descripcion,
+            estado=reporte_clase.estado,
+            Camion_id_camion=reporte_clase.Camion_id_camion,
+            Mecanico_Usuario_idUsuario=reporte_clase.Mecanico_Usuario_idUsuario,
+            Chofer_Usuario_idUsuario=reporte_clase.Chofer_Usuario_idUsuario,
+        )
+
+        db.session.add(nuevo_reporte)
+        db.session.commit()
+
+        return jsonify({
+            "mensaje": "Reporte creado correctamente",
+            "reporte": nuevo_reporte.to_dict(),
+        }), 201
+
+    @staticmethod
+    @jwt_required()
+    def cambiar_estado_reporte(id_reporte):
+        if not ReporteController.validar_rol(["admin", "mecanico", "operador"]):
+            return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
+
+        reporte_db = ReporteModel.query.get(id_reporte)
+
+        if reporte_db is None:
+            return jsonify({"mensaje": "Reporte no encontrado"}), 404
+
+        datos = request.get_json()
+        nuevo_estado = datos.get("estado")
+
+        reporte_clase = ReporteFalla(
+            reporte_db.id_reporte,
+            reporte_db.fecha_hora,
+            reporte_db.descripcion,
+            reporte_db.estado,
+            reporte_db.Camion_id_camion,
+            reporte_db.Mecanico_Usuario_idUsuario,
+            reporte_db.Chofer_Usuario_idUsuario,
+        )
+
+        if not reporte_clase.cambiar_estado(nuevo_estado):
+            return jsonify({"mensaje": "Estado invalido"}), 400
+
+        reporte_db.estado = reporte_clase.estado
+
+        db.session.commit()
+
+        return jsonify({
+            "mensaje": "Estado del reporte modificado correctamente",
+            "reporte": reporte_db.to_dict(),
+        }), 200
+
+    @staticmethod
+    @jwt_required()
+    def asignar_mecanico(id_reporte):
+        if not ReporteController.validar_rol(["admin", "operador"]):
+            return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
+
+        reporte_db = ReporteModel.query.get(id_reporte)
+
+        if reporte_db is None:
+            return jsonify({"mensaje": "Reporte no encontrado"}), 404
+
+        datos = request.get_json()
+        id_mecanico = datos.get("Mecanico_Usuario_idUsuario")
+
+        mecanico = MecanicoModel.query.filter_by(
+            Usuario_idUsuario=id_mecanico
+        ).first()
+
+        if mecanico is None:
+            return jsonify({"mensaje": "Mecanico no encontrado"}), 404
+
+        reporte_clase = ReporteFalla(
+            reporte_db.id_reporte,
+            reporte_db.fecha_hora,
+            reporte_db.descripcion,
+            reporte_db.estado,
+            reporte_db.Camion_id_camion,
+            reporte_db.Mecanico_Usuario_idUsuario,
+            reporte_db.Chofer_Usuario_idUsuario,
+        )
+
+        if not reporte_clase.asignar_mecanico(id_mecanico):
+            return jsonify({"mensaje": "No se pudo asignar el mecanico"}), 400
+
+        reporte_db.Mecanico_Usuario_idUsuario = reporte_clase.Mecanico_Usuario_idUsuario
+        reporte_db.estado = "en revision"
+
+        db.session.commit()
+
+        return jsonify({
+            "mensaje": "Mecanico asignado correctamente",
+            "reporte": reporte_db.to_dict(),
+        }), 200
