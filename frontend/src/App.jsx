@@ -20,6 +20,7 @@ import AdminReportesPage from "./pages/AdminReportesPage";
 import DashboardOperatorPage from "./pages/DashboardOperatorPage";
 import OperadorViajePage from "./pages/OperadorViajePage";
 import ViajesTruckerPage from "./pages/ViajesTruckerPage";
+import AdminViajesPage from "./pages/AdminViajesPage";
 
 
 import "./App.css";
@@ -133,6 +134,10 @@ function AppContent() {
                   path="/dashboardAdmin/reportes"
                   element={<AdminReportesPage />}
                 />
+                <Route
+  path="/dashboardAdmin/viajes"
+  element={<AdminViajesPage />}
+/>
 
                 <Route
                   path="/dashboardAdmin/mantenimiento"
