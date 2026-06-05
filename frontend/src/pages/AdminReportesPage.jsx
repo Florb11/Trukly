@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchConToken } from "../utils/fetchConToken";
 import DetalleReporteModal from "../components/DetalleReporteModal";
+import CambiarEstadoReporteModal from "../components/CambiarEstadoReporteModal";
 import "./AdminReportesPage.css";
 
 function AdminReportesPage() {
@@ -10,7 +11,12 @@ function AdminReportesPage() {
 
     const [busqueda, setBusqueda] = useState("");
     const [filtroEstado, setFiltroEstado] = useState("todos");
+
     const [reporteDetalle, setReporteDetalle] = useState(null);
+
+    const [reporteCambiandoEstado, setReporteCambiandoEstado] = useState(null);
+    const [nuevoEstado, setNuevoEstado] = useState("");
+    const [errorEstado, setErrorEstado] = useState("");
 
     const cargarReportes = async () => {
         try {
@@ -56,6 +62,63 @@ function AdminReportesPage() {
 
     const cerrarDetalleReporte = () => {
         setReporteDetalle(null);
+    };
+
+    const abrirCambiarEstadoReporte = (reporte) => {
+        setReporteCambiandoEstado(reporte);
+        setNuevoEstado(reporte.estado || "pendiente");
+        setErrorEstado("");
+        setErrorReportes("");
+    };
+
+    const cerrarCambiarEstadoReporte = () => {
+        setReporteCambiandoEstado(null);
+        setNuevoEstado("");
+        setErrorEstado("");
+    };
+
+    const guardarCambioEstadoReporte = async (e) => {
+        e.preventDefault();
+
+        if (!reporteCambiandoEstado) return;
+
+        try {
+            setErrorEstado("");
+            setErrorReportes("");
+
+            const resultado = await fetchConToken(
+                `http://localhost:5000/api/reportes/${reporteCambiandoEstado.id_reporte}/estado`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        estado: nuevoEstado,
+                    }),
+                }
+            );
+
+            if (!resultado) return;
+
+            const { respuesta, data } = resultado;
+
+            if (!respuesta.ok) {
+                throw new Error(data.mensaje || data.msg || "Error al cambiar estado");
+            }
+
+            setReportes((prev) =>
+                prev.map((reporte) =>
+                    reporte.id_reporte === reporteCambiandoEstado.id_reporte
+                        ? data.reporte
+                        : reporte
+                )
+            );
+
+            cerrarCambiarEstadoReporte();
+        } catch (error) {
+            setErrorEstado(error.message);
+        }
     };
 
     const reportesFiltrados = reportes.filter((reporte) => {
@@ -184,6 +247,7 @@ function AdminReportesPage() {
                                                     <button
                                                         type="button"
                                                         className="btn-reporte btn-reporte--estado"
+                                                        onClick={() => abrirCambiarEstadoReporte(reporte)}
                                                     >
                                                         Cambiar estado
                                                     </button>
@@ -248,6 +312,7 @@ function AdminReportesPage() {
                                         <button
                                             type="button"
                                             className="btn-reporte btn-reporte--estado"
+                                            onClick={() => abrirCambiarEstadoReporte(reporte)}
                                         >
                                             Cambiar estado
                                         </button>
@@ -263,6 +328,17 @@ function AdminReportesPage() {
                 <DetalleReporteModal
                     reporte={reporteDetalle}
                     onClose={cerrarDetalleReporte}
+                />
+            )}
+
+            {reporteCambiandoEstado && (
+                <CambiarEstadoReporteModal
+                    reporte={reporteCambiandoEstado}
+                    nuevoEstado={nuevoEstado}
+                    errorEstado={errorEstado}
+                    onChange={(e) => setNuevoEstado(e.target.value)}
+                    onSubmit={guardarCambioEstadoReporte}
+                    onClose={cerrarCambiarEstadoReporte}
                 />
             )}
         </section>
