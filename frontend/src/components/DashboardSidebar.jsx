@@ -12,6 +12,7 @@ import {
   FaWrench,
   FaClipboardList,
   FaTools,
+  FaRoute,
 } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import "./DashboardSidebar.css";
@@ -91,6 +92,11 @@ const menusPorRol = {
             label: "Camiones",
             path: "/dashboardAdmin/camiones",
             icon: <FaTruck />,
+          },
+          {
+            label: "Viajes",
+            path: "/dashboardAdmin/viajes",
+            icon: <FaRoute />,
           },
         ],
       },
