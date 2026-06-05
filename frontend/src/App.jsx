@@ -16,9 +16,11 @@ import AdminUsuariosPage from "./pages/AdminUsuariosPage";
 import NoAutorizadoPage from "./pages/NoAutorizadoPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminCamionesPage from "./pages/AdminCamionesPage";
+import AdminReportesPage from "./pages/AdminReportesPage";
 import DashboardOperatorPage from "./pages/DashboardOperatorPage";
 import OperadorViajePage from "./pages/OperadorViajePage";
 import ViajesTruckerPage from "./pages/ViajesTruckerPage";
+
 
 import "./App.css";
 
@@ -129,7 +131,7 @@ function AppContent() {
 
                 <Route
                   path="/dashboardAdmin/reportes"
-                  element={<DashboardAdminPage title="Reportes del sistema" />}
+                  element={<AdminReportesPage />}
                 />
 
                 <Route
