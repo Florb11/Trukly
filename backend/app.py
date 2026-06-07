@@ -18,6 +18,7 @@ from routes.camion_routes import camion_routes
 from routes.viaje_routes import viaje_routes
 from routes.registro_routes import registro_routes
 from routes.reporte_routes import reporte_routes
+from routes.perfil_routes import perfil_routes
 
 
 
@@ -59,6 +60,7 @@ app.register_blueprint(camion_routes)
 app.register_blueprint(viaje_routes)
 app.register_blueprint(registro_routes)
 app.register_blueprint(reporte_routes)
+app.register_blueprint(perfil_routes)
 
 
 

@@ -23,7 +23,7 @@ import ViajesTruckerPage from "./pages/ViajesTruckerPage";
 import AdminViajesPage from "./pages/AdminViajesPage";
 import AdminMantenimientoPage from "./pages/AdminMantenimientoPage";
 import AdminEstadisticasPage from "./pages/AdminEstadisticasPage";
-
+import AdminPerfilPage from "./pages/AdminPerfilPage";
 
 import "./App.css";
 
@@ -33,7 +33,7 @@ function AppContent() {
 
   const esDashboardTrucker = location.pathname.startsWith("/dashboardTrucker");
   const esDashboardAdmin = location.pathname.startsWith("/dashboardAdmin");
-  const esDashboardOperator =location.pathname.startsWith("/dashboardOperator");
+  const esDashboardOperator = location.pathname.startsWith("/dashboardOperator");
 
   const esDashboard =
     esDashboardTrucker || esDashboardAdmin || esDashboardOperator;
@@ -54,9 +54,8 @@ function AppContent() {
     return (
       <ProtectedRoute rolPermitido={rolPermitido}>
         <div
-          className={`app-shell app-shell--dashboard ${
-            esDashboardAdmin ? "app-shell--admin" : ""
-          }`}
+          className={`app-shell app-shell--dashboard ${esDashboardAdmin ? "app-shell--admin" : ""
+            }`}
         >
           <DashboardSidebar
             isOpen={sidebarOpen}
@@ -137,23 +136,23 @@ function AppContent() {
                   element={<AdminReportesPage />}
                 />
                 <Route
-  path="/dashboardAdmin/viajes"
-  element={<AdminViajesPage />}
-/>
+                  path="/dashboardAdmin/viajes"
+                  element={<AdminViajesPage />}
+                />
 
                 <Route
-  path="/dashboardAdmin/mantenimiento"
-  element={<AdminMantenimientoPage />}
-/>
+                  path="/dashboardAdmin/mantenimiento"
+                  element={<AdminMantenimientoPage />}
+                />
 
                 <Route
                   path="/dashboardAdmin/estadisticas"
-                   element={<AdminEstadisticasPage />}
+                  element={<AdminEstadisticasPage />}
                 />
 
                 <Route
                   path="/dashboardAdmin/perfil"
-                  element={<DashboardAdminPage title="Perfil administrador" />}
+                  element={<AdminPerfilPage />}
                 />
 
                 <Route
@@ -166,7 +165,7 @@ function AppContent() {
                   element={<DashboardOperatorPage />}
                 />
 
-              
+
                 <Route
                   path="/dashboardOperator/crear-viaje"
                   element={<OperadorViajePage />}
