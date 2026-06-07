@@ -22,6 +22,8 @@ import OperadorViajePage from "./pages/OperadorViajePage";
 import ViajesTruckerPage from "./pages/ViajesTruckerPage";
 import AdminViajesPage from "./pages/AdminViajesPage";
 import AdminMantenimientoPage from "./pages/AdminMantenimientoPage";
+import AdminEstadisticasPage from "./pages/AdminEstadisticasPage";
+
 
 import "./App.css";
 
@@ -102,7 +104,7 @@ function AppContent() {
 
                 <Route
                   path="/dashboardTrucker/estadisticas"
-                  element={<DashboardTruckerPage title="Estadísticas" />}
+                  element={<DashboardTruckerPage title="estaditicas" />}
                 />
 
                 <Route
@@ -146,7 +148,7 @@ function AppContent() {
 
                 <Route
                   path="/dashboardAdmin/estadisticas"
-                  element={<DashboardAdminPage title="Estadísticas" />}
+                   element={<AdminEstadisticasPage />}
                 />
 
                 <Route
