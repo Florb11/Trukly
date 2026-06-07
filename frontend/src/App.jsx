@@ -21,7 +21,7 @@ import DashboardOperatorPage from "./pages/DashboardOperatorPage";
 import OperadorViajePage from "./pages/OperadorViajePage";
 import ViajesTruckerPage from "./pages/ViajesTruckerPage";
 import AdminViajesPage from "./pages/AdminViajesPage";
-
+import AdminMantenimientoPage from "./pages/AdminMantenimientoPage";
 
 import "./App.css";
 
@@ -140,9 +140,9 @@ function AppContent() {
 />
 
                 <Route
-                  path="/dashboardAdmin/mantenimiento"
-                  element={<DashboardAdminPage title="Mantenimiento" />}
-                />
+  path="/dashboardAdmin/mantenimiento"
+  element={<AdminMantenimientoPage />}
+/>
 
                 <Route
                   path="/dashboardAdmin/estadisticas"
