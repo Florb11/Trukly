@@ -126,8 +126,9 @@ function NotificacionesPage() {
             {notificaciones.map((notificacion) => (
               <article
                 key={notificacion.id_notificacion}
-                className={`notificacion-item ${notificacion.leida ? "notificacion-item--leida" : ""
-                  }`}
+                className={`notificacion-item ${
+                  notificacion.leida ? "notificacion-item--leida" : ""
+                }`}
               >
                 <div className="notificacion-item__icon">
                   <FaBell />
@@ -138,8 +139,9 @@ function NotificacionesPage() {
                     <h2>{notificacion.titulo}</h2>
 
                     <span
-                      className={`notificacion-badge ${notificacion.leida ? "notificacion-badge--leida" : ""
-                        }`}
+                      className={`notificacion-badge ${
+                        notificacion.leida ? "notificacion-badge--leida" : ""
+                      }`}
                     >
                       {notificacion.leida ? "Leída" : "Nueva"}
                     </span>
@@ -171,6 +173,7 @@ function NotificacionesPage() {
                       Marcar leída
                     </button>
                   )}
+                </div>
               </article>
             ))}
           </div>
