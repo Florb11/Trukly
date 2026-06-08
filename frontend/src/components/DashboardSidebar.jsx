@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import {
+  FaBell,
   FaChartLine,
   FaHome,
   FaMapMarkedAlt,
@@ -62,6 +63,11 @@ const menusPorRol = {
             path: "/dashboardTrucker/perfil",
             icon: <FaUser />,
           },
+          {
+            label: "Notificaciones",
+            path: "/dashboardTrucker/notificaciones",
+            icon: <FaBell />,
+          },
         ],
       },
     ],
@@ -122,6 +128,11 @@ const menusPorRol = {
             path: "/dashboardAdmin/perfil",
             icon: <FaUser />,
           },
+          {
+            label: "Notificaciones",
+            path: "/dashboardAdmin/notificaciones",
+            icon: <FaBell />,
+          },
         ],
       },
     ],
@@ -156,6 +167,11 @@ const menusPorRol = {
             label: "Perfil",
             path: "/dashboardMechanic/perfil",
             icon: <FaUser />,
+          },
+          {
+            label: "Notificaciones",
+            path: "/dashboardMechanic/notificaciones",
+            icon: <FaBell />,
           },
         ],
       },
@@ -206,6 +222,11 @@ const menusPorRol = {
             label: "Perfil",
             path: "/dashboardOperator/perfil",
             icon: <FaUser />,
+          },
+          {
+            label: "Notificaciones",
+            path: "/dashboardOperator/notificaciones",
+            icon: <FaBell />,
           },
         ],
       },

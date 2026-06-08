@@ -1,0 +1,113 @@
+.mecanico-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.mecanico-modal {
+  width: min(560px, 100%);
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+  border: 1px solid rgba(124, 58, 237, 0.18);
+}
+
+.mecanico-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.mecanico-modal__header span {
+  color: #7c3aed;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.mecanico-modal__header h2 {
+  margin: 6px 0 0;
+  color: #111827;
+}
+
+.mecanico-modal__close {
+  border: none;
+  background: #f3f4f6;
+  color: #374151;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mecanico-modal__description {
+  margin: 16px 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #f9fafb;
+  color: #4b5563;
+  font-weight: 600;
+}
+
+.mecanico-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mecanico-modal__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mecanico-modal__form label span {
+  color: #374151;
+  font-weight: 800;
+}
+
+.mecanico-modal__form textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-family: inherit;
+  color: #111827;
+  outline: none;
+}
+
+.mecanico-modal__form textarea:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.14);
+}
+
+.mecanico-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mecanico-btn-secondary {
+  border: none;
+  border-radius: 12px;
+  padding: 9px 12px;
+  background: #f3f4f6;
+  color: #374151;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mecanico-btn-secondary:hover {
+  background: #e5e7eb;
+}
