@@ -1,0 +1,67 @@
+.mecanico-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mecanico-dashboard__header {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 24px;
+  border: 1px solid rgba(124, 58, 237, 0.18);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.mecanico-dashboard__header span {
+  color: #7c3aed;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.mecanico-dashboard__header h1 {
+  margin: 8px 0;
+  color: #111827;
+}
+
+.mecanico-dashboard__header p {
+  margin: 0;
+  color: #6b7280;
+  max-width: 720px;
+}
+
+.mecanico-dashboard__cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.mecanico-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 22px;
+  border: 1px solid rgba(124, 58, 237, 0.16);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+}
+
+.mecanico-card span {
+  color: #6b7280;
+  font-weight: 700;
+}
+
+.mecanico-card strong {
+  display: block;
+  margin: 10px 0;
+  font-size: 2rem;
+  color: #111827;
+}
+
+.mecanico-card p {
+  margin: 0;
+  color: #6b7280;
+}
+
+@media (max-width: 900px) {
+  .mecanico-dashboard__cards {
+    grid-template-columns: 1fr;
+  }
+}

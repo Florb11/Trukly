@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import DashboardAdminPage from "./pages/DashboardAdminPage";
 import DashboardTruckerPage from "./pages/DashboardTruckerPage";
+import DashboardMecanicoPage from "./pages/DashboardMecanicoPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegistroPage from "./pages/RegistroPage";
@@ -24,6 +25,7 @@ import AdminViajesPage from "./pages/AdminViajesPage";
 import AdminMantenimientoPage from "./pages/AdminMantenimientoPage";
 import AdminEstadisticasPage from "./pages/AdminEstadisticasPage";
 import AdminPerfilPage from "./pages/AdminPerfilPage";
+import MecanicoReportesPage from "./pages/MecanicoReportesPage";
 
 import "./App.css";
 
@@ -34,21 +36,29 @@ function AppContent() {
   const esDashboardTrucker = location.pathname.startsWith("/dashboardTrucker");
   const esDashboardAdmin = location.pathname.startsWith("/dashboardAdmin");
   const esDashboardOperator = location.pathname.startsWith("/dashboardOperator");
+  const esDashboardMechanic = location.pathname.startsWith("/dashboardMechanic");
 
   const esDashboard =
-    esDashboardTrucker || esDashboardAdmin || esDashboardOperator;
+    esDashboardTrucker ||
+    esDashboardAdmin ||
+    esDashboardOperator ||
+    esDashboardMechanic;
 
   const tituloPanel = esDashboardAdmin
     ? "Panel de administrador"
     : esDashboardOperator
       ? "Panel de operador logístico"
-      : "Panel de chofer";
+      : esDashboardMechanic
+        ? "Panel de mecánico"
+        : "Panel de chofer";
 
   const rolPermitido = esDashboardAdmin
     ? "admin"
     : esDashboardOperator
       ? "operador"
-      : "chofer";
+      : esDashboardMechanic
+        ? "mecanico"
+        : "chofer";
 
   if (esDashboard) {
     return (
@@ -103,17 +113,12 @@ function AppContent() {
 
                 <Route
                   path="/dashboardTrucker/estadisticas"
-                  element={<DashboardTruckerPage title="estaditicas" />}
+                  element={<DashboardTruckerPage title="Estadísticas" />}
                 />
 
                 <Route
                   path="/dashboardTrucker/perfil"
                   element={<DashboardTruckerPage title="Perfil" />}
-                />
-
-                <Route
-                  path="/dashboardTrucker/configuracion"
-                  element={<DashboardTruckerPage title="Configuración" />}
                 />
 
                 <Route
@@ -135,6 +140,7 @@ function AppContent() {
                   path="/dashboardAdmin/reportes"
                   element={<AdminReportesPage />}
                 />
+
                 <Route
                   path="/dashboardAdmin/viajes"
                   element={<AdminViajesPage />}
@@ -160,10 +166,19 @@ function AppContent() {
                   element={<DashboardOperatorPage />}
                 />
 
-
                 <Route
                   path="/dashboardOperator/crear-viaje"
                   element={<OperadorViajePage />}
+                />
+
+                <Route
+                  path="/dashboardMechanic"
+                  element={<DashboardMecanicoPage />}
+                />
+
+                <Route
+                  path="/dashboardMechanic/reportes"
+                  element={<MecanicoReportesPage />}
                 />
 
                 <Route path="*" element={<NotFoundPage />} />
