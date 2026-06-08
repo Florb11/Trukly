@@ -26,6 +26,7 @@ import AdminMantenimientoPage from "./pages/AdminMantenimientoPage";
 import AdminEstadisticasPage from "./pages/AdminEstadisticasPage";
 import AdminPerfilPage from "./pages/AdminPerfilPage";
 import MecanicoReportesPage from "./pages/MecanicoReportesPage";
+import NotificacionesPage from "./pages/NotificacionesPage";
 
 import "./App.css";
 
@@ -64,8 +65,9 @@ function AppContent() {
     return (
       <ProtectedRoute rolPermitido={rolPermitido}>
         <div
-          className={`app-shell app-shell--dashboard ${esDashboardAdmin ? "app-shell--admin" : ""
-            }`}
+          className={`app-shell app-shell--dashboard ${
+            esDashboardAdmin ? "app-shell--admin" : ""
+          }`}
         >
           <DashboardSidebar
             isOpen={sidebarOpen}
@@ -122,6 +124,11 @@ function AppContent() {
                 />
 
                 <Route
+                  path="/dashboardTrucker/notificaciones"
+                  element={<NotificacionesPage />}
+                />
+
+                <Route
                   path="/dashboardAdmin"
                   element={<DashboardAdminPage />}
                 />
@@ -162,6 +169,11 @@ function AppContent() {
                 />
 
                 <Route
+                  path="/dashboardAdmin/notificaciones"
+                  element={<NotificacionesPage />}
+                />
+
+                <Route
                   path="/dashboardOperator"
                   element={<DashboardOperatorPage />}
                 />
@@ -172,6 +184,11 @@ function AppContent() {
                 />
 
                 <Route
+                  path="/dashboardOperator/notificaciones"
+                  element={<NotificacionesPage />}
+                />
+
+                <Route
                   path="/dashboardMechanic"
                   element={<DashboardMecanicoPage />}
                 />
@@ -179,6 +196,11 @@ function AppContent() {
                 <Route
                   path="/dashboardMechanic/reportes"
                   element={<MecanicoReportesPage />}
+                />
+
+                <Route
+                  path="/dashboardMechanic/notificaciones"
+                  element={<NotificacionesPage />}
                 />
 
                 <Route path="*" element={<NotFoundPage />} />

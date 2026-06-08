@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from src.Usuario import Usuario
 
 
@@ -36,18 +38,23 @@ class Mecanico(Usuario):
         return reporte.Mecanico_Usuario_idUsuario == self.id_usuario
 
     # verifica si el mecanico puede marcar como resuelto el reporte
-    def puede_resolver_reporte(self, reporte):
+    def puede_resolver_reporte(self, reporte, nota_reparacion):
         return (
             reporte.Mecanico_Usuario_idUsuario == self.id_usuario
             and reporte.estado != "resuelto"
+            and nota_reparacion is not None
+            and nota_reparacion.strip() != ""
         )
 
-    # cambia el estado del reporte a resuelto si corresponde
-    def resolver_reporte(self, reporte):
-        if not self.puede_resolver_reporte(reporte):
+    # cambia el estado del reporte a resuelto y guarda la nota de reparacion
+    def resolver_reporte(self, reporte, nota_reparacion):
+        if not self.puede_resolver_reporte(reporte, nota_reparacion):
             return False
 
         reporte.estado = "resuelto"
+        reporte.nota_reparacion = nota_reparacion
+        reporte.fecha_resolucion = datetime.now()
+
         return True
 
     def to_dict(self):

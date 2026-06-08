@@ -1,5 +1,7 @@
 from flask import jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from src.observer.EventManager import EventManager
+from src.observer.NotificacionReporteListener import NotificacionReporteListener
 
 from db_instance import db
 
@@ -108,19 +110,37 @@ class MecanicoController:
         if mecanico is None:
             return jsonify({"mensaje": "No tenés permisos para resolver reportes"}), 403
 
+        datos = request.get_json()
+        nota_reparacion = datos.get("nota_reparacion")
+
         reporte = ReporteModel.query.get(id_reporte)
 
         if reporte is None:
             return jsonify({"mensaje": "Reporte no encontrado"}), 404
 
-        pudo_resolver = mecanico.resolver_reporte(reporte)
+        pudo_resolver = mecanico.resolver_reporte(reporte, nota_reparacion)
 
         if not pudo_resolver:
             return jsonify(
                 {
-                    "mensaje": "No podés resolver este reporte"
+                    "mensaje": "No podés resolver este reporte o falta la nota de reparación"
                 }
             ), 400
+
+        event_manager = EventManager()
+        listener_notificacion = NotificacionReporteListener()
+
+        event_manager.suscribir("reporte_resuelto", listener_notificacion)
+
+        event_manager.notificar(
+            "reporte_resuelto",
+            {
+                "id_usuario": reporte.Chofer_Usuario_idUsuario,
+                "titulo": "Reporte resuelto",
+                "mensaje": f"El reporte #{reporte.id_reporte} fue resuelto. Nota: {nota_reparacion}",
+                "tipo": "reporte_resuelto",
+            }
+        )
 
         db.session.commit()
 

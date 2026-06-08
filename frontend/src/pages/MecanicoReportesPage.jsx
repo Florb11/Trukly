@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaCheckCircle, FaClipboardList } from "react-icons/fa";
 import { fetchConToken } from "../utils/fetchConToken";
+import MecanicoResolverModal from "../components/MecanicoResolverModal";
 import "./MecanicoReportesPage.css";
 
 function MecanicoReportesPage() {
@@ -8,6 +9,10 @@ function MecanicoReportesPage() {
   const [cargando, setCargando] = useState(true);
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
+
+  const [reporteSeleccionado, setReporteSeleccionado] = useState(null);
+  const [notaReparacion, setNotaReparacion] = useState("");
+  const [resolviendo, setResolviendo] = useState(false);
 
   const cargarReportes = async () => {
     try {
@@ -43,15 +48,43 @@ function MecanicoReportesPage() {
     cargarReportes();
   }, []);
 
-  const resolverReporte = async (idReporte) => {
+  const abrirModalResolver = (reporte) => {
+    setMensaje("");
+    setError("");
+    setReporteSeleccionado(reporte);
+    setNotaReparacion("");
+  };
+
+  const cerrarModalResolver = () => {
+    setReporteSeleccionado(null);
+    setNotaReparacion("");
+  };
+
+  const resolverReporte = async (e) => {
+    e.preventDefault();
+
+    if (!reporteSeleccionado) return;
+
+    if (notaReparacion.trim() === "") {
+      setError("Tenés que escribir una nota de reparación");
+      return;
+    }
+
     try {
+      setResolviendo(true);
       setMensaje("");
       setError("");
 
       const resultado = await fetchConToken(
-        `http://localhost:5000/api/mecanico/reportes/${idReporte}/resolver`,
+        `http://localhost:5000/api/mecanico/reportes/${reporteSeleccionado.id_reporte}/resolver`,
         {
           method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nota_reparacion: notaReparacion,
+          }),
         }
       );
 
@@ -67,13 +100,18 @@ function MecanicoReportesPage() {
 
       setReportes((reportesActuales) =>
         reportesActuales.map((reporte) =>
-          reporte.id_reporte === idReporte ? data.reporte : reporte
+          reporte.id_reporte === reporteSeleccionado.id_reporte
+            ? data.reporte
+            : reporte
         )
       );
 
       setMensaje(data.mensaje || "Reporte marcado como resuelto");
+      cerrarModalResolver();
     } catch (error) {
       setError(error.message);
+    } finally {
+      setResolviendo(false);
     }
   };
 
@@ -103,6 +141,7 @@ function MecanicoReportesPage() {
       </div>
 
       {mensaje && <p className="mecanico-message mecanico-message--ok">{mensaje}</p>}
+
       {error && <p className="mecanico-message mecanico-message--error">{error}</p>}
 
       <div className="mecanico-reportes-card">
@@ -118,6 +157,7 @@ function MecanicoReportesPage() {
                   <th>Camión</th>
                   <th>Descripción</th>
                   <th>Estado</th>
+                  <th>Nota reparación</th>
                   <th>Acción</th>
                 </tr>
               </thead>
@@ -130,16 +170,27 @@ function MecanicoReportesPage() {
                     <td>{reporte.Camion_id_camion}</td>
                     <td>{reporte.descripcion}</td>
                     <td>
-                      <span className={`mecanico-badge mecanico-badge--${reporte.estado}`}>
+                      <span
+                        className={`mecanico-badge mecanico-badge--${reporte.estado}`}
+                      >
                         {reporte.estado}
                       </span>
+                    </td>
+                    <td>
+                      {reporte.nota_reparacion ? (
+                        <span className="mecanico-nota">
+                          {reporte.nota_reparacion}
+                        </span>
+                      ) : (
+                        <span className="mecanico-muted">-</span>
+                      )}
                     </td>
                     <td>
                       {reporte.estado !== "resuelto" ? (
                         <button
                           type="button"
                           className="mecanico-action-btn"
-                          onClick={() => resolverReporte(reporte.id_reporte)}
+                          onClick={() => abrirModalResolver(reporte)}
                         >
                           <FaCheckCircle />
                           Resolver
@@ -155,6 +206,15 @@ function MecanicoReportesPage() {
           </div>
         )}
       </div>
+
+      <MecanicoResolverModal
+        reporte={reporteSeleccionado}
+        notaReparacion={notaReparacion}
+        setNotaReparacion={setNotaReparacion}
+        resolviendo={resolviendo}
+        onClose={cerrarModalResolver}
+        onSubmit={resolverReporte}
+      />
     </section>
   );
 }
