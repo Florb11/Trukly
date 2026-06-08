@@ -1,7 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   FaChartLine,
-  FaCog,
   FaHome,
   FaMapMarkedAlt,
   FaSignOutAlt,
@@ -63,11 +62,6 @@ const menusPorRol = {
             path: "/dashboardTrucker/perfil",
             icon: <FaUser />,
           },
-          {
-            label: "Configuración",
-            path: "/dashboardTrucker/configuracion",
-            icon: <FaCog />,
-          },
         ],
       },
     ],
@@ -128,11 +122,6 @@ const menusPorRol = {
             path: "/dashboardAdmin/perfil",
             icon: <FaUser />,
           },
-          {
-            label: "Configuración",
-            path: "/dashboardAdmin/configuracion",
-            icon: <FaCog />,
-          },
         ],
       },
     ],
@@ -167,11 +156,6 @@ const menusPorRol = {
             label: "Perfil",
             path: "/dashboardMechanic/perfil",
             icon: <FaUser />,
-          },
-          {
-            label: "Configuración",
-            path: "/dashboardMechanic/configuracion",
-            icon: <FaCog />,
           },
         ],
       },
@@ -223,11 +207,6 @@ const menusPorRol = {
             path: "/dashboardOperator/perfil",
             icon: <FaUser />,
           },
-          {
-            label: "Configuración",
-            path: "/dashboardOperator/configuracion",
-            icon: <FaCog />,
-          },
         ],
       },
     ],
@@ -240,6 +219,12 @@ function DashboardSidebar({ isOpen, onClose }) {
 
   const rol = usuario?.rol || "chofer";
   const menu = menusPorRol[rol] || menusPorRol.chofer;
+
+  const API_URL = "http://localhost:5000";
+
+  const fotoPerfil = usuario?.foto_perfil
+    ? `${API_URL}${usuario.foto_perfil}`
+    : null;
 
   const handleLogout = () => {
     logout();
@@ -255,9 +240,17 @@ function DashboardSidebar({ isOpen, onClose }) {
     <>
       {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
 
-      <aside className={`sidebar sidebar--${rol} ${isOpen ? "sidebar--open" : ""}`}>
+      <aside
+        className={`sidebar sidebar--${rol} ${
+          isOpen ? "sidebar--open" : ""
+        }`}
+      >
         <div className="sidebar__header">
-          <NavLink to={menu.dashboard} className="sidebar__logo" onClick={onClose}>
+          <NavLink
+            to={menu.dashboard}
+            className="sidebar__logo"
+            onClick={onClose}
+          >
             <span className="sidebar__logo-icon">T</span>
             <span className="sidebar__logo-text">Trukly</span>
           </NavLink>
@@ -310,7 +303,13 @@ function DashboardSidebar({ isOpen, onClose }) {
 
         <div className="sidebar__footer">
           <div className="sidebar__user">
-            <div className="sidebar__avatar">{inicialUsuario}</div>
+            <div className="sidebar__avatar">
+              {fotoPerfil ? (
+                <img src={fotoPerfil} alt="Foto de perfil" />
+              ) : (
+                inicialUsuario
+              )}
+            </div>
 
             <div className="sidebar__user-info">
               <span className="sidebar__user-name">

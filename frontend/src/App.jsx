@@ -156,11 +156,6 @@ function AppContent() {
                 />
 
                 <Route
-                  path="/dashboardAdmin/configuracion"
-                  element={<DashboardAdminPage title="Configuración" />}
-                />
-
-                <Route
                   path="/dashboardOperator"
                   element={<DashboardOperatorPage />}
                 />

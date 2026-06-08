@@ -8,6 +8,7 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { fetchConToken } from "../utils/fetchConToken";
+import { useAuth } from "../context/AuthContext";
 import "./AdminPerfilPage.css";
 
 function AdminPerfilPage() {
@@ -30,6 +31,25 @@ function AdminPerfilPage() {
   const [error, setError] = useState("");
 
   const inputFotoRef = useRef(null);
+
+  const { actualizarUsuario } = useAuth();
+
+  const actualizarUsuarioGuardado = (datosActualizados) => {
+    const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+
+    if (!usuarioGuardado) return;
+
+    const usuarioActualizado = {
+      ...usuarioGuardado,
+      ...datosActualizados,
+    };
+
+    localStorage.setItem("usuario", JSON.stringify(usuarioActualizado));
+
+    if (actualizarUsuario) {
+      actualizarUsuario(usuarioActualizado);
+    }
+  };
 
   const cargarPerfil = async () => {
     try {
@@ -60,6 +80,8 @@ function AdminPerfilPage() {
         apellido: data.perfil.apellido || "",
         email: data.perfil.email || "",
       });
+
+      actualizarUsuarioGuardado(data.perfil);
     } catch (error) {
       setError(error.message);
     } finally {
@@ -119,6 +141,7 @@ function AdminPerfilPage() {
       }
 
       setPerfil(data.perfil);
+      actualizarUsuarioGuardado(data.perfil);
       setMensaje(data.mensaje || "Perfil actualizado correctamente");
     } catch (error) {
       setError(error.message);
@@ -189,29 +212,30 @@ function AdminPerfilPage() {
 
       const token = localStorage.getItem("token");
 
-      const respuesta = await fetch(
-        "http://localhost:5000/api/perfil/foto",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
+      const respuesta = await fetch("http://localhost:5000/api/perfil/foto", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
 
       const data = await respuesta.json();
 
       if (!respuesta.ok) {
-        throw new Error(
-          data.mensaje || data.msg || "Error al subir la foto"
-        );
+        throw new Error(data.mensaje || data.msg || "Error al subir la foto");
       }
 
-      setPerfil((perfilActual) => ({
-        ...perfilActual,
-        foto_perfil: data.foto_perfil,
-      }));
+      setPerfil((perfilActual) => {
+        const perfilActualizado = {
+          ...perfilActual,
+          foto_perfil: data.foto_perfil,
+        };
+
+        actualizarUsuarioGuardado(perfilActualizado);
+
+        return perfilActualizado;
+      });
 
       setMensaje(data.mensaje || "Foto actualizada correctamente");
     } catch (error) {
@@ -263,27 +287,18 @@ function AdminPerfilPage() {
         </div>
       </div>
 
-      {mensaje && (
-        <p className="admin-message admin-message--ok">{mensaje}</p>
-      )}
+      {mensaje && <p className="admin-message admin-message--ok">{mensaje}</p>}
 
-      {error && (
-        <p className="admin-message admin-message--error">{error}</p>
-      )}
+      {error && <p className="admin-message admin-message--error">{error}</p>}
 
       <div className="admin-perfil-grid">
         <article className="admin-perfil-card admin-perfil-card--identity">
           <div className="admin-perfil-avatar-wrap">
             <div className="admin-perfil-avatar">
               {obtenerFotoPerfil() ? (
-                <img
-                  src={obtenerFotoPerfil()}
-                  alt="Foto de perfil"
-                />
+                <img src={obtenerFotoPerfil()} alt="Foto de perfil" />
               ) : (
-                <span>
-                  {perfil.nombre?.charAt(0).toUpperCase() || "A"}
-                </span>
+                <span>{perfil.nombre?.charAt(0).toUpperCase() || "A"}</span>
               )}
             </div>
 
@@ -344,10 +359,7 @@ function AdminPerfilPage() {
               <FaUser />
             </div>
 
-            <form
-              className="admin-perfil-form"
-              onSubmit={guardarPerfil}
-            >
+            <form className="admin-perfil-form" onSubmit={guardarPerfil}>
               <div className="admin-perfil-form__row">
                 <label>
                   <span>Nombre</span>
@@ -381,14 +393,9 @@ function AdminPerfilPage() {
               </label>
 
               <div className="admin-perfil-form__footer">
-                <button
-                  type="submit"
-                  disabled={guardandoPerfil}
-                >
+                <button type="submit" disabled={guardandoPerfil}>
                   <FaSave />
-                  {guardandoPerfil
-                    ? "Guardando..."
-                    : "Guardar cambios"}
+                  {guardandoPerfil ? "Guardando..." : "Guardar cambios"}
                 </button>
               </div>
             </form>
@@ -404,10 +411,7 @@ function AdminPerfilPage() {
               <FaLock />
             </div>
 
-            <form
-              className="admin-perfil-form"
-              onSubmit={cambiarPassword}
-            >
+            <form className="admin-perfil-form" onSubmit={cambiarPassword}>
               <label>
                 <span>Contraseña actual</span>
                 <input
@@ -441,14 +445,9 @@ function AdminPerfilPage() {
               </div>
 
               <div className="admin-perfil-form__footer">
-                <button
-                  type="submit"
-                  disabled={guardandoPassword}
-                >
+                <button type="submit" disabled={guardandoPassword}>
                   <FaLock />
-                  {guardandoPassword
-                    ? "Actualizando..."
-                    : "Cambiar contraseña"}
+                  {guardandoPassword ? "Actualizando..." : "Cambiar contraseña"}
                 </button>
               </div>
             </form>
