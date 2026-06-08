@@ -1,0 +1,159 @@
+.mecanico-reportes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.mecanico-reportes-header {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 24px;
+  border: 1px solid rgba(124, 58, 237, 0.18);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mecanico-reportes-header span {
+  color: #7c3aed;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.mecanico-reportes-header h1 {
+  margin: 8px 0;
+  color: #111827;
+}
+
+.mecanico-reportes-header p {
+  margin: 0;
+  color: #6b7280;
+  max-width: 720px;
+}
+
+.mecanico-reportes-header__icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.mecanico-message {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #374151;
+  font-weight: 700;
+}
+
+.mecanico-message--ok {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.mecanico-message--error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.mecanico-reportes-card {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 20px;
+  border: 1px solid rgba(124, 58, 237, 0.14);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+}
+
+.mecanico-empty {
+  margin: 0;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.mecanico-reportes-table-wrap {
+  overflow-x: auto;
+}
+
+.mecanico-reportes-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+
+.mecanico-reportes-table th,
+.mecanico-reportes-table td {
+  padding: 14px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+.mecanico-reportes-table th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #6b7280;
+  letter-spacing: 0.04em;
+}
+
+.mecanico-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.mecanico-badge--resuelto {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.mecanico-badge--pendiente {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.mecanico-badge--en-reparacion,
+.mecanico-badge--en_reparacion {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.mecanico-action-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 9px 12px;
+  background: #7c3aed;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mecanico-action-btn:hover {
+  background: #6d28d9;
+}
+
+.mecanico-resuelto {
+  color: #047857;
+  font-weight: 800;
+}
+
+@media (max-width: 700px) {
+  .mecanico-reportes-header {
+    flex-direction: column;
+  }
+}

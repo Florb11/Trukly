@@ -1,42 +1,132 @@
 from flask import jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+
 from db_instance import db
 
+from models.usuario_model import UsuarioModel
 from models.mecanico_model import MecanicoModel
+from models.reporte_model import ReporteModel
+
+from src.Mecanico import Mecanico
 
 
-def listar_mecanicos():
+class MecanicoController:
 
-    mecanicos = MecanicoModel.query.all()
+    @staticmethod
+    def crear_objeto_mecanico(usuario_model, mecanico_model):
+        return Mecanico(
+            id_usuario=usuario_model.id_usuario,
+            username=usuario_model.username,
+            email=usuario_model.email,
+            password=usuario_model.password,
+            nombre=usuario_model.nombre,
+            apellido=usuario_model.apellido,
+            estado=usuario_model.estado,
+            rol=usuario_model.rol,
+            legajo=mecanico_model.legajo,
+            especialidad=mecanico_model.especialidad,
+            foto_perfil=usuario_model.foto_perfil,
+        )
 
-    return jsonify([mecanico.to_dict() for mecanico in mecanicos])
+    @staticmethod
+    def obtener_mecanico_actual():
+        id_usuario = get_jwt_identity()
+        datos_token = get_jwt()
 
+        if datos_token.get("rol") != "mecanico":
+            return None
 
-def obtener_mecanico(id_usuario):
+        usuario_model = UsuarioModel.query.get(id_usuario)
+        mecanico_model = MecanicoModel.query.get(id_usuario)
 
-    mecanico = MecanicoModel.query.get(id_usuario)
+        if usuario_model is None or mecanico_model is None:
+            return None
 
-    if mecanico is None:
-        return jsonify({"mensaje": "Mecanico no encontrador "}), 404
+        return MecanicoController.crear_objeto_mecanico(
+            usuario_model,
+            mecanico_model
+        )
 
-    return jsonify(mecanico.to_dict())
+    @staticmethod
+    def listar_mecanicos():
+        mecanicos = MecanicoModel.query.all()
 
+        return jsonify([mecanico.to_dict() for mecanico in mecanicos]), 200
 
-def crear_mecanico():
+    @staticmethod
+    def obtener_mecanico(id_usuario):
+        mecanico = MecanicoModel.query.get(id_usuario)
 
-    datos = request.get_json()
+        if mecanico is None:
+            return jsonify({"mensaje": "Mecánico no encontrado"}), 404
 
-    nuevo_mecanico = MecanicoModel(
-        Usuario_idUsuario=datos["Usuario_idUsuario"],
-        legajo=datos["Legajo"],
-        especialidad=datos["Especialidad"],
-    )
+        return jsonify(mecanico.to_dict()), 200
 
-    db.session.add(nuevo_mecanico)
-    db.session.commit()
+    @staticmethod
+    def crear_mecanico():
+        datos = request.get_json()
 
-    return jsonify(
-        {
-            "mensaje": "Mecanico creado correctamente",
-            "mecanico": nuevo_mecanico.to_dict()
-        }
-    )
+        nuevo_mecanico = MecanicoModel(
+            Usuario_idUsuario=datos["Usuario_idUsuario"],
+            legajo=datos["Legajo"],
+            especialidad=datos["Especialidad"],
+        )
+
+        db.session.add(nuevo_mecanico)
+        db.session.commit()
+
+        return jsonify(
+            {
+                "mensaje": "Mecánico creado correctamente",
+                "mecanico": nuevo_mecanico.to_dict(),
+            }
+        ), 201
+
+    @staticmethod
+    @jwt_required()
+    def listar_reportes_asignados():
+        mecanico = MecanicoController.obtener_mecanico_actual()
+
+        if mecanico is None:
+            return jsonify({"mensaje": "No tenés permisos para ver estos reportes"}), 403
+
+        reportes = ReporteModel.query.filter_by(
+            Mecanico_Usuario_idUsuario=mecanico.id_usuario
+        ).all()
+
+        return jsonify(
+            {
+                "reportes": [reporte.to_dict() for reporte in reportes]
+            }
+        ), 200
+
+    @staticmethod
+    @jwt_required()
+    def resolver_reporte(id_reporte):
+        mecanico = MecanicoController.obtener_mecanico_actual()
+
+        if mecanico is None:
+            return jsonify({"mensaje": "No tenés permisos para resolver reportes"}), 403
+
+        reporte = ReporteModel.query.get(id_reporte)
+
+        if reporte is None:
+            return jsonify({"mensaje": "Reporte no encontrado"}), 404
+
+        pudo_resolver = mecanico.resolver_reporte(reporte)
+
+        if not pudo_resolver:
+            return jsonify(
+                {
+                    "mensaje": "No podés resolver este reporte"
+                }
+            ), 400
+
+        db.session.commit()
+
+        return jsonify(
+            {
+                "mensaje": "Reporte marcado como resuelto",
+                "reporte": reporte.to_dict(),
+            }
+        ), 200
