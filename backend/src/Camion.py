@@ -1,4 +1,11 @@
 class Camion:
+    ESTADOS_VALIDOS = [
+        "disponible",
+        "en viaje",
+        "en mantenimiento",
+        "inactivo"
+    ]
+
     def __init__(
         self,
         id_camion,
@@ -44,18 +51,14 @@ class Camion:
 
     # valida que el estado sea uno de los permitidos
     def validar_estado(self):
-        estados_validos = ["disponible", "en viaje", "en mantenimiento", "inactivo"]
-
-        if self.estado not in estados_validos:
+        if self.estado not in self.ESTADOS_VALIDOS:
             return False
 
         return True
 
     # cambia el estado del camion si es valido
     def cambiar_estado(self, nuevo_estado):
-        estados_validos = ["disponible", "en viaje", "en mantenimiento", "inactivo"]
-
-        if nuevo_estado not in estados_validos:
+        if nuevo_estado not in self.ESTADOS_VALIDOS:
             return False
 
         self.estado = nuevo_estado
@@ -64,13 +67,14 @@ class Camion:
     # si el camion esta disponible para asignarlo a un viaje
     def esta_disponible(self):
         return self.estado == "disponible"
+
     # porcentaje d camiones disponible para el dash
     @staticmethod
     def calcular_porcentaje_disponible(camiones_disponibles, camiones_totales):
         if camiones_totales == 0:
             return 0
 
-        return round((camiones_disponibles / camiones_totales) * 100) # round redondear un numero a una cantidad especifica de decimales
+        return round((camiones_disponibles / camiones_totales) * 100)
 
     def to_dict(self):
         return {

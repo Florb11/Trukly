@@ -5,15 +5,41 @@ from db_instance import db
 from models.notificacion_model import NotificacionModel
 from models.usuario_model import UsuarioModel
 
+from src.Notificacion import Notificacion
+
 
 class NotificacionController:
 
     @staticmethod
-    def convertir_notificacion(notificacion):
+    def crear_objeto_notificacion(notificacion_model):
+        return Notificacion(
+            id_notificacion=notificacion_model.id_notificacion,
+            Usuario_idUsuario=notificacion_model.Usuario_idUsuario,
+            titulo=notificacion_model.titulo,
+            mensaje=notificacion_model.mensaje,
+            leida=notificacion_model.leida,
+            fecha_hora=notificacion_model.fecha_hora,
+            tipo=notificacion_model.tipo,
+        )
+
+    @staticmethod
+    def actualizar_modelo_notificacion(
+        notificacion_model,
+        notificacion_clase
+    ):
+        notificacion_model.leida = notificacion_clase.leida
+
+    @staticmethod
+    def convertir_notificacion(notificacion_model):
+        notificacion = (
+            NotificacionController.crear_objeto_notificacion(
+                notificacion_model
+            )
+        )
+
         usuario = UsuarioModel.query.get(notificacion.Usuario_idUsuario)
 
         datos = notificacion.to_dict()
-
         datos["usuario_destino"] = None
 
         if usuario is not None:
@@ -57,20 +83,34 @@ class NotificacionController:
         datos_token = get_jwt()
         rol = datos_token.get("rol")
 
-        notificacion = NotificacionModel.query.get(id_notificacion)
+        notificacion_model = NotificacionModel.query.get(id_notificacion)
 
-        if notificacion is None:
-            return jsonify({"mensaje": "Notificación no encontrada"}), 404
-
-        if rol != "admin" and str(notificacion.Usuario_idUsuario) != str(id_usuario):
+        if notificacion_model is None:
             return jsonify({
-                "mensaje": "No tenés permisos para modificar esta notificación"
+                "mensaje": "Notificacion no encontrada"
+            }), 404
+
+        notificacion = (
+            NotificacionController.crear_objeto_notificacion(
+                notificacion_model
+            )
+        )
+
+        if not notificacion.marcar_como_leida(id_usuario, rol):
+            return jsonify({
+                "mensaje": "No tenes permisos para modificar esta notificacion"
             }), 403
 
-        notificacion.leida = True
+        NotificacionController.actualizar_modelo_notificacion(
+            notificacion_model,
+            notificacion
+        )
+
         db.session.commit()
 
         return jsonify({
-            "mensaje": "Notificación marcada como leída",
-            "notificacion": NotificacionController.convertir_notificacion(notificacion)
+            "mensaje": "Notificacion marcada como leida",
+            "notificacion": NotificacionController.convertir_notificacion(
+                notificacion_model
+            )
         }), 200

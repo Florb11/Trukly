@@ -14,6 +14,7 @@ from models.reporte_model import ReporteModel
 from models.camion_model import CamionModel
 
 from src.Mecanico import Mecanico
+from src.ReporteFalla import ReporteFalla
 
 
 class MecanicoController:
@@ -54,45 +55,28 @@ class MecanicoController:
         )
 
     @staticmethod
-    def listar_mecanicos():
-        mecanicos = MecanicoModel.query.all()
-
-        return jsonify(
-            [mecanico.to_dict() for mecanico in mecanicos]
-        ), 200
-
-    @staticmethod
-    def obtener_mecanico(id_usuario):
-        mecanico = MecanicoModel.query.get(id_usuario)
-
-        if mecanico is None:
-            return jsonify(
-                {
-                    "mensaje": "Mecánico no encontrado"
-                }
-            ), 404
-
-        return jsonify(mecanico.to_dict()), 200
-
-    @staticmethod
-    def crear_mecanico():
-        datos = request.get_json()
-
-        nuevo_mecanico = MecanicoModel(
-            Usuario_idUsuario=datos["Usuario_idUsuario"],
-            legajo=datos["Legajo"],
-            especialidad=datos["Especialidad"],
+    def crear_objeto_reporte(reporte_model):
+        return ReporteFalla(
+            id_reporte=reporte_model.id_reporte,
+            fecha_hora=reporte_model.fecha_hora,
+            descripcion=reporte_model.descripcion,
+            estado=reporte_model.estado,
+            Camion_id_camion=reporte_model.Camion_id_camion,
+            Mecanico_Usuario_idUsuario=(
+                reporte_model.Mecanico_Usuario_idUsuario
+            ),
+            Chofer_Usuario_idUsuario=(
+                reporte_model.Chofer_Usuario_idUsuario
+            ),
+            nota_reparacion=reporte_model.nota_reparacion,
+            fecha_resolucion=reporte_model.fecha_resolucion,
         )
 
-        db.session.add(nuevo_mecanico)
-        db.session.commit()
-
-        return jsonify(
-            {
-                "mensaje": "Mecánico creado correctamente",
-                "mecanico": nuevo_mecanico.to_dict(),
-            }
-        ), 201
+    @staticmethod
+    def actualizar_modelo_reporte(reporte_model, reporte_clase):
+        reporte_model.estado = reporte_clase.estado
+        reporte_model.nota_reparacion = reporte_clase.nota_reparacion
+        reporte_model.fecha_resolucion = reporte_clase.fecha_resolucion
 
     @staticmethod
     @jwt_required()
@@ -102,7 +86,7 @@ class MecanicoController:
         if mecanico is None:
             return jsonify(
                 {
-                    "mensaje": "No tenés permisos para ver estos reportes"
+                    "mensaje": "No tenes permisos para ver estos reportes"
                 }
             ), 403
 
@@ -127,21 +111,23 @@ class MecanicoController:
         if mecanico is None:
             return jsonify(
                 {
-                    "mensaje": "No tenés permisos para resolver reportes"
+                    "mensaje": "No tenes permisos para resolver reportes"
                 }
             ), 403
 
         datos = request.get_json() or {}
         nota_reparacion = datos.get("nota_reparacion")
 
-        reporte = ReporteModel.query.get(id_reporte)
+        reporte_model = ReporteModel.query.get(id_reporte)
 
-        if reporte is None:
+        if reporte_model is None:
             return jsonify(
                 {
                     "mensaje": "Reporte no encontrado"
                 }
             ), 404
+
+        reporte = MecanicoController.crear_objeto_reporte(reporte_model)
 
         pudo_resolver = mecanico.resolver_reporte(
             reporte,
@@ -152,11 +138,16 @@ class MecanicoController:
             return jsonify(
                 {
                     "mensaje": (
-                        "No podés resolver este reporte o falta "
-                        "la nota de reparación"
+                        "No podes resolver este reporte o falta "
+                        "la nota de reparacion"
                     )
                 }
             ), 400
+
+        MecanicoController.actualizar_modelo_reporte(
+            reporte_model,
+            reporte
+        )
 
         event_manager = EventManager()
         listener_notificacion = NotificacionReporteListener()
@@ -169,10 +160,10 @@ class MecanicoController:
         event_manager.notificar(
             "reporte_resuelto",
             {
-                "id_usuario": reporte.Chofer_Usuario_idUsuario,
+                "id_usuario": reporte_model.Chofer_Usuario_idUsuario,
                 "titulo": "Reporte resuelto",
                 "mensaje": (
-                    f"El reporte #{reporte.id_reporte} fue resuelto. "
+                    f"El reporte #{reporte_model.id_reporte} fue resuelto. "
                     f"Nota: {nota_reparacion}"
                 ),
                 "tipo": "reporte_resuelto",
@@ -184,7 +175,7 @@ class MecanicoController:
         return jsonify(
             {
                 "mensaje": "Reporte marcado como resuelto",
-                "reporte": reporte.to_dict(),
+                "reporte": reporte_model.to_dict(),
             }
         ), 200
 
@@ -197,7 +188,7 @@ class MecanicoController:
             return jsonify(
                 {
                     "mensaje": (
-                        "No tenés permisos para consultar mantenimiento"
+                        "No tenes permisos para consultar mantenimiento"
                     )
                 }
             ), 403
@@ -205,7 +196,7 @@ class MecanicoController:
         if not mecanico.puede_consultar_mantenimiento():
             return jsonify(
                 {
-                    "mensaje": "El mecánico no está activo"
+                    "mensaje": "El mecanico no esta activo"
                 }
             ), 403
 
@@ -248,7 +239,7 @@ class MecanicoController:
             return jsonify(
                 {
                     "mensaje": (
-                        "No tenés permisos para consultar mantenimiento"
+                        "No tenes permisos para consultar mantenimiento"
                     )
                 }
             ), 403
@@ -256,7 +247,7 @@ class MecanicoController:
         if not mecanico.puede_consultar_mantenimiento():
             return jsonify(
                 {
-                    "mensaje": "El mecánico no está activo"
+                    "mensaje": "El mecanico no esta activo"
                 }
             ), 403
 
@@ -265,7 +256,7 @@ class MecanicoController:
         if camion is None:
             return jsonify(
                 {
-                    "mensaje": "Camión no encontrado"
+                    "mensaje": "Camion no encontrado"
                 }
             ), 404
 

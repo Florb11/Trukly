@@ -21,9 +21,36 @@ class ReporteController:
         return rol in roles_permitidos
 
     @staticmethod
+    def crear_objeto_reporte(reporte_model):
+        return ReporteFalla(
+            id_reporte=reporte_model.id_reporte,
+            fecha_hora=reporte_model.fecha_hora,
+            descripcion=reporte_model.descripcion,
+            estado=reporte_model.estado,
+            Camion_id_camion=reporte_model.Camion_id_camion,
+            Mecanico_Usuario_idUsuario=(
+                reporte_model.Mecanico_Usuario_idUsuario
+            ),
+            Chofer_Usuario_idUsuario=(
+                reporte_model.Chofer_Usuario_idUsuario
+            ),
+            nota_reparacion=reporte_model.nota_reparacion,
+            fecha_resolucion=reporte_model.fecha_resolucion,
+        )
+
+    @staticmethod
+    def actualizar_modelo_reporte(reporte_model, reporte_clase):
+        reporte_model.estado = reporte_clase.estado
+        reporte_model.Mecanico_Usuario_idUsuario = (
+            reporte_clase.Mecanico_Usuario_idUsuario
+        )
+        reporte_model.nota_reparacion = reporte_clase.nota_reparacion
+        reporte_model.fecha_resolucion = reporte_clase.fecha_resolucion
+
+    @staticmethod
     @jwt_required()
     def listar_reportes():
-        if not ReporteController.validar_rol(["admin", "mecanico", "operador"]):
+        if not ReporteController.validar_rol(["admin", "operador"]):
             return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
 
         reportes = ReporteModel.query.all()
@@ -35,7 +62,7 @@ class ReporteController:
     @staticmethod
     @jwt_required()
     def obtener_reporte(id_reporte):
-        if not ReporteController.validar_rol(["admin", "mecanico", "operador", "chofer"]):
+        if not ReporteController.validar_rol(["admin", "operador", "chofer"]):
             return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
 
         reporte = ReporteModel.query.get(id_reporte)
@@ -59,7 +86,7 @@ class ReporteController:
         if not ReporteController.validar_rol(["chofer"]):
             return jsonify({"mensaje": "Solo un chofer puede crear reportes"}), 403
 
-        datos = request.get_json()
+        datos = request.get_json(silent=True) or {}
         id_chofer = int(get_jwt_identity())
 
         camion_id = datos.get("Camion_id_camion")
@@ -113,7 +140,7 @@ class ReporteController:
     @staticmethod
     @jwt_required()
     def cambiar_estado_reporte(id_reporte):
-        if not ReporteController.validar_rol(["admin", "mecanico", "operador"]):
+        if not ReporteController.validar_rol(["admin", "operador"]):
             return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
 
         reporte_db = ReporteModel.query.get(id_reporte)
@@ -121,23 +148,18 @@ class ReporteController:
         if reporte_db is None:
             return jsonify({"mensaje": "Reporte no encontrado"}), 404
 
-        datos = request.get_json()
+        datos = request.get_json(silent=True) or {}
         nuevo_estado = datos.get("estado")
 
-        reporte_clase = ReporteFalla(
-            reporte_db.id_reporte,
-            reporte_db.fecha_hora,
-            reporte_db.descripcion,
-            reporte_db.estado,
-            reporte_db.Camion_id_camion,
-            reporte_db.Mecanico_Usuario_idUsuario,
-            reporte_db.Chofer_Usuario_idUsuario,
-        )
+        reporte_clase = ReporteController.crear_objeto_reporte(reporte_db)
 
         if not reporte_clase.cambiar_estado(nuevo_estado):
             return jsonify({"mensaje": "Estado invalido"}), 400
 
-        reporte_db.estado = reporte_clase.estado
+        ReporteController.actualizar_modelo_reporte(
+            reporte_db,
+            reporte_clase
+        )
 
         db.session.commit()
 
@@ -157,7 +179,7 @@ class ReporteController:
         if reporte_db is None:
             return jsonify({"mensaje": "Reporte no encontrado"}), 404
 
-        datos = request.get_json()
+        datos = request.get_json(silent=True) or {}
         id_mecanico = datos.get("Mecanico_Usuario_idUsuario")
 
         mecanico = MecanicoModel.query.filter_by(
@@ -167,21 +189,15 @@ class ReporteController:
         if mecanico is None:
             return jsonify({"mensaje": "Mecanico no encontrado"}), 404
 
-        reporte_clase = ReporteFalla(
-            reporte_db.id_reporte,
-            reporte_db.fecha_hora,
-            reporte_db.descripcion,
-            reporte_db.estado,
-            reporte_db.Camion_id_camion,
-            reporte_db.Mecanico_Usuario_idUsuario,
-            reporte_db.Chofer_Usuario_idUsuario,
-        )
+        reporte_clase = ReporteController.crear_objeto_reporte(reporte_db)
 
         if not reporte_clase.asignar_mecanico(id_mecanico):
             return jsonify({"mensaje": "No se pudo asignar el mecanico"}), 400
 
-        reporte_db.Mecanico_Usuario_idUsuario = reporte_clase.Mecanico_Usuario_idUsuario
-        reporte_db.estado = "en revision"
+        ReporteController.actualizar_modelo_reporte(
+            reporte_db,
+            reporte_clase
+        )
 
         db.session.commit()
 

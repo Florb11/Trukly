@@ -19,6 +19,6 @@ class ChoferModel(db.Model):
         return {
             "Usuario_idUsuario": self.Usuario_idUsuario,
             "licencia": self.licencia,
-            "vencimientoLicencia": self.vencimientoLicencia,
+            "vencimientoLicencia": str(self.vencimientoLicencia),
             "legajo": self.legajo,
         }

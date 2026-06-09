@@ -7,8 +7,8 @@ class Chofer(Usuario):
         self,
         id_usuario,
         username,
-        password,
         email,
+        password,
         nombre,
         apellido,
         estado,
@@ -20,8 +20,8 @@ class Chofer(Usuario):
         super().__init__(
             id_usuario,
             username,
-            password,
             email,
+            password,
             nombre,
             apellido,
             estado,
@@ -53,10 +53,9 @@ class Chofer(Usuario):
             return False, "La fecha de vencimiento de la licencia es obligatoria"
 
         try:
-            fecha_vencimiento = datetime.strptime(
-                vencimientoLicencia,
-                "%Y-%m-%d"
-            ).date()
+            fecha_vencimiento = Chofer.convertir_vencimiento_licencia(
+                vencimientoLicencia
+            )
         except ValueError:
             return False, "La fecha de vencimiento debe tener formato YYYY-MM-DD"
 
@@ -64,6 +63,16 @@ class Chofer(Usuario):
             return False, "La licencia no puede estar vencida"
 
         return True, None
+
+    @staticmethod
+    def convertir_vencimiento_licencia(vencimientoLicencia):
+        if isinstance(vencimientoLicencia, date):
+            return vencimientoLicencia
+
+        return datetime.strptime(
+            vencimientoLicencia,
+            "%Y-%m-%d"
+        ).date()
 
     def to_dict(self):
         datos_usuario = super().to_dict()
