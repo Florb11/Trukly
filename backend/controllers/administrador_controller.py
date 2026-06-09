@@ -1,27 +1,20 @@
 from flask import jsonify, request
-from flask_jwt_extended import get_jwt_identity, get_jwt, jwt_required
 
 from db_instance import db
 
 from models.administrador_model import AdministradorModel
 from models.usuario_model import UsuarioModel
 
-from src.Administrador import Administrador
 from src.Usuario import Usuario
+from services.auth_service import AuthService
+from utils.auth_decorators import admin_required
 
 
 class AdministradorController:
 
     @staticmethod
-    @jwt_required()
+    @admin_required
     def listar_administradores():
-        admin = AdministradorController.obtener_admin_actual()
-
-        if admin is None:
-            return jsonify({
-                "mensaje": "No tenes permiso para realizar esta accion"
-            }), 403
-
         administradores = AdministradorModel.query.all()
 
         return jsonify([
@@ -30,15 +23,8 @@ class AdministradorController:
         ]), 200
 
     @staticmethod
-    @jwt_required()
+    @admin_required
     def obtener_administrador(id_usuario):
-        admin = AdministradorController.obtener_admin_actual()
-
-        if admin is None:
-            return jsonify({
-                "mensaje": "No tenes permiso para realizar esta accion"
-            }), 403
-
         administrador = AdministradorModel.query.get(id_usuario)
 
         if administrador is None:
@@ -49,15 +35,8 @@ class AdministradorController:
         return jsonify(administrador.to_dict()), 200
 
     @staticmethod
-    @jwt_required()
+    @admin_required
     def crear_administrador():
-        admin = AdministradorController.obtener_admin_actual()
-
-        if admin is None:
-            return jsonify({
-                "mensaje": "No tenes permiso para realizar esta accion"
-            }), 403
-
         datos = request.get_json(silent=True) or {}
 
         if not datos:
@@ -127,41 +106,5 @@ class AdministradorController:
 
     @staticmethod
     def obtener_admin_actual():
-        id_usuario = get_jwt_identity()
-        datos_token = get_jwt()
-
-        if not id_usuario:
-            return None
-
-        if datos_token.get("rol") != Usuario.ROL_ADMIN:
-            return None
-
-        try:
-            id_usuario = int(id_usuario)
-        except (TypeError, ValueError):
-            return None
-
-        usuario = UsuarioModel.query.get(id_usuario)
-
-        if usuario is None:
-            return None
-
-        administrador = AdministradorModel.query.get(
-            usuario.id_usuario
-        )
-
-        if administrador is None:
-            return None
-
-        return Administrador(
-            usuario.id_usuario,
-            usuario.username,
-            usuario.email,
-            usuario.password,
-            usuario.nombre,
-            usuario.apellido,
-            usuario.estado,
-            usuario.rol,
-            administrador.legajo,
-        )
+        return AuthService.obtener_admin_actual_desde_token()
         

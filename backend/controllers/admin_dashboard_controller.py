@@ -1,9 +1,6 @@
 from datetime import date, timedelta
 
-from flask import jsonify
-from flask_jwt_extended import jwt_required
-
-from controllers.administrador_controller import AdministradorController
+from flask import g, jsonify
 
 from models.usuario_model import UsuarioModel
 from models.chofer_model import ChoferModel
@@ -15,19 +12,15 @@ from src.Usuario import Usuario
 from src.Camion import Camion
 from src.Viaje import Viaje
 from src.ReporteFalla import ReporteFalla
+from utils.auth_decorators import admin_required
 
 
 class AdminDashboardController:
 
     @staticmethod
-    @jwt_required()
+    @admin_required
     def obtener_resumen_dashboard():
-        admin = AdministradorController.obtener_admin_actual()
-
-        if admin is None:
-            return jsonify({
-                "mensaje": "No tenes permiso para realizar esta accion"
-            }), 403
+        admin = g.admin_actual
 
         usuarios_activos = UsuarioModel.query.filter_by(
             estado=Usuario.ESTADO_ACTIVO

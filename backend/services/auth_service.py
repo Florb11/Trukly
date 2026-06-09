@@ -1,0 +1,92 @@
+from flask_jwt_extended import get_jwt, get_jwt_identity
+
+from models.administrador_model import AdministradorModel
+from models.mecanico_model import MecanicoModel
+from models.usuario_model import UsuarioModel
+
+from src.Administrador import Administrador
+from src.Mecanico import Mecanico
+from src.Usuario import Usuario
+
+
+class AuthService:
+
+    @staticmethod
+    def obtener_id_usuario_actual():
+        identidad = get_jwt_identity()
+
+        try:
+            return int(identidad)
+        except (TypeError, ValueError):
+            return identidad
+
+    @staticmethod
+    def obtener_rol_actual():
+        return get_jwt().get("rol")
+
+    @staticmethod
+    def obtener_usuario_model_actual():
+        id_usuario = AuthService.obtener_id_usuario_actual()
+
+        if not id_usuario:
+            return None
+
+        return UsuarioModel.query.get(id_usuario)
+
+    @staticmethod
+    def obtener_admin_actual_desde_token():
+        if AuthService.obtener_rol_actual() != Usuario.ROL_ADMIN:
+            return None
+
+        usuario = AuthService.obtener_usuario_model_actual()
+
+        if usuario is None:
+            return None
+
+        administrador = AdministradorModel.query.get(
+            usuario.id_usuario
+        )
+
+        if administrador is None:
+            return None
+
+        return Administrador(
+            usuario.id_usuario,
+            usuario.username,
+            usuario.email,
+            usuario.password,
+            usuario.nombre,
+            usuario.apellido,
+            usuario.estado,
+            usuario.rol,
+            administrador.legajo,
+        )
+
+    @staticmethod
+    def obtener_mecanico_actual_desde_token():
+        if AuthService.obtener_rol_actual() != Usuario.ROL_MECANICO:
+            return None
+
+        usuario = AuthService.obtener_usuario_model_actual()
+
+        if usuario is None:
+            return None
+
+        mecanico = MecanicoModel.query.get(usuario.id_usuario)
+
+        if mecanico is None:
+            return None
+
+        return Mecanico(
+            id_usuario=usuario.id_usuario,
+            username=usuario.username,
+            email=usuario.email,
+            password=usuario.password,
+            nombre=usuario.nombre,
+            apellido=usuario.apellido,
+            estado=usuario.estado,
+            rol=usuario.rol,
+            legajo=mecanico.legajo,
+            especialidad=mecanico.especialidad,
+            foto_perfil=usuario.foto_perfil,
+        )

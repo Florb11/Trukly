@@ -1,5 +1,6 @@
 from src.Usuario import Usuario
 from src.Chofer import Chofer
+from src.ReporteFalla import ReporteFalla
 
 
 class Administrador(Usuario):
@@ -36,6 +37,9 @@ class Administrador(Usuario):
         estado,
         rol,
         legajo,
+        usuarios_gestionados=None,
+        reportes_falla=None,
+        camiones_gestionados=None,
     ):
         super().__init__(
             id_usuario,
@@ -49,6 +53,30 @@ class Administrador(Usuario):
         )
 
         self.legajo = legajo
+        self.usuarios_gestionados = usuarios_gestionados or []
+        self.reportes_falla = reportes_falla or []
+        self.camiones_gestionados = camiones_gestionados or []
+
+    def agregar_usuario_gestionado(self, usuario):
+        if usuario is None:
+            return False
+
+        self.usuarios_gestionados.append(usuario)
+        return True
+
+    def agregar_camion_gestionado(self, camion):
+        if camion is None:
+            return False
+
+        self.camiones_gestionados.append(camion)
+        return True
+
+    def agregar_reporte_falla(self, reporte):
+        if reporte is None:
+            return False
+
+        self.reportes_falla.append(reporte)
+        return True
 
     @staticmethod
     def texto_valido(valor):
@@ -230,6 +258,7 @@ class Administrador(Usuario):
             return False
 
         usuario.estado = Usuario.ESTADO_ACTIVO
+        self.agregar_usuario_gestionado(usuario)
         return True
 
     # desactiva un usuario pasandolo a inactivo
@@ -242,6 +271,7 @@ class Administrador(Usuario):
             return False
 
         usuario.estado = Usuario.ESTADO_INACTIVO
+        self.agregar_usuario_gestionado(usuario)
         return True
 
     # modifica los datos generales de un usuario
@@ -270,6 +300,7 @@ class Administrador(Usuario):
         usuario.nombre = str(nombre).strip()
         usuario.apellido = str(apellido).strip()
         usuario.estado = estado
+        self.agregar_usuario_gestionado(usuario)
         return True
 
     # registra un usuario desde el administrador
@@ -300,6 +331,7 @@ class Administrador(Usuario):
         usuario.nombre = str(usuario.nombre).strip()
         usuario.apellido = str(usuario.apellido).strip()
 
+        self.agregar_usuario_gestionado(usuario)
         return True
 
     # uso el diccionario del padre y agrego el legajo del admin
@@ -325,6 +357,7 @@ class Administrador(Usuario):
         if not camion.validar_estado():
             return False
 
+        self.agregar_camion_gestionado(camion)
         return True
 
     # modifica los datos de un camion
@@ -338,6 +371,7 @@ class Administrador(Usuario):
         if not camion.validar_estado():
             return False
 
+        self.agregar_camion_gestionado(camion)
         return True
 
     # cambia el estado de un camion
@@ -345,7 +379,26 @@ class Administrador(Usuario):
         if camion is None:
             return False
 
-        return camion.cambiar_estado(nuevo_estado)
+        estado_cambiado = camion.cambiar_estado(nuevo_estado)
+
+        if estado_cambiado:
+            self.agregar_camion_gestionado(camion)
+
+        return estado_cambiado
+
+    def cambiar_estado_reporte(self, reporte, nuevo_estado):
+        if reporte is None:
+            return False
+
+        if not isinstance(reporte, ReporteFalla):
+            return False
+
+        estado_cambiado = reporte.cambiar_estado(nuevo_estado)
+
+        if estado_cambiado:
+            self.agregar_reporte_falla(reporte)
+
+        return estado_cambiado
 
     def preparar_chofer_pendiente(self, usuario, chofer):
         datos_usuario = usuario.to_dict()

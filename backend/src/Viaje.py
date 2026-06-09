@@ -35,7 +35,12 @@ class Viaje:
         recorrido,
         OperadorLogistico_Usuario_idUsuario,
         Chofer_Usuario_idUsuario,
-        Camion_id_camion
+        Camion_id_camion,
+        operador=None,
+        chofer=None,
+        camion=None,
+        cargas=None,
+        registros=None,
     ):
         self.id_viaje = id_viaje
         self.fecha_salida = fecha_salida
@@ -48,6 +53,93 @@ class Viaje:
         self.OperadorLogistico_Usuario_idUsuario = OperadorLogistico_Usuario_idUsuario
         self.Chofer_Usuario_idUsuario = Chofer_Usuario_idUsuario
         self.Camion_id_camion = Camion_id_camion
+        self.operador = operador
+        self.chofer = chofer
+        self.camion = camion
+        self.cargas = cargas or []
+        self.registros = registros or []
+
+    @staticmethod
+    def obtener_id_usuario(usuario):
+        if usuario is None:
+            return None
+
+        return getattr(usuario, "id_usuario", None)
+
+    @staticmethod
+    def obtener_id_camion(camion):
+        if camion is None:
+            return None
+
+        return getattr(camion, "id_camion", None)
+
+    def asignar_operador(self, operador):
+        id_operador = self.obtener_id_usuario(operador)
+
+        if not id_operador:
+            return False
+
+        self.operador = operador
+        self.OperadorLogistico_Usuario_idUsuario = id_operador
+        return True
+
+    def asignar_chofer(self, chofer):
+        id_chofer = self.obtener_id_usuario(chofer)
+
+        if not id_chofer:
+            return False
+
+        self.chofer = chofer
+        self.Chofer_Usuario_idUsuario = id_chofer
+        return True
+
+    def asignar_camion(self, camion):
+        id_camion = self.obtener_id_camion(camion)
+
+        if not id_camion:
+            return False
+
+        self.camion = camion
+        self.Camion_id_camion = id_camion
+        return True
+
+    def tiene_operador_asignado(self):
+        return (
+            self.operador is not None
+            or self.texto_valido(self.OperadorLogistico_Usuario_idUsuario)
+        )
+
+    def tiene_chofer_asignado(self):
+        return (
+            self.chofer is not None
+            or self.texto_valido(self.Chofer_Usuario_idUsuario)
+        )
+
+    def tiene_camion_asignado(self):
+        return (
+            self.camion is not None
+            or self.texto_valido(self.Camion_id_camion)
+        )
+
+    def agregar_carga(self, carga):
+        if carga is None:
+            return False
+
+        if not carga.asociar_viaje(self):
+            return False
+
+        self.cargas.append(carga)
+        return True
+
+    def agregar_registro(self, registro):
+        if registro is None:
+            return False
+
+        if not registro.asociar_viaje(self):
+            return False
+
+        self.registros.append(registro)
+        return True
 
     @staticmethod
     def convertir_fecha(fecha):
@@ -94,11 +186,11 @@ class Viaje:
             return False
         if not self.numero_no_negativo(self.recorrido):
             return False
-        if not self.OperadorLogistico_Usuario_idUsuario:
+        if not self.tiene_operador_asignado():
             return False
-        if not self.Chofer_Usuario_idUsuario:
+        if not self.tiene_chofer_asignado():
             return False
-        if not self.Camion_id_camion:
+        if not self.tiene_camion_asignado():
             return False
         return True
 
@@ -118,11 +210,15 @@ class Viaje:
         if self.observaciones is not None:
             self.observaciones = str(self.observaciones).strip()
 
-    def pertenece_a_chofer(self, id_chofer):
-        return self.Chofer_Usuario_idUsuario == id_chofer
+    def pertenece_a_chofer(self, chofer):
+        id_chofer = self.obtener_id_usuario(chofer) or chofer
 
-    def pertenece_a_operador(self, id_operador):
-        return self.OperadorLogistico_Usuario_idUsuario == id_operador
+        return str(self.Chofer_Usuario_idUsuario) == str(id_chofer)
+
+    def pertenece_a_operador(self, operador):
+        id_operador = self.obtener_id_usuario(operador) or operador
+
+        return str(self.OperadorLogistico_Usuario_idUsuario) == str(id_operador)
 
     def puede_ser_visto_por(self, rol, id_usuario):
         if rol == Usuario.ROL_ADMIN:

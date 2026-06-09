@@ -1,5 +1,4 @@
-from flask import jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from flask import g, jsonify
 
 from db_instance import db
 from models.notificacion_model import NotificacionModel
@@ -7,12 +6,30 @@ from models.usuario_model import UsuarioModel
 
 from src.Notificacion import Notificacion
 from src.Usuario import Usuario
+from utils.auth_decorators import usuario_required
 
 
 class NotificacionController:
 
     @staticmethod
-    def crear_objeto_notificacion(notificacion_model):
+    def crear_objeto_usuario(usuario_model):
+        if usuario_model is None:
+            return None
+
+        return Usuario(
+            usuario_model.id_usuario,
+            usuario_model.username,
+            usuario_model.email,
+            usuario_model.password,
+            usuario_model.nombre,
+            usuario_model.apellido,
+            usuario_model.estado,
+            usuario_model.rol,
+            usuario_model.foto_perfil,
+        )
+
+    @staticmethod
+    def crear_objeto_notificacion(notificacion_model, usuario=None):
         return Notificacion(
             id_notificacion=notificacion_model.id_notificacion,
             Usuario_idUsuario=notificacion_model.Usuario_idUsuario,
@@ -21,6 +38,7 @@ class NotificacionController:
             leida=notificacion_model.leida,
             fecha_hora=notificacion_model.fecha_hora,
             tipo=notificacion_model.tipo,
+            usuario=usuario,
         )
 
     @staticmethod
@@ -32,34 +50,38 @@ class NotificacionController:
 
     @staticmethod
     def convertir_notificacion(notificacion_model):
+        usuario_model = UsuarioModel.query.get(
+            notificacion_model.Usuario_idUsuario
+        )
+        usuario = NotificacionController.crear_objeto_usuario(usuario_model)
+
         notificacion = (
             NotificacionController.crear_objeto_notificacion(
-                notificacion_model
+                notificacion_model,
+                usuario
             )
         )
-
-        usuario = UsuarioModel.query.get(notificacion.Usuario_idUsuario)
 
         datos = notificacion.to_dict()
         datos["usuario_destino"] = None
 
-        if usuario is not None:
+        if usuario_model is not None:
             datos["usuario_destino"] = {
-                "id_usuario": usuario.id_usuario,
-                "username": usuario.username,
-                "nombre": usuario.nombre,
-                "apellido": usuario.apellido,
-                "rol": usuario.rol,
+                "id_usuario": usuario_model.id_usuario,
+                "username": usuario_model.username,
+                "nombre": usuario_model.nombre,
+                "apellido": usuario_model.apellido,
+                "rol": usuario_model.rol,
             }
 
         return datos
 
     @staticmethod
-    @jwt_required()
+    @usuario_required
     def listar_mis_notificaciones():
-        id_usuario = get_jwt_identity()
-        datos_token = get_jwt()
-        rol = datos_token.get("rol")
+        usuario_actual = g.usuario_actual
+        id_usuario = usuario_actual.id_usuario
+        rol = usuario_actual.rol
 
         if rol == Usuario.ROL_ADMIN:
             notificaciones = NotificacionModel.query.order_by(
@@ -78,11 +100,11 @@ class NotificacionController:
         }), 200
 
     @staticmethod
-    @jwt_required()
+    @usuario_required
     def marcar_como_leida(id_notificacion):
-        id_usuario = get_jwt_identity()
-        datos_token = get_jwt()
-        rol = datos_token.get("rol")
+        usuario_actual = NotificacionController.crear_objeto_usuario(
+            g.usuario_actual
+        )
 
         notificacion_model = NotificacionModel.query.get(id_notificacion)
 
@@ -93,11 +115,12 @@ class NotificacionController:
 
         notificacion = (
             NotificacionController.crear_objeto_notificacion(
-                notificacion_model
+                notificacion_model,
+                usuario_actual
             )
         )
 
-        if not notificacion.marcar_como_leida(id_usuario, rol):
+        if not notificacion.marcar_como_leida_por(usuario_actual):
             return jsonify({
                 "mensaje": "No tenes permisos para modificar esta notificacion"
             }), 403

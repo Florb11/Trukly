@@ -1,10 +1,7 @@
-from flask import jsonify
-from flask_jwt_extended import jwt_required
+from flask import g, jsonify
 from sqlalchemy import case, func
 
 from db_instance import db
-
-from controllers.administrador_controller import AdministradorController
 
 from models.usuario_model import UsuarioModel
 from models.camion_model import CamionModel
@@ -13,6 +10,7 @@ from models.reporte_model import ReporteModel
 
 from src.Viaje import Viaje
 from src.ReporteFalla import ReporteFalla
+from utils.auth_decorators import admin_required
 
 
 class AdminEstadisticasController:
@@ -260,14 +258,9 @@ class AdminEstadisticasController:
         return ultimos_viajes, ultimos_reportes
 
     @staticmethod
-    @jwt_required()
+    @admin_required
     def obtener_estadisticas():
-        admin = AdministradorController.obtener_admin_actual()
-
-        if admin is None:
-            return jsonify({
-                "mensaje": "No tenes permiso para realizar esta accion"
-            }), 403
+        admin = g.admin_actual
 
         resumen = AdminEstadisticasController._obtener_resumen(admin)
 
@@ -319,4 +312,3 @@ class AdminEstadisticasController:
         )
 
         return jsonify(respuesta), 200
-        
