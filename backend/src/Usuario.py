@@ -3,6 +3,27 @@ import uuid
 
 
 class Usuario:
+    ROL_ADMIN = "admin"
+    ROL_CHOFER = "chofer"
+    ROL_MECANICO = "mecanico"
+    ROL_OPERADOR = "operador"
+
+    ESTADO_PENDIENTE = "pendiente"
+    ESTADO_ACTIVO = "activo"
+    ESTADO_INACTIVO = "inactivo"
+
+    ROLES_VALIDOS = [
+        ROL_ADMIN,
+        ROL_CHOFER,
+        ROL_MECANICO,
+        ROL_OPERADOR,
+    ]
+    ESTADOS_VALIDOS = [
+        ESTADO_PENDIENTE,
+        ESTADO_ACTIVO,
+        ESTADO_INACTIVO,
+    ]
+
     EXTENSIONES_FOTO_PERMITIDAS = {
         "png",
         "jpg",
@@ -43,7 +64,7 @@ class Usuario:
 
     # verifica si la cuenta del usuario esta activa
     def esta_activo(self):
-        return self.estado == "activo"
+        return self.estado == self.ESTADO_ACTIVO
 
     # modifica los datos personales del usuario
     def modificar_datos_personales(self, nombre, apellido, email):
@@ -71,16 +92,16 @@ class Usuario:
         bcrypt
     ):
         if not password_actual:
-            return False, "La contrasena actual es obligatoria"
+            return False, "La contraseña actual es obligatoria"
 
         if not self.verificar_password(password_actual, bcrypt):
-            return False, "La contrasena actual es incorrecta"
+            return False, "La contraseña actual es incorrecta"
 
         if not password_nueva:
-            return False, "La contrasena nueva es obligatoria"
+            return False, "La contraseña nueva es obligatoria"
 
         if password_nueva != confirmar_password:
-            return False, "Las contrasenas nuevas no coinciden"
+            return False, "Las contraseñas nuevas no coinciden"
 
         password_valida, mensaje_error = (
             Usuario.validar_password_registro(password_nueva)
@@ -90,7 +111,7 @@ class Usuario:
             return False, mensaje_error
 
         if self.verificar_password(password_nueva, bcrypt):
-            return False, "La contrasena nueva debe ser diferente a la actual"
+            return False, "La contraseña nueva debe ser diferente a la actual"
 
         return True, None
 
@@ -151,10 +172,10 @@ class Usuario:
     @staticmethod
     def validar_password_registro(password):
         if not password:
-            return False, "La contrasena es obligatoria"
+            return False, "La contraseña es obligatoria"
 
         if len(password) < 8:
-            return False, "La contrasena debe tener al menos 8 caracteres"
+            return False, "La contraseña debe tener al menos 8 caracteres"
 
         tiene_letra = any(
             caracter.isalpha()
@@ -168,7 +189,7 @@ class Usuario:
 
         if not tiene_letra or not tiene_numero:
             return False, (
-                "La contrasena debe contener al menos una letra y un numero"
+                "La contraseña debe contener al menos una letra y un número"
             )
 
         return True, None

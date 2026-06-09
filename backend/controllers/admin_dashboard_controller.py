@@ -11,7 +11,10 @@ from models.camion_model import CamionModel
 from models.viaje_model import ViajeModel
 from models.reporte_model import ReporteModel
 
+from src.Usuario import Usuario
 from src.Camion import Camion
+from src.Viaje import Viaje
+from src.ReporteFalla import ReporteFalla
 
 
 class AdminDashboardController:
@@ -27,61 +30,40 @@ class AdminDashboardController:
             }), 403
 
         usuarios_activos = UsuarioModel.query.filter_by(
-            estado="activo"
+            estado=Usuario.ESTADO_ACTIVO
         ).count()
 
         usuarios_pendientes = UsuarioModel.query.filter_by(
-            estado="pendiente",
-            rol="chofer"
+            estado=Usuario.ESTADO_PENDIENTE,
+            rol=Usuario.ROL_CHOFER
         ).all()
 
         choferes_pendientes = []
 
         for usuario in usuarios_pendientes:
             chofer = ChoferModel.query.get(usuario.id_usuario)
-
-            datos_usuario = usuario.to_dict()
-
-            if chofer:
-                datos_usuario["licencia"] = chofer.licencia
-                datos_usuario["legajo"] = chofer.legajo
-                datos_usuario["vencimientoLicencia"] = str(
-                    chofer.vencimientoLicencia
+            choferes_pendientes.append(
+                admin.preparar_chofer_pendiente(
+                    usuario,
+                    chofer
                 )
-            else:
-                datos_usuario["licencia"] = "-"
-
-            choferes_pendientes.append(datos_usuario)
+            )
 
         camiones_registrados = CamionModel.query.count()
 
         camiones_disponibles = CamionModel.query.filter_by(
-            estado="disponible"
+            estado=Camion.ESTADO_DISPONIBLE
         ).count()
-
-        porcentaje_flota_disponible = (
-            Camion.calcular_porcentaje_disponible(
-                camiones_disponibles,
-                camiones_registrados
-            )
-        )
 
         total_reportes = ReporteModel.query.count()
 
         reportes_abiertos = ReporteModel.query.filter(
-            ReporteModel.estado != "resuelto"
+            ReporteModel.estado != ReporteFalla.ESTADO_RESUELTO
         ).count()
 
         reportes_resueltos = ReporteModel.query.filter_by(
-            estado="resuelto"
+            estado=ReporteFalla.ESTADO_RESUELTO
         ).count()
-
-        porcentaje_reportes_resueltos = 0
-
-        if total_reportes > 0:
-            porcentaje_reportes_resueltos = round(
-                (reportes_resueltos / total_reportes) * 100
-            )
 
         hoy = date.today()
 
@@ -89,22 +71,17 @@ class AdminDashboardController:
             ViajeModel.fecha_salida == hoy
         ).count()
 
-        viajes_en_curso = ViajeModel.query.filter_by(
-            estado="en-curso"
+        viajes_en_curso = ViajeModel.query.filter(
+            ViajeModel.estado.in_(
+                Viaje.ESTADOS_EN_CURSO
+            )
         ).count()
 
         total_viajes = ViajeModel.query.count()
 
         viajes_finalizados = ViajeModel.query.filter_by(
-            estado="finalizado"
+            estado=Viaje.ESTADO_FINALIZADO
         ).count()
-
-        porcentaje_viajes_finalizados = 0
-
-        if total_viajes > 0:
-            porcentaje_viajes_finalizados = round(
-                (viajes_finalizados / total_viajes) * 100
-            )
 
         actividad_operativa = []
 
@@ -117,19 +94,19 @@ class AdminDashboardController:
 
             actividad_operativa.append(cantidad_viajes)
 
-        return jsonify({
-            "usuarios_activos": usuarios_activos,
-            "camiones_registrados": camiones_registrados,
-            "camiones_disponibles": camiones_disponibles,
-            "reportes_abiertos": reportes_abiertos,
-            "reportes_prioridad_alta": 0,
-            "viajes_del_dia": viajes_del_dia,
-            "viajes_en_curso": viajes_en_curso,
-            "estado_general": {
-                "flota_disponible": porcentaje_flota_disponible,
-                "reportes_resueltos": porcentaje_reportes_resueltos,
-                "viajes_finalizados": porcentaje_viajes_finalizados,
-            },
-            "actividad_operativa": actividad_operativa,
-            "usuarios_pendientes": choferes_pendientes,
-        }), 200
+        resumen = admin.armar_resumen_dashboard(
+            usuarios_activos=usuarios_activos,
+            camiones_registrados=camiones_registrados,
+            camiones_disponibles=camiones_disponibles,
+            reportes_abiertos=reportes_abiertos,
+            reportes_resueltos=reportes_resueltos,
+            total_reportes=total_reportes,
+            viajes_del_dia=viajes_del_dia,
+            viajes_en_curso=viajes_en_curso,
+            viajes_finalizados=viajes_finalizados,
+            total_viajes=total_viajes,
+            actividad_operativa=actividad_operativa,
+            usuarios_pendientes=choferes_pendientes,
+        )
+
+        return jsonify(resumen), 200

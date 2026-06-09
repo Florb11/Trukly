@@ -2,7 +2,21 @@ from datetime import datetime
 
 
 class ReporteFalla:
-    ESTADOS_VALIDOS = ["pendiente", "en revision", "resuelto", "cancelado"]
+    ESTADO_PENDIENTE = "pendiente"
+    ESTADO_EN_REVISION = "en revision"
+    ESTADO_RESUELTO = "resuelto"
+    ESTADO_CANCELADO = "cancelado"
+
+    ESTADOS_VALIDOS = [
+        ESTADO_PENDIENTE,
+        ESTADO_EN_REVISION,
+        ESTADO_RESUELTO,
+        ESTADO_CANCELADO,
+    ]
+    ESTADOS_ACTIVOS = [
+        ESTADO_PENDIENTE,
+        ESTADO_EN_REVISION,
+    ]
 
     def __init__(
         self,
@@ -70,14 +84,14 @@ class ReporteFalla:
             return False
 
         self.Mecanico_Usuario_idUsuario = id_mecanico
-        self.estado = "en revision"
+        self.estado = self.ESTADO_EN_REVISION
         return True
 
     # valida si un mecanico puede resolver este reporte
     def puede_ser_resuelto_por(self, id_mecanico, nota_reparacion):
         return (
             self.Mecanico_Usuario_idUsuario == id_mecanico
-            and self.estado != "resuelto"
+            and self.estado != self.ESTADO_RESUELTO
             and nota_reparacion is not None
             and nota_reparacion.strip() != ""
         )
@@ -87,7 +101,7 @@ class ReporteFalla:
         if not self.puede_ser_resuelto_por(id_mecanico, nota_reparacion):
             return False
 
-        self.estado = "resuelto"
+        self.estado = self.ESTADO_RESUELTO
         self.nota_reparacion = nota_reparacion
         self.fecha_resolucion = datetime.now()
 

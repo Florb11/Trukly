@@ -13,7 +13,6 @@ from models.mecanico_model import MecanicoModel
 from models.operador_model import OperadorModel
 
 from src.Usuario import Usuario
-from src.Chofer import Chofer
 
 
 class AdminUsuariosController:
@@ -33,13 +32,13 @@ class AdminUsuariosController:
 
     @staticmethod
     def _agregar_datos_por_rol(datos_usuario, id_usuario, rol):
-        if rol == "admin":
+        if rol == Usuario.ROL_ADMIN:
             administrador = AdministradorModel.query.get(id_usuario)
 
             if administrador:
                 datos_usuario["legajo"] = administrador.legajo
 
-        elif rol == "chofer":
+        elif rol == Usuario.ROL_CHOFER:
             chofer = ChoferModel.query.get(id_usuario)
 
             if chofer:
@@ -49,14 +48,14 @@ class AdminUsuariosController:
                     chofer.vencimientoLicencia
                 )
 
-        elif rol == "mecanico":
+        elif rol == Usuario.ROL_MECANICO:
             mecanico = MecanicoModel.query.get(id_usuario)
 
             if mecanico:
                 datos_usuario["legajo"] = mecanico.legajo
                 datos_usuario["especialidad"] = mecanico.especialidad
 
-        elif rol == "operador":
+        elif rol == Usuario.ROL_OPERADOR:
             operador = OperadorModel.query.get(id_usuario)
 
             if operador:
@@ -66,14 +65,70 @@ class AdminUsuariosController:
         return datos_usuario
 
     @staticmethod
+    def _preparar_respuesta_usuario(usuario_db):
+        datos_usuario = usuario_db.to_dict()
+
+        return AdminUsuariosController._agregar_datos_por_rol(
+            datos_usuario,
+            usuario_db.id_usuario,
+            usuario_db.rol
+        )
+
+    @staticmethod
+    def _preparar_respuesta_usuarios(usuarios_db):
+        return [
+            AdminUsuariosController._preparar_respuesta_usuario(usuario)
+            for usuario in usuarios_db
+        ]
+
+    @staticmethod
+    def _validar_username_email_disponibles(
+        username,
+        email,
+        id_usuario_actual=None
+    ):
+        username = str(username).strip()
+        email = str(email).strip()
+
+        usuario_existente = UsuarioModel.query.filter_by(
+            username=username
+        ).first()
+
+        if (
+            usuario_existente
+            and usuario_existente.id_usuario != id_usuario_actual
+        ):
+            return False, "Ya existe un usuario con ese username", None, None
+
+        email_existente = UsuarioModel.query.filter_by(
+            email=email
+        ).first()
+
+        if (
+            email_existente
+            and email_existente.id_usuario != id_usuario_actual
+        ):
+            return False, "Ya existe un usuario con ese email", None, None
+
+        return True, None, username, email
+
+    @staticmethod
+    def _aplicar_datos_usuario(usuario_db, usuario_clase):
+        usuario_db.username = usuario_clase.username
+        usuario_db.email = usuario_clase.email
+        usuario_db.nombre = usuario_clase.nombre
+        usuario_db.apellido = usuario_clase.apellido
+        usuario_db.estado = usuario_clase.estado
+
+    @staticmethod
     def _crear_modelo_especifico(id_usuario, datos):
-        if datos["rol"] == "admin":
+        if datos["rol"] == Usuario.ROL_ADMIN:
             return AdministradorModel(
                 Usuario_idUsuario=id_usuario,
                 legajo=datos["legajo"],
             )
 
-        if datos["rol"] == "chofer":
+        if datos["rol"] == Usuario.ROL_CHOFER:
             return ChoferModel(
                 Usuario_idUsuario=id_usuario,
                 licencia=datos["licencia"],
@@ -81,14 +136,14 @@ class AdminUsuariosController:
                 legajo=datos["legajo"],
             )
 
-        if datos["rol"] == "mecanico":
+        if datos["rol"] == Usuario.ROL_MECANICO:
             return MecanicoModel(
                 Usuario_idUsuario=id_usuario,
                 legajo=datos["legajo"],
                 especialidad=datos["especialidad"],
             )
 
-        if datos["rol"] == "operador":
+        if datos["rol"] == Usuario.ROL_OPERADOR:
             return OperadorModel(
                 Usuario_idUsuario=id_usuario,
                 legajo=datos["legajo"],
@@ -98,83 +153,96 @@ class AdminUsuariosController:
         return None
 
     @staticmethod
-    def _actualizar_datos_especificos(usuario_db, datos):
-        if usuario_db.rol == "admin":
+    def _actualizar_datos_especificos(admin, usuario_db, datos):
+        if usuario_db.rol == Usuario.ROL_ADMIN:
             administrador = AdministradorModel.query.get(
                 usuario_db.id_usuario
             )
 
             if administrador:
-                administrador.legajo = datos.get(
-                    "legajo",
-                    administrador.legajo
-                )
-
-        elif usuario_db.rol == "chofer":
-            chofer = ChoferModel.query.get(usuario_db.id_usuario)
-
-            if chofer:
-                nueva_licencia = datos.get(
-                    "licencia",
-                    chofer.licencia
-                )
-
-                nuevo_vencimiento = datos.get(
-                    "vencimientoLicencia",
-                    str(chofer.vencimientoLicencia)
-                )
-
-                licencia_valida, mensaje_error = Chofer.validar_licencia(
-                    nueva_licencia
-                )
-
-                if not licencia_valida:
-                    return False, mensaje_error
-
-                vencimiento_valido, mensaje_error = (
-                    Chofer.validar_vencimiento_licencia(
-                        nuevo_vencimiento
+                datos_validos, mensaje_error, datos_validados = (
+                    admin.validar_datos_especificos_modificacion(
+                        usuario_db.rol,
+                        datos,
+                        {
+                            "legajo": administrador.legajo
+                        }
                     )
                 )
 
-                if not vencimiento_valido:
+                if not datos_validos:
                     return False, mensaje_error
 
-                chofer.legajo = datos.get(
-                    "legajo",
-                    chofer.legajo
+                administrador.legajo = datos_validados["legajo"]
+
+        elif usuario_db.rol == Usuario.ROL_CHOFER:
+            chofer = ChoferModel.query.get(usuario_db.id_usuario)
+
+            if chofer:
+                datos_validos, mensaje_error, datos_validados = (
+                    admin.validar_datos_especificos_modificacion(
+                        usuario_db.rol,
+                        datos,
+                        {
+                            "legajo": chofer.legajo,
+                            "licencia": chofer.licencia,
+                            "vencimientoLicencia": (
+                                chofer.vencimientoLicencia
+                            ),
+                        }
+                    )
                 )
 
-                chofer.licencia = nueva_licencia
-                chofer.vencimientoLicencia = nuevo_vencimiento
+                if not datos_validos:
+                    return False, mensaje_error
 
-        elif usuario_db.rol == "mecanico":
+                chofer.legajo = datos_validados["legajo"]
+                chofer.licencia = datos_validados["licencia"]
+                chofer.vencimientoLicencia = datos_validados[
+                    "vencimientoLicencia"
+                ]
+
+        elif usuario_db.rol == Usuario.ROL_MECANICO:
             mecanico = MecanicoModel.query.get(usuario_db.id_usuario)
 
             if mecanico:
-                mecanico.legajo = datos.get(
-                    "legajo",
-                    mecanico.legajo
+                datos_validos, mensaje_error, datos_validados = (
+                    admin.validar_datos_especificos_modificacion(
+                        usuario_db.rol,
+                        datos,
+                        {
+                            "legajo": mecanico.legajo,
+                            "especialidad": mecanico.especialidad,
+                        }
+                    )
                 )
 
-                mecanico.especialidad = datos.get(
-                    "especialidad",
-                    mecanico.especialidad
-                )
+                if not datos_validos:
+                    return False, mensaje_error
 
-        elif usuario_db.rol == "operador":
+                mecanico.legajo = datos_validados["legajo"]
+                mecanico.especialidad = datos_validados["especialidad"]
+
+        elif usuario_db.rol == Usuario.ROL_OPERADOR:
             operador = OperadorModel.query.get(usuario_db.id_usuario)
 
             if operador:
-                operador.legajo = datos.get(
-                    "legajo",
-                    operador.legajo
+                datos_validos, mensaje_error, datos_validados = (
+                    admin.validar_datos_especificos_modificacion(
+                        usuario_db.rol,
+                        datos,
+                        {
+                            "legajo": operador.legajo,
+                            "sector": operador.sector,
+                        }
+                    )
                 )
 
-                operador.sector = datos.get(
-                    "sector",
-                    operador.sector
-                )
+                if not datos_validos:
+                    return False, mensaje_error
+
+                operador.legajo = datos_validados["legajo"]
+                operador.sector = datos_validados["sector"]
 
         return True, None
 
@@ -208,14 +276,19 @@ class AdminUsuariosController:
 
         usuario_db.estado = usuario_clase.estado
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
-        datos_usuario = usuario_db.to_dict()
+            return jsonify({
+                "mensaje": "No se pudo activar el usuario"
+            }), 500
 
-        datos_usuario = AdminUsuariosController._agregar_datos_por_rol(
-            datos_usuario,
-            usuario_db.id_usuario,
-            usuario_db.rol
+        datos_usuario = (
+            AdminUsuariosController._preparar_respuesta_usuario(
+                usuario_db
+            )
         )
 
         return jsonify({
@@ -253,14 +326,19 @@ class AdminUsuariosController:
 
         usuario_db.estado = usuario_clase.estado
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
-        datos_usuario = usuario_db.to_dict()
+            return jsonify({
+                "mensaje": "No se pudo desactivar el usuario"
+            }), 500
 
-        datos_usuario = AdminUsuariosController._agregar_datos_por_rol(
-            datos_usuario,
-            usuario_db.id_usuario,
-            usuario_db.rol
+        datos_usuario = (
+            AdminUsuariosController._preparar_respuesta_usuario(
+                usuario_db
+            )
         )
 
         return jsonify({
@@ -279,23 +357,12 @@ class AdminUsuariosController:
             }), 403
 
         usuarios_pendientes = UsuarioModel.query.filter_by(
-            estado="pendiente"
+            estado=Usuario.ESTADO_PENDIENTE
         ).all()
 
-        usuarios = []
-
-        for usuario in usuarios_pendientes:
-            datos_usuario = usuario.to_dict()
-
-            datos_usuario = (
-                AdminUsuariosController._agregar_datos_por_rol(
-                    datos_usuario,
-                    usuario.id_usuario,
-                    usuario.rol
-                )
-            )
-
-            usuarios.append(datos_usuario)
+        usuarios = AdminUsuariosController._preparar_respuesta_usuarios(
+            usuarios_pendientes
+        )
 
         return jsonify({
             "mensaje": "Usuarios pendientes obtenidos correctamente",
@@ -313,20 +380,9 @@ class AdminUsuariosController:
             }), 403
 
         usuarios_db = UsuarioModel.query.all()
-        usuarios = []
-
-        for usuario in usuarios_db:
-            datos_usuario = usuario.to_dict()
-
-            datos_usuario = (
-                AdminUsuariosController._agregar_datos_por_rol(
-                    datos_usuario,
-                    usuario.id_usuario,
-                    usuario.rol
-                )
-            )
-
-            usuarios.append(datos_usuario)
+        usuarios = AdminUsuariosController._preparar_respuesta_usuarios(
+            usuarios_db
+        )
 
         return jsonify({
             "mensaje": "Usuarios obtenidos correctamente",
@@ -343,7 +399,7 @@ class AdminUsuariosController:
                 "mensaje": "No tenes permiso para realizar esta accion"
             }), 403
 
-        datos = request.get_json()
+        datos = request.get_json(silent=True) or {}
 
         if not datos:
             return jsonify({
@@ -357,38 +413,17 @@ class AdminUsuariosController:
                 "mensaje": "Usuario no encontrado"
             }), 404
 
-        nuevo_username = datos.get(
-            "username",
-            usuario_db.username
+        datos_disponibles, mensaje_error, nuevo_username, nuevo_email = (
+            AdminUsuariosController._validar_username_email_disponibles(
+                datos.get("username", usuario_db.username),
+                datos.get("email", usuario_db.email),
+                usuario_db.id_usuario
+            )
         )
 
-        usuario_existente = UsuarioModel.query.filter_by(
-            username=nuevo_username
-        ).first()
-
-        if (
-            usuario_existente
-            and usuario_existente.id_usuario != usuario_db.id_usuario
-        ):
+        if not datos_disponibles:
             return jsonify({
-                "mensaje": "Ya existe un usuario con ese username"
-            }), 409
-
-        nuevo_email = datos.get(
-            "email",
-            usuario_db.email
-        )
-
-        email_existente = UsuarioModel.query.filter_by(
-            email=nuevo_email
-        ).first()
-
-        if (
-            email_existente
-            and email_existente.id_usuario != usuario_db.id_usuario
-        ):
-            return jsonify({
-                "mensaje": "Ya existe un usuario con ese email"
+                "mensaje": mensaje_error
             }), 409
 
         usuario_clase = AdminUsuariosController._crear_usuario_clase(
@@ -399,16 +434,19 @@ class AdminUsuariosController:
             "nombre",
             usuario_db.nombre
         )
+        nombre = str(nombre).strip()
 
         apellido = datos.get(
             "apellido",
             usuario_db.apellido
         )
+        apellido = str(apellido).strip()
 
         estado = datos.get(
             "estado",
             usuario_db.estado
         )
+        estado = str(estado).strip()
 
         accion_realizada = admin.modificar_usuario(
             usuario_clase,
@@ -424,11 +462,10 @@ class AdminUsuariosController:
                 "mensaje": "No se pudo modificar el usuario"
             }), 400
 
-        usuario_db.username = usuario_clase.username
-        usuario_db.email = usuario_clase.email
-        usuario_db.nombre = usuario_clase.nombre
-        usuario_db.apellido = usuario_clase.apellido
-        usuario_db.estado = usuario_clase.estado
+        AdminUsuariosController._aplicar_datos_usuario(
+            usuario_db,
+            usuario_clase
+        )
 
         if datos.get("password"):
             password_valida, mensaje_error = (
@@ -448,6 +485,7 @@ class AdminUsuariosController:
 
         datos_actualizados, mensaje_error = (
             AdminUsuariosController._actualizar_datos_especificos(
+                admin,
                 usuario_db,
                 datos
             )
@@ -458,14 +496,19 @@ class AdminUsuariosController:
                 "mensaje": mensaje_error
             }), 400
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
-        datos_usuario = usuario_db.to_dict()
+            return jsonify({
+                "mensaje": "No se pudo modificar el usuario"
+            }), 500
 
-        datos_usuario = AdminUsuariosController._agregar_datos_por_rol(
-            datos_usuario,
-            usuario_db.id_usuario,
-            usuario_db.rol
+        datos_usuario = (
+            AdminUsuariosController._preparar_respuesta_usuario(
+                usuario_db
+            )
         )
 
         return jsonify({
@@ -483,122 +526,33 @@ class AdminUsuariosController:
                 "mensaje": "No tenes permiso para realizar esta accion"
             }), 403
 
-        datos = request.get_json()
+        datos = request.get_json(silent=True) or {}
 
         if not datos:
             return jsonify({
                 "mensaje": "No se recibieron datos"
             }), 400
 
-        campos_obligatorios = [
-            "username",
-            "email",
-            "password",
-            "nombre",
-            "apellido",
-            "estado",
-            "rol",
-            "legajo",
-        ]
-
-        for campo in campos_obligatorios:
-            if campo not in datos or datos[campo] == "":
-                return jsonify({
-                    "mensaje": f"Falta el campo {campo}"
-                }), 400
-
-        roles_validos = [
-            "admin",
-            "chofer",
-            "mecanico",
-            "operador"
-        ]
-
-        if datos["rol"] not in roles_validos:
-            return jsonify({
-                "mensaje": "Rol no valido"
-            }), 400
-
-        estados_validos = [
-            "pendiente",
-            "activo",
-            "inactivo"
-        ]
-
-        if datos["estado"] not in estados_validos:
-            return jsonify({
-                "mensaje": "Estado no valido"
-            }), 400
-
-        usuario_existente = UsuarioModel.query.filter_by(
-            username=datos["username"]
-        ).first()
-
-        if usuario_existente:
-            return jsonify({
-                "mensaje": "Ya existe un usuario con ese username"
-            }), 409
-
-        email_existente = UsuarioModel.query.filter_by(
-            email=datos["email"]
-        ).first()
-
-        if email_existente:
-            return jsonify({
-                "mensaje": "Ya existe un usuario con ese email"
-            }), 409
-
-        password_valida, mensaje_error = (
-            Usuario.validar_password_registro(
-                datos["password"]
-            )
+        datos_validos, mensaje_error = (
+            admin.validar_datos_registro_usuario(datos)
         )
 
-        if not password_valida:
+        if not datos_validos:
             return jsonify({
                 "mensaje": mensaje_error
             }), 400
 
-        if datos["rol"] == "chofer":
-            if not datos.get("licencia"):
-                return jsonify({
-                    "mensaje": "Falta el campo licencia"
-                }), 400
-
-            if not datos.get("vencimientoLicencia"):
-                return jsonify({
-                    "mensaje": "Falta el campo vencimientoLicencia"
-                }), 400
-
-            licencia_valida, mensaje_error = Chofer.validar_licencia(
-                datos["licencia"]
+        datos_disponibles, mensaje_error, username, email = (
+            AdminUsuariosController._validar_username_email_disponibles(
+                datos["username"],
+                datos["email"]
             )
+        )
 
-            if not licencia_valida:
-                return jsonify({
-                    "mensaje": mensaje_error
-                }), 400
-
-            vencimiento_valido, mensaje_error = (
-                Chofer.validar_vencimiento_licencia(
-                    datos["vencimientoLicencia"]
-                )
-            )
-
-            if not vencimiento_valido:
-                return jsonify({
-                    "mensaje": mensaje_error
-                }), 400
-
-        if datos["rol"] == "mecanico" and not datos.get("especialidad"):
+        if not datos_disponibles:
             return jsonify({
-                "mensaje": "Falta el campo especialidad"
-            }), 400
-
-        if datos["rol"] == "operador" and not datos.get("sector"):
-            return jsonify({
-                "mensaje": "Falta el campo sector"
-            }), 400
+                "mensaje": mensaje_error
+            }), 409
 
         password_hash = bcrypt.generate_password_hash(
             datos["password"]
@@ -606,8 +560,8 @@ class AdminUsuariosController:
 
         usuario_clase = Usuario(
             None,
-            datos["username"],
-            datos["email"],
+            username,
+            email,
             password_hash,
             datos["nombre"],
             datos["apellido"],
@@ -662,15 +616,14 @@ class AdminUsuariosController:
                 "mensaje": "No se pudo registrar el usuario"
             }), 500
 
-        datos_usuario = nuevo_usuario.to_dict()
-
-        datos_usuario = AdminUsuariosController._agregar_datos_por_rol(
-            datos_usuario,
-            nuevo_usuario.id_usuario,
-            nuevo_usuario.rol
+        datos_usuario = (
+            AdminUsuariosController._preparar_respuesta_usuario(
+                nuevo_usuario
+            )
         )
 
         return jsonify({
             "mensaje": "Usuario registrado correctamente",
             "usuario": datos_usuario
         }), 201
+        
