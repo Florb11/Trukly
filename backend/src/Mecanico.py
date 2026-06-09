@@ -1,4 +1,5 @@
 from src.Usuario import Usuario
+from src.ReporteFalla import ReporteFalla
 
 
 class Mecanico(Usuario):
@@ -56,16 +57,17 @@ class Mecanico(Usuario):
         datos["especialidad"] = self.especialidad
 
         return datos
-
+    
     def puede_consultar_mantenimiento(self):
-        return self.estado == "activo"
-
+        return self.estado == Usuario.ESTADO_ACTIVO
+    
+    
     def separar_reportes_mantenimiento(self, reportes):
         reportes_pendientes = []
         reparaciones_realizadas = []
 
         for reporte in reportes:
-            if reporte.estado == "resuelto":
+            if reporte.estado == ReporteFalla.ESTADO_RESUELTO:
                 reparaciones_realizadas.append(reporte)
             else:
                 reportes_pendientes.append(reporte)

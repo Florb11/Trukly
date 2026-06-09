@@ -12,14 +12,6 @@ from src.Chofer import Chofer
 
 
 class AuthController:
-#Controlador
-#Recibe el request del frontend
-#Valida que lleguen los datos necesarios
-#Consulta la base de datos usando los Modelos
-#Crea objetos de las clases 
-#Le delega las decisiones a esas clases
-#Arma el token JWT
-#Devuelve la respuesta HTTP al frontend
 
     @staticmethod
     def crear_objeto_usuario(usuario_model):
@@ -110,8 +102,8 @@ class AuthController:
             password_hash,
             datos["nombre"],
             datos["apellido"],
-            "pendiente",
-            "chofer",
+            Usuario.ESTADO_PENDIENTE,
+            Usuario.ROL_CHOFER,
             datos["licencia"],
             vencimiento_licencia,
             datos["legajo"],

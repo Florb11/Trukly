@@ -15,6 +15,7 @@ from models.camion_model import CamionModel
 
 from src.Mecanico import Mecanico
 from src.ReporteFalla import ReporteFalla
+from src.Usuario import Usuario
 
 
 class MecanicoController:
@@ -40,7 +41,12 @@ class MecanicoController:
         id_usuario = get_jwt_identity()
         datos_token = get_jwt()
 
-        if datos_token.get("rol") != "mecanico":
+        if datos_token.get("rol") != Usuario.ROL_MECANICO:
+            return None
+
+        try:
+            id_usuario = int(id_usuario)
+        except (TypeError, ValueError):
             return None
 
         usuario_model = UsuarioModel.query.get(id_usuario)
@@ -115,7 +121,7 @@ class MecanicoController:
                 }
             ), 403
 
-        datos = request.get_json() or {}
+        datos = request.get_json(silent=True) or {}
         nota_reparacion = datos.get("nota_reparacion")
 
         reporte_model = ReporteModel.query.get(id_reporte)
@@ -170,7 +176,16 @@ class MecanicoController:
             }
         )
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+            return jsonify(
+                {
+                    "mensaje": "No se pudo resolver el reporte"
+                }
+            ), 500
 
         return jsonify(
             {

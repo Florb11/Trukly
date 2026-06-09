@@ -1,3 +1,6 @@
+from src.Usuario import Usuario
+
+
 class Notificacion:
     def __init__(
         self,
@@ -43,7 +46,7 @@ class Notificacion:
         return True
 
     def puede_ser_modificada_por(self, id_usuario, rol):
-        if rol == "admin":
+        if rol == Usuario.ROL_ADMIN:
             return True
 
         return str(self.Usuario_idUsuario) == str(id_usuario)

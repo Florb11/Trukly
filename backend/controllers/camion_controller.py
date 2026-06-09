@@ -12,6 +12,49 @@ from src.Camion import Camion
 class CamionController:
 
     @staticmethod
+    def _crear_camion_clase(
+        datos,
+        id_camion=None,
+        camion_db=None
+    ):
+        return Camion(
+            id_camion,
+            datos.get(
+                "matricula",
+                camion_db.matricula if camion_db else None
+            ),
+            datos.get(
+                "marca",
+                camion_db.marca if camion_db else None
+            ),
+            datos.get(
+                "modelo",
+                camion_db.modelo if camion_db else None
+            ),
+            datos.get(
+                "capacidad_carga",
+                camion_db.capacidad_carga if camion_db else None
+            ),
+            datos.get(
+                "estado",
+                camion_db.estado if camion_db else None
+            ),
+            datos.get(
+                "nroTanque",
+                camion_db.nroTanque if camion_db else None
+            ),
+        )
+
+    @staticmethod
+    def _aplicar_datos_camion(camion_db, camion_clase):
+        camion_db.matricula = camion_clase.matricula
+        camion_db.marca = camion_clase.marca
+        camion_db.modelo = camion_clase.modelo
+        camion_db.capacidad_carga = camion_clase.capacidad_carga
+        camion_db.estado = camion_clase.estado
+        camion_db.nroTanque = camion_clase.nroTanque
+
+    @staticmethod
     @jwt_required()
     def listar_camiones():
         admin = AdministradorController.obtener_admin_actual()
@@ -52,42 +95,36 @@ class CamionController:
 
         datos = request.get_json(silent=True) or {}
 
-        matricula = datos.get("matricula")
-        marca = datos.get("marca")
-        modelo = datos.get("modelo")
-        capacidad_carga = datos.get("capacidad_carga")
-        estado = datos.get("estado")
-        nroTanque = datos.get("nroTanque")
-
-        camion_clase = Camion(
-            None,
-            matricula,
-            marca,
-            modelo,
-            capacidad_carga,
-            estado,
-            nroTanque,
-        )
+        camion_clase = CamionController._crear_camion_clase(datos)
 
         if not admin.registrar_camion(camion_clase):
             return jsonify({"mensaje": "Faltan datos obligatorios o hay datos invalidos"}), 400
 
-        camion_existente = CamionModel.query.filter_by(matricula=matricula).first()
+        camion_existente = CamionModel.query.filter_by(
+            matricula=camion_clase.matricula
+        ).first()
 
         if camion_existente:
             return jsonify({"mensaje": "Ya existe un camion con esa matricula"}), 400
 
         nuevo_camion = CamionModel(
-            matricula=matricula,
-            marca=marca,
-            modelo=modelo,
-            capacidad_carga=capacidad_carga,
-            estado=estado,
-            nroTanque=nroTanque,
+            matricula=camion_clase.matricula,
+            marca=camion_clase.marca,
+            modelo=camion_clase.modelo,
+            capacidad_carga=camion_clase.capacidad_carga,
+            estado=camion_clase.estado,
+            nroTanque=camion_clase.nroTanque,
         )
 
-        db.session.add(nuevo_camion)
-        db.session.commit()
+        try:
+            db.session.add(nuevo_camion)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+            return jsonify({
+                "mensaje": "No se pudo crear el camion"
+            }), 500
 
         return jsonify({
             "mensaje": "Camion creado correctamente",
@@ -109,39 +146,34 @@ class CamionController:
 
         datos = request.get_json(silent=True) or {}
 
-        matricula = datos.get("matricula")
-        marca = datos.get("marca")
-        modelo = datos.get("modelo")
-        capacidad_carga = datos.get("capacidad_carga")
-        estado = datos.get("estado")
-        nroTanque = datos.get("nroTanque")
-
-        camion_clase = Camion(
-            camion_db.id_camion,
-            matricula,
-            marca,
-            modelo,
-            capacidad_carga,
-            estado,
-            nroTanque,
+        camion_clase = CamionController._crear_camion_clase(
+            datos,
+            camion_db.id_camion
         )
 
         if not admin.modificar_camion(camion_clase):
             return jsonify({"mensaje": "Faltan datos obligatorios o hay datos invalidos"}), 400
 
-        camion_existente = CamionModel.query.filter_by(matricula=matricula).first()
+        camion_existente = CamionModel.query.filter_by(
+            matricula=camion_clase.matricula
+        ).first()
 
         if camion_existente and camion_existente.id_camion != id_camion:
             return jsonify({"mensaje": "Ya existe otro camion con esa matricula"}), 400
 
-        camion_db.matricula = camion_clase.matricula
-        camion_db.marca = camion_clase.marca
-        camion_db.modelo = camion_clase.modelo
-        camion_db.capacidad_carga = camion_clase.capacidad_carga
-        camion_db.estado = camion_clase.estado
-        camion_db.nroTanque = camion_clase.nroTanque
+        CamionController._aplicar_datos_camion(
+            camion_db,
+            camion_clase
+        )
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+            return jsonify({
+                "mensaje": "No se pudo modificar el camion"
+            }), 500
 
         return jsonify({
             "mensaje": "Camion modificado correctamente",
@@ -164,14 +196,10 @@ class CamionController:
         datos = request.get_json(silent=True) or {}
         nuevo_estado = datos.get("estado")
 
-        camion_clase = Camion(
+        camion_clase = CamionController._crear_camion_clase(
+            {},
             camion_db.id_camion,
-            camion_db.matricula,
-            camion_db.marca,
-            camion_db.modelo,
-            camion_db.capacidad_carga,
-            camion_db.estado,
-            camion_db.nroTanque,
+            camion_db
         )
 
         if not admin.cambiar_estado_camion(camion_clase, nuevo_estado):
@@ -179,7 +207,14 @@ class CamionController:
 
         camion_db.estado = camion_clase.estado
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+            return jsonify({
+                "mensaje": "No se pudo modificar el estado del camion"
+            }), 500
 
         return jsonify({
             "mensaje": "Estado del camion modificado correctamente",

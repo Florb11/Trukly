@@ -4,6 +4,7 @@ from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from db_instance import db
 from models.viaje_model import ViajeModel
 from src.Viaje import Viaje
+from src.Usuario import Usuario
 
 
 class ViajeController:
@@ -77,15 +78,15 @@ class ViajeController:
 
     @staticmethod
     def obtener_viajes_por_rol(rol, id_usuario):
-        if rol == "admin":
+        if rol == Usuario.ROL_ADMIN:
             return ViajeModel.query.all()
 
-        if rol == "chofer":
+        if rol == Usuario.ROL_CHOFER:
             return ViajeModel.query.filter_by(
                 Chofer_Usuario_idUsuario=id_usuario
             ).all()
 
-        if rol == "operador":
+        if rol == Usuario.ROL_OPERADOR:
             return ViajeModel.query.filter_by(
                 OperadorLogistico_Usuario_idUsuario=id_usuario
             ).all()
@@ -132,7 +133,10 @@ class ViajeController:
         rol = ViajeController.obtener_rol_actual()
         id_usuario = ViajeController.obtener_id_usuario_actual()
 
-        if rol not in ["admin", "operador"]:
+        if rol not in [
+            Usuario.ROL_ADMIN,
+            Usuario.ROL_OPERADOR,
+        ]:
             return jsonify({
                 "mensaje": "No tenes permiso para crear viajes"
             }), 403
@@ -154,7 +158,7 @@ class ViajeController:
             or datos.get("id_operador")
         )
 
-        if rol == "operador":
+        if rol == Usuario.ROL_OPERADOR:
             id_operador = id_usuario
 
         id_chofer = (
@@ -172,7 +176,7 @@ class ViajeController:
             ),
             origen=datos["origen"],
             destino=datos["destino"],
-            estado=datos.get("estado", "pendiente"),
+            estado=datos.get("estado", Viaje.ESTADO_PENDIENTE),
             observaciones=datos.get("observaciones"),
             recorrido=datos.get("recorrido", 0),
             OperadorLogistico_Usuario_idUsuario=id_operador,
@@ -208,7 +212,7 @@ class ViajeController:
     def listar_viajes_admin():
         rol = ViajeController.obtener_rol_actual()
 
-        if rol != "admin":
+        if rol != Usuario.ROL_ADMIN:
             return jsonify({
                 "mensaje": "No tenes permiso para ver los viajes"
             }), 403
@@ -222,7 +226,7 @@ class ViajeController:
     def obtener_viaje_admin(id_viaje):
         rol = ViajeController.obtener_rol_actual()
 
-        if rol != "admin":
+        if rol != Usuario.ROL_ADMIN:
             return jsonify({
                 "mensaje": "No tenes permiso para ver este viaje"
             }), 403
@@ -239,7 +243,7 @@ class ViajeController:
     def cancelar_viaje_admin(id_viaje):
         rol = ViajeController.obtener_rol_actual()
 
-        if rol != "admin":
+        if rol != Usuario.ROL_ADMIN:
             return jsonify({
                 "mensaje": "No tenes permiso para cancelar viajes"
             }), 403

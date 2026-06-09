@@ -6,6 +6,7 @@ from models.notificacion_model import NotificacionModel
 from models.usuario_model import UsuarioModel
 
 from src.Notificacion import Notificacion
+from src.Usuario import Usuario
 
 
 class NotificacionController:
@@ -60,7 +61,7 @@ class NotificacionController:
         datos_token = get_jwt()
         rol = datos_token.get("rol")
 
-        if rol == "admin":
+        if rol == Usuario.ROL_ADMIN:
             notificaciones = NotificacionModel.query.order_by(
                 NotificacionModel.fecha_hora.desc()
             ).all()
@@ -106,7 +107,14 @@ class NotificacionController:
             notificacion
         )
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+            return jsonify({
+                "mensaje": "No se pudo marcar la notificacion como leida"
+            }), 500
 
         return jsonify({
             "mensaje": "Notificacion marcada como leida",
