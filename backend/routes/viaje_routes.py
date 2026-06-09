@@ -3,7 +3,7 @@ from controllers.viaje_controller import ViajeController
 
 viaje_routes = Blueprint("viaje_routes", __name__)
 
-# RUTAS GENERALES
+# RUTAS GENERALES PROTEGIDAS
 
 @viaje_routes.route("/api/viaje", methods=["GET"])
 def ruta_listar_viajes():
@@ -20,7 +20,7 @@ def ruta_crear_viaje():
     return ViajeController.crear_viaje()
 
 
-# RUTAS ADMIN - 
+# RUTAS ADMIN
 
 @viaje_routes.route("/api/admin/viajes", methods=["GET"])
 def ruta_listar_viajes_admin():

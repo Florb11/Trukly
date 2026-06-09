@@ -1,5 +1,5 @@
 from flask import jsonify, request
-from flask_jwt_extended import get_jwt_identity, get_jwt
+from flask_jwt_extended import get_jwt_identity, get_jwt, jwt_required
 
 from db_instance import db
 
@@ -7,12 +7,21 @@ from models.administrador_model import AdministradorModel
 from models.usuario_model import UsuarioModel
 
 from src.Administrador import Administrador
+from src.Usuario import Usuario
 
 
 class AdministradorController:
 
     @staticmethod
+    @jwt_required()
     def listar_administradores():
+        admin = AdministradorController.obtener_admin_actual()
+
+        if admin is None:
+            return jsonify({
+                "mensaje": "No tenes permiso para realizar esta accion"
+            }), 403
+
         administradores = AdministradorModel.query.all()
 
         return jsonify([
@@ -21,7 +30,15 @@ class AdministradorController:
         ]), 200
 
     @staticmethod
+    @jwt_required()
     def obtener_administrador(id_usuario):
+        admin = AdministradorController.obtener_admin_actual()
+
+        if admin is None:
+            return jsonify({
+                "mensaje": "No tenes permiso para realizar esta accion"
+            }), 403
+
         administrador = AdministradorModel.query.get(id_usuario)
 
         if administrador is None:
@@ -32,8 +49,16 @@ class AdministradorController:
         return jsonify(administrador.to_dict()), 200
 
     @staticmethod
+    @jwt_required()
     def crear_administrador():
-        datos = request.get_json()
+        admin = AdministradorController.obtener_admin_actual()
+
+        if admin is None:
+            return jsonify({
+                "mensaje": "No tenes permiso para realizar esta accion"
+            }), 403
+
+        datos = request.get_json(silent=True) or {}
 
         if not datos:
             return jsonify({
@@ -45,18 +70,55 @@ class AdministradorController:
                 "mensaje": "Falta el campo Usuario_idUsuario"
             }), 400
 
-        if not datos.get("legajo"):
+        if not datos.get("legajo") or str(datos["legajo"]).strip() == "":
             return jsonify({
                 "mensaje": "Falta el campo legajo"
             }), 400
 
-        nuevo_administrador = AdministradorModel(
-            Usuario_idUsuario=datos["Usuario_idUsuario"],
-            legajo=datos["legajo"]
+        try:
+            id_usuario = int(datos["Usuario_idUsuario"])
+        except (TypeError, ValueError):
+            return jsonify({
+                "mensaje": "Usuario_idUsuario no valido"
+            }), 400
+
+        legajo = str(datos["legajo"]).strip()
+
+        usuario = UsuarioModel.query.get(id_usuario)
+
+        if usuario is None:
+            return jsonify({
+                "mensaje": "Usuario no encontrado"
+            }), 404
+
+        if usuario.rol != Usuario.ROL_ADMIN:
+            return jsonify({
+                "mensaje": "El usuario no tiene rol admin"
+            }), 400
+
+        administrador_existente = AdministradorModel.query.get(
+            id_usuario
         )
 
-        db.session.add(nuevo_administrador)
-        db.session.commit()
+        if administrador_existente:
+            return jsonify({
+                "mensaje": "Este usuario ya tiene datos de administrador"
+            }), 409
+
+        nuevo_administrador = AdministradorModel(
+            Usuario_idUsuario=id_usuario,
+            legajo=legajo
+        )
+
+        try:
+            db.session.add(nuevo_administrador)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+            return jsonify({
+                "mensaje": "No se pudo crear el administrador"
+            }), 500
 
         return jsonify({
             "mensaje": "Administrador creado correctamente",
@@ -71,10 +133,15 @@ class AdministradorController:
         if not id_usuario:
             return None
 
-        if datos_token.get("rol") != "admin":
+        if datos_token.get("rol") != Usuario.ROL_ADMIN:
             return None
 
-        usuario = UsuarioModel.query.get(int(id_usuario))
+        try:
+            id_usuario = int(id_usuario)
+        except (TypeError, ValueError):
+            return None
+
+        usuario = UsuarioModel.query.get(id_usuario)
 
         if usuario is None:
             return None
@@ -97,3 +164,4 @@ class AdministradorController:
             usuario.rol,
             administrador.legajo,
         )
+        
