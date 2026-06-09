@@ -23,7 +23,17 @@ def ruta_listar_reportes_asignados():
 def ruta_resolver_reporte(id_reporte):
     return MecanicoController.resolver_reporte(id_reporte)
 
+@mecanico_routes.route(
+    "/api/mecanico/camiones/<int:id_camion>/mantenimiento",
+    methods=["GET"]
+)
+def ruta_obtener_mantenimiento_camion(id_camion):
+    return MecanicoController.obtener_mantenimiento_camion(id_camion)
 
 @mecanico_routes.route("/api/mecanico/<int:id_usuario>", methods=["GET"])
 def ruta_obtener_mecanico(id_usuario):
     return MecanicoController.obtener_mecanico(id_usuario)
+
+@mecanico_routes.route("/api/mecanico/camiones-mantenimiento", methods=["GET"])
+def ruta_listar_camiones_mantenimiento():
+    return MecanicoController.listar_camiones_mantenimiento()
