@@ -17,6 +17,6 @@ class MecanicoModel(db.Model):
     def to_dict(self):
         return {
             "Usuario_idUsuario": self.Usuario_idUsuario,
-            "Legajo": self.legajo,
-            "Especialidad": self.especialidad
+            "legajo": self.legajo,
+            "especialidad": self.especialidad
         }

@@ -1,5 +1,4 @@
 import os
-import uuid
 
 from flask import jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -18,13 +17,6 @@ from src.Usuario import Usuario
 
 class PerfilController:
 
-    EXTENSIONES_PERMITIDAS = {
-        "png",
-        "jpg",
-        "jpeg",
-        "webp"
-    }
-
     CARPETA_PERFILES = os.path.abspath(
         os.path.join(
             os.path.dirname(__file__),
@@ -34,7 +26,6 @@ class PerfilController:
         )
     )
 
-    # obtiene el usuario logueado usando el id guardado en el token
     @staticmethod
     def _obtener_usuario_actual():
         id_usuario = get_jwt_identity()
@@ -44,7 +35,6 @@ class PerfilController:
 
         return UsuarioModel.query.get(int(id_usuario))
 
-    # crea el objeto Usuario para usar los metodos de la clase
     @staticmethod
     def _crear_usuario_clase(usuario_db):
         return Usuario(
@@ -59,7 +49,6 @@ class PerfilController:
             usuario_db.foto_perfil
         )
 
-    # agrega los datos especificos segun el rol del usuario
     @staticmethod
     def _agregar_datos_por_rol(datos_usuario, usuario_db):
         if usuario_db.rol == "admin":
@@ -102,15 +91,30 @@ class PerfilController:
 
         return datos_usuario
 
-    # valida que la imagen tenga una extension permitida
     @staticmethod
-    def _extension_valida(nombre_archivo):
-        if "." not in nombre_archivo:
-            return False
+    def _obtener_tamanio_archivo(archivo):
+        archivo.seek(0, os.SEEK_END)
+        tamanio = archivo.tell()
+        archivo.seek(0)
 
-        extension = nombre_archivo.rsplit(".", 1)[1].lower()
+        return tamanio
 
-        return extension in PerfilController.EXTENSIONES_PERMITIDAS
+    @staticmethod
+    def _eliminar_foto_anterior(ruta_foto):
+        nombre_anterior = Usuario.obtener_nombre_archivo_foto(
+            ruta_foto
+        )
+
+        if not nombre_anterior:
+            return
+
+        ruta_anterior = os.path.join(
+            PerfilController.CARPETA_PERFILES,
+            nombre_anterior
+        )
+
+        if os.path.exists(ruta_anterior):
+            os.remove(ruta_anterior)
 
     @staticmethod
     @jwt_required()
@@ -143,7 +147,7 @@ class PerfilController:
                 "mensaje": "Usuario no encontrado"
             }), 404
 
-        datos = request.get_json()
+        datos = request.get_json(silent=True) or {}
 
         if not datos:
             return jsonify({
@@ -188,7 +192,14 @@ class PerfilController:
         usuario_db.apellido = usuario_clase.apellido
         usuario_db.email = usuario_clase.email
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+            return jsonify({
+                "mensaje": "No se pudo actualizar el perfil"
+            }), 500
 
         datos_usuario = usuario_db.to_dict()
 
@@ -212,7 +223,7 @@ class PerfilController:
                 "mensaje": "Usuario no encontrado"
             }), 404
 
-        datos = request.get_json()
+        datos = request.get_json(silent=True) or {}
 
         if not datos:
             return jsonify({
@@ -241,10 +252,17 @@ class PerfilController:
             datos["password_nueva"]
         ).decode("utf-8")
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+            return jsonify({
+                "mensaje": "No se pudo actualizar la contrasena"
+            }), 500
 
         return jsonify({
-            "mensaje": "Contraseña actualizada correctamente"
+            "mensaje": "Contrasena actualizada correctamente"
         }), 200
 
     @staticmethod
@@ -264,23 +282,16 @@ class PerfilController:
 
         foto = request.files["foto"]
 
-        if not foto or not foto.filename:
-            return jsonify({
-                "mensaje": "No se selecciono ninguna imagen"
-            }), 400
+        tamanio = PerfilController._obtener_tamanio_archivo(foto)
 
-        if not PerfilController._extension_valida(foto.filename):
-            return jsonify({
-                "mensaje": "Formato de imagen no permitido"
-            }), 400
+        foto_valida, mensaje_error = Usuario.validar_foto_perfil(
+            foto.filename,
+            tamanio
+        )
 
-        foto.seek(0, os.SEEK_END)
-        tamanio = foto.tell()
-        foto.seek(0)
-
-        if tamanio > 3 * 1024 * 1024:
+        if not foto_valida:
             return jsonify({
-                "mensaje": "La imagen no puede superar los 3 MB"
+                "mensaje": mensaje_error
             }), 400
 
         os.makedirs(
@@ -288,9 +299,9 @@ class PerfilController:
             exist_ok=True
         )
 
-        extension = foto.filename.rsplit(".", 1)[1].lower()
-
-        nombre_archivo = f"{uuid.uuid4().hex}.{extension}"
+        nombre_archivo = Usuario.generar_nombre_foto_perfil(
+            foto.filename
+        )
 
         ruta_archivo = os.path.join(
             PerfilController.CARPETA_PERFILES,
@@ -299,24 +310,25 @@ class PerfilController:
 
         foto.save(ruta_archivo)
 
-        if usuario_db.foto_perfil:
-            nombre_anterior = os.path.basename(
-                usuario_db.foto_perfil
-            )
-
-            ruta_anterior = os.path.join(
-                PerfilController.CARPETA_PERFILES,
-                nombre_anterior
-            )
-
-            if os.path.exists(ruta_anterior):
-                os.remove(ruta_anterior)
+        PerfilController._eliminar_foto_anterior(
+            usuario_db.foto_perfil
+        )
 
         usuario_db.foto_perfil = (
             f"/uploads/perfiles/{nombre_archivo}"
         )
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+            if os.path.exists(ruta_archivo):
+                os.remove(ruta_archivo)
+
+            return jsonify({
+                "mensaje": "No se pudo actualizar la foto de perfil"
+            }), 500
 
         return jsonify({
             "mensaje": "Foto de perfil actualizada correctamente",

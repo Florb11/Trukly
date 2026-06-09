@@ -25,6 +25,8 @@ class NotificacionModel(db.Model):
             "titulo": self.titulo,
             "mensaje": self.mensaje,
             "leida": self.leida,
-            "fecha_hora": self.fecha_hora.strftime("%Y-%m-%d %H:%M:%S"),
+            "fecha_hora": self.fecha_hora.strftime("%Y-%m-%d %H:%M:%S")
+            if self.fecha_hora
+            else None,
             "tipo": self.tipo,
         }

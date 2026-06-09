@@ -4,16 +4,6 @@ from controllers.mecanico_controller import MecanicoController
 mecanico_routes = Blueprint("mecanico_routes", __name__)
 
 
-@mecanico_routes.route("/api/mecanico", methods=["GET"])
-def ruta_listar_mecanicos():
-    return MecanicoController.listar_mecanicos()
-
-
-@mecanico_routes.route("/api/mecanico", methods=["POST"])
-def ruta_crear_mecanico():
-    return MecanicoController.crear_mecanico()
-
-
 @mecanico_routes.route("/api/mecanico/reportes", methods=["GET"])
 def ruta_listar_reportes_asignados():
     return MecanicoController.listar_reportes_asignados()
@@ -23,6 +13,7 @@ def ruta_listar_reportes_asignados():
 def ruta_resolver_reporte(id_reporte):
     return MecanicoController.resolver_reporte(id_reporte)
 
+
 @mecanico_routes.route(
     "/api/mecanico/camiones/<int:id_camion>/mantenimiento",
     methods=["GET"]
@@ -30,9 +21,6 @@ def ruta_resolver_reporte(id_reporte):
 def ruta_obtener_mantenimiento_camion(id_camion):
     return MecanicoController.obtener_mantenimiento_camion(id_camion)
 
-@mecanico_routes.route("/api/mecanico/<int:id_usuario>", methods=["GET"])
-def ruta_obtener_mecanico(id_usuario):
-    return MecanicoController.obtener_mecanico(id_usuario)
 
 @mecanico_routes.route("/api/mecanico/camiones-mantenimiento", methods=["GET"])
 def ruta_listar_camiones_mantenimiento():

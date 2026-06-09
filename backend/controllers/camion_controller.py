@@ -1,55 +1,20 @@
 from flask import jsonify, request
-from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
+from flask_jwt_extended import jwt_required
 
 from db_instance import db
 from models.camion_model import CamionModel
-from models.usuario_model import UsuarioModel
-from models.administrador_model import AdministradorModel
 
-from src.Administrador import Administrador
+from controllers.administrador_controller import AdministradorController
+
 from src.Camion import Camion
 
 
 class CamionController:
 
     @staticmethod
-    def obtener_admin_actual():
-        id_usuario = get_jwt_identity()
-        datos_token = get_jwt()
-
-        if datos_token.get("rol") != "admin":
-            return None
-
-        usuario = UsuarioModel.query.get(id_usuario)
-
-        if usuario is None:
-            return None
-
-        admin_db = AdministradorModel.query.filter_by(
-            Usuario_idUsuario=id_usuario
-        ).first()
-
-        if admin_db is None:
-            return None
-
-        admin = Administrador(
-            usuario.id_usuario,
-            usuario.username,
-            usuario.email,
-            usuario.password,
-            usuario.nombre,
-            usuario.apellido,
-            usuario.estado,
-            usuario.rol,
-            admin_db.legajo,
-        )
-
-        return admin
-
-    @staticmethod
     @jwt_required()
     def listar_camiones():
-        admin = CamionController.obtener_admin_actual()
+        admin = AdministradorController.obtener_admin_actual()
 
         if admin is None:
             return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
@@ -63,7 +28,7 @@ class CamionController:
     @staticmethod
     @jwt_required()
     def obtener_camion(id_camion):
-        admin = CamionController.obtener_admin_actual()
+        admin = AdministradorController.obtener_admin_actual()
 
         if admin is None:
             return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
@@ -80,12 +45,12 @@ class CamionController:
     @staticmethod
     @jwt_required()
     def crear_camion():
-        admin = CamionController.obtener_admin_actual()
+        admin = AdministradorController.obtener_admin_actual()
 
         if admin is None:
             return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
 
-        datos = request.get_json()
+        datos = request.get_json(silent=True) or {}
 
         matricula = datos.get("matricula")
         marca = datos.get("marca")
@@ -132,7 +97,7 @@ class CamionController:
     @staticmethod
     @jwt_required()
     def modificar_camion(id_camion):
-        admin = CamionController.obtener_admin_actual()
+        admin = AdministradorController.obtener_admin_actual()
 
         if admin is None:
             return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
@@ -142,7 +107,7 @@ class CamionController:
         if camion_db is None:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
 
-        datos = request.get_json()
+        datos = request.get_json(silent=True) or {}
 
         matricula = datos.get("matricula")
         marca = datos.get("marca")
@@ -186,7 +151,7 @@ class CamionController:
     @staticmethod
     @jwt_required()
     def cambiar_estado_camion(id_camion):
-        admin = CamionController.obtener_admin_actual()
+        admin = AdministradorController.obtener_admin_actual()
 
         if admin is None:
             return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
@@ -196,7 +161,7 @@ class CamionController:
         if camion_db is None:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
 
-        datos = request.get_json()
+        datos = request.get_json(silent=True) or {}
         nuevo_estado = datos.get("estado")
 
         camion_clase = Camion(

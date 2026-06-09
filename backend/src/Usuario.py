@@ -1,4 +1,17 @@
+import os
+import uuid
+
+
 class Usuario:
+    EXTENSIONES_FOTO_PERMITIDAS = {
+        "png",
+        "jpg",
+        "jpeg",
+        "webp"
+    }
+
+    TAMANIO_MAXIMO_FOTO_BYTES = 3 * 1024 * 1024
+
     def __init__(
         self,
         id_usuario,
@@ -58,16 +71,16 @@ class Usuario:
         bcrypt
     ):
         if not password_actual:
-            return False, "La contraseña actual es obligatoria"
+            return False, "La contrasena actual es obligatoria"
 
         if not self.verificar_password(password_actual, bcrypt):
-            return False, "La contraseña actual es incorrecta"
+            return False, "La contrasena actual es incorrecta"
 
         if not password_nueva:
-            return False, "La contraseña nueva es obligatoria"
+            return False, "La contrasena nueva es obligatoria"
 
         if password_nueva != confirmar_password:
-            return False, "Las contraseñas nuevas no coinciden"
+            return False, "Las contrasenas nuevas no coinciden"
 
         password_valida, mensaje_error = (
             Usuario.validar_password_registro(password_nueva)
@@ -77,7 +90,7 @@ class Usuario:
             return False, mensaje_error
 
         if self.verificar_password(password_nueva, bcrypt):
-            return False, "La contraseña nueva debe ser diferente a la actual"
+            return False, "La contrasena nueva debe ser diferente a la actual"
 
         return True, None
 
@@ -97,16 +110,51 @@ class Usuario:
     def cerrar_sesion(self):
         return True
 
+    @staticmethod
+    def obtener_extension_foto(nombre_archivo):
+        if not nombre_archivo or "." not in nombre_archivo:
+            return None
+
+        return nombre_archivo.rsplit(".", 1)[1].lower()
+
+    @staticmethod
+    def validar_foto_perfil(nombre_archivo, tamanio):
+        if not nombre_archivo:
+            return False, "No se selecciono ninguna imagen"
+
+        extension = Usuario.obtener_extension_foto(nombre_archivo)
+
+        if extension not in Usuario.EXTENSIONES_FOTO_PERMITIDAS:
+            return False, "Formato de imagen no permitido"
+
+        if tamanio > Usuario.TAMANIO_MAXIMO_FOTO_BYTES:
+            return False, "La imagen no puede superar los 3 MB"
+
+        return True, None
+
+    @staticmethod
+    def generar_nombre_foto_perfil(nombre_archivo):
+        extension = Usuario.obtener_extension_foto(nombre_archivo)
+
+        return f"{uuid.uuid4().hex}.{extension}"
+
+    @staticmethod
+    def obtener_nombre_archivo_foto(ruta_foto):
+        if not ruta_foto:
+            return None
+
+        return os.path.basename(ruta_foto)
+
     # Usamos staticmethod porque la validacion pertenece a la clase
     # pero no necesita que exista un objeto de la clase creado
     # Antes de crear el objeto, validamos si los datos sirven para construirlo
     @staticmethod
     def validar_password_registro(password):
         if not password:
-            return False, "La contraseña es obligatoria"
+            return False, "La contrasena es obligatoria"
 
         if len(password) < 8:
-            return False, "La contraseña debe tener al menos 8 caracteres"
+            return False, "La contrasena debe tener al menos 8 caracteres"
 
         tiene_letra = any(
             caracter.isalpha()
@@ -120,8 +168,7 @@ class Usuario:
 
         if not tiene_letra or not tiene_numero:
             return False, (
-                "La contraseña debe contener al menos una letra y un número"
+                "La contrasena debe contener al menos una letra y un numero"
             )
 
         return True, None
-    
