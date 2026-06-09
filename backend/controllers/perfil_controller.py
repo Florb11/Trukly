@@ -1,7 +1,6 @@
 import os
 
-from flask import jsonify, request
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import g, jsonify, request
 
 from db_instance import db
 from extensions import bcrypt
@@ -13,6 +12,7 @@ from models.mecanico_model import MecanicoModel
 from models.operador_model import OperadorModel
 
 from src.Usuario import Usuario
+from utils.auth_decorators import usuario_required
 
 
 class PerfilController:
@@ -28,12 +28,7 @@ class PerfilController:
 
     @staticmethod
     def _obtener_usuario_actual():
-        id_usuario = get_jwt_identity()
-
-        if not id_usuario:
-            return None
-
-        return UsuarioModel.query.get(int(id_usuario))
+        return g.usuario_actual
 
     @staticmethod
     def _crear_usuario_clase(usuario_db):
@@ -117,14 +112,9 @@ class PerfilController:
             os.remove(ruta_anterior)
 
     @staticmethod
-    @jwt_required()
+    @usuario_required
     def obtener_perfil():
         usuario_db = PerfilController._obtener_usuario_actual()
-
-        if usuario_db is None:
-            return jsonify({
-                "mensaje": "Usuario no encontrado"
-            }), 404
 
         datos_usuario = usuario_db.to_dict()
 
@@ -138,14 +128,9 @@ class PerfilController:
         }), 200
 
     @staticmethod
-    @jwt_required()
+    @usuario_required
     def modificar_perfil():
         usuario_db = PerfilController._obtener_usuario_actual()
-
-        if usuario_db is None:
-            return jsonify({
-                "mensaje": "Usuario no encontrado"
-            }), 404
 
         datos = request.get_json(silent=True) or {}
 
@@ -214,14 +199,9 @@ class PerfilController:
         }), 200
 
     @staticmethod
-    @jwt_required()
+    @usuario_required
     def cambiar_password():
         usuario_db = PerfilController._obtener_usuario_actual()
-
-        if usuario_db is None:
-            return jsonify({
-                "mensaje": "Usuario no encontrado"
-            }), 404
 
         datos = request.get_json(silent=True) or {}
 
@@ -266,14 +246,9 @@ class PerfilController:
         }), 200
 
     @staticmethod
-    @jwt_required()
+    @usuario_required
     def subir_foto():
         usuario_db = PerfilController._obtener_usuario_actual()
-
-        if usuario_db is None:
-            return jsonify({
-                "mensaje": "Usuario no encontrado"
-            }), 404
 
         if "foto" not in request.files:
             return jsonify({

@@ -20,6 +20,8 @@ class Camion:
         capacidad_carga,
         estado,
         nroTanque,
+        viajes_asignados=None,
+        reportes_falla=None,
     ):
         self.id_camion = id_camion
         self.matricula = matricula
@@ -28,6 +30,31 @@ class Camion:
         self.capacidad_carga = capacidad_carga
         self.estado = estado
         self.nroTanque = nroTanque
+        self.viajes_asignados = viajes_asignados or []
+        self.reportes_falla = reportes_falla or []
+
+    def asignar_viaje(self, viaje):
+        if viaje is None:
+            return False
+
+        if not self.esta_disponible():
+            return False
+
+        if not viaje.asignar_camion(self):
+            return False
+
+        self.viajes_asignados.append(viaje)
+        return True
+
+    def registrar_reporte(self, reporte):
+        if reporte is None:
+            return False
+
+        if not reporte.asociar_camion(self):
+            return False
+
+        self.reportes_falla.append(reporte)
+        return True
 
     # valida que los datos principales del camion esten completos
     def validar_datos(self):

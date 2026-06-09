@@ -1,10 +1,7 @@
-from flask import jsonify, request
-from flask_jwt_extended import jwt_required
+from flask import g, jsonify, request
 
 from db_instance import db
 from extensions import bcrypt
-
-from controllers.administrador_controller import AdministradorController
 
 from models.administrador_model import AdministradorModel
 from models.usuario_model import UsuarioModel
@@ -12,13 +9,91 @@ from models.chofer_model import ChoferModel
 from models.mecanico_model import MecanicoModel
 from models.operador_model import OperadorModel
 
+from src.Administrador import Administrador as AdministradorClase
+from src.Chofer import Chofer
+from src.Mecanico import Mecanico
+from src.OperadorLogistico import OperadorLogistico
 from src.Usuario import Usuario
+from utils.auth_decorators import admin_required
 
 
 class AdminUsuariosController:
 
     @staticmethod
     def _crear_usuario_clase(usuario_db):
+        if usuario_db.rol == Usuario.ROL_ADMIN:
+            administrador = AdministradorModel.query.get(
+                usuario_db.id_usuario
+            )
+
+            if administrador:
+                return AdministradorClase(
+                    usuario_db.id_usuario,
+                    usuario_db.username,
+                    usuario_db.email,
+                    usuario_db.password,
+                    usuario_db.nombre,
+                    usuario_db.apellido,
+                    usuario_db.estado,
+                    usuario_db.rol,
+                    administrador.legajo,
+                )
+
+        if usuario_db.rol == Usuario.ROL_CHOFER:
+            chofer = ChoferModel.query.get(usuario_db.id_usuario)
+
+            if chofer:
+                return Chofer(
+                    usuario_db.id_usuario,
+                    usuario_db.username,
+                    usuario_db.email,
+                    usuario_db.password,
+                    usuario_db.nombre,
+                    usuario_db.apellido,
+                    usuario_db.estado,
+                    usuario_db.rol,
+                    chofer.licencia,
+                    chofer.vencimientoLicencia,
+                    chofer.legajo,
+                    usuario_db.foto_perfil,
+                )
+
+        if usuario_db.rol == Usuario.ROL_MECANICO:
+            mecanico = MecanicoModel.query.get(usuario_db.id_usuario)
+
+            if mecanico:
+                return Mecanico(
+                    usuario_db.id_usuario,
+                    usuario_db.username,
+                    usuario_db.email,
+                    usuario_db.password,
+                    usuario_db.nombre,
+                    usuario_db.apellido,
+                    usuario_db.estado,
+                    usuario_db.rol,
+                    mecanico.legajo,
+                    mecanico.especialidad,
+                    usuario_db.foto_perfil,
+                )
+
+        if usuario_db.rol == Usuario.ROL_OPERADOR:
+            operador = OperadorModel.query.get(usuario_db.id_usuario)
+
+            if operador:
+                return OperadorLogistico(
+                    usuario_db.id_usuario,
+                    usuario_db.username,
+                    usuario_db.email,
+                    usuario_db.password,
+                    usuario_db.nombre,
+                    usuario_db.apellido,
+                    usuario_db.estado,
+                    usuario_db.rol,
+                    operador.legajo,
+                    operador.sector,
+                    usuario_db.foto_perfil,
+                )
+
         return Usuario(
             usuario_db.id_usuario,
             usuario_db.username,
@@ -28,6 +103,7 @@ class AdminUsuariosController:
             usuario_db.apellido,
             usuario_db.estado,
             usuario_db.rol,
+            usuario_db.foto_perfil,
         )
 
     @staticmethod
@@ -247,14 +323,9 @@ class AdminUsuariosController:
         return True, None
 
     @staticmethod
-    @jwt_required()
+    @admin_required
     def activar_usuario(id_usuario):
-        admin = AdministradorController.obtener_admin_actual()
-
-        if admin is None:
-            return jsonify({
-                "mensaje": "No tenes permiso para realizar esta accion"
-            }), 403
+        admin = g.admin_actual
 
         usuario_db = UsuarioModel.query.get(id_usuario)
 
@@ -297,14 +368,9 @@ class AdminUsuariosController:
         }), 200
 
     @staticmethod
-    @jwt_required()
+    @admin_required
     def desactivar_usuario(id_usuario):
-        admin = AdministradorController.obtener_admin_actual()
-
-        if admin is None:
-            return jsonify({
-                "mensaje": "No tenes permiso para realizar esta accion"
-            }), 403
+        admin = g.admin_actual
 
         usuario_db = UsuarioModel.query.get(id_usuario)
 
@@ -347,15 +413,8 @@ class AdminUsuariosController:
         }), 200
 
     @staticmethod
-    @jwt_required()
+    @admin_required
     def listar_usuarios_pendientes():
-        admin = AdministradorController.obtener_admin_actual()
-
-        if admin is None:
-            return jsonify({
-                "mensaje": "No tenes permiso para realizar esta accion"
-            }), 403
-
         usuarios_pendientes = UsuarioModel.query.filter_by(
             estado=Usuario.ESTADO_PENDIENTE
         ).all()
@@ -370,15 +429,8 @@ class AdminUsuariosController:
         }), 200
 
     @staticmethod
-    @jwt_required()
+    @admin_required
     def listar_usuarios():
-        admin = AdministradorController.obtener_admin_actual()
-
-        if admin is None:
-            return jsonify({
-                "mensaje": "No tenes permiso para realizar esta accion"
-            }), 403
-
         usuarios_db = UsuarioModel.query.all()
         usuarios = AdminUsuariosController._preparar_respuesta_usuarios(
             usuarios_db
@@ -390,14 +442,9 @@ class AdminUsuariosController:
         }), 200
 
     @staticmethod
-    @jwt_required()
+    @admin_required
     def modificar_usuario(id_usuario):
-        admin = AdministradorController.obtener_admin_actual()
-
-        if admin is None:
-            return jsonify({
-                "mensaje": "No tenes permiso para realizar esta accion"
-            }), 403
+        admin = g.admin_actual
 
         datos = request.get_json(silent=True) or {}
 
@@ -517,14 +564,9 @@ class AdminUsuariosController:
         }), 200
 
     @staticmethod
-    @jwt_required()
+    @admin_required
     def registrar_usuario():
-        admin = AdministradorController.obtener_admin_actual()
-
-        if admin is None:
-            return jsonify({
-                "mensaje": "No tenes permiso para realizar esta accion"
-            }), 403
+        admin = g.admin_actual
 
         datos = request.get_json(silent=True) or {}
 

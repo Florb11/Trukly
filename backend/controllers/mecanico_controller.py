@@ -1,5 +1,4 @@
-from flask import jsonify, request
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from flask import g, jsonify, request
 
 from src.observer.EventManager import EventManager
 from src.observer.NotificacionReporteListener import (
@@ -8,57 +7,19 @@ from src.observer.NotificacionReporteListener import (
 
 from db_instance import db
 
-from models.usuario_model import UsuarioModel
-from models.mecanico_model import MecanicoModel
 from models.reporte_model import ReporteModel
 from models.camion_model import CamionModel
 
-from src.Mecanico import Mecanico
 from src.ReporteFalla import ReporteFalla
-from src.Usuario import Usuario
+from services.auth_service import AuthService
+from utils.auth_decorators import mecanico_required
 
 
 class MecanicoController:
 
     @staticmethod
-    def crear_objeto_mecanico(usuario_model, mecanico_model):
-        return Mecanico(
-            id_usuario=usuario_model.id_usuario,
-            username=usuario_model.username,
-            email=usuario_model.email,
-            password=usuario_model.password,
-            nombre=usuario_model.nombre,
-            apellido=usuario_model.apellido,
-            estado=usuario_model.estado,
-            rol=usuario_model.rol,
-            legajo=mecanico_model.legajo,
-            especialidad=mecanico_model.especialidad,
-            foto_perfil=usuario_model.foto_perfil,
-        )
-
-    @staticmethod
     def obtener_mecanico_actual():
-        id_usuario = get_jwt_identity()
-        datos_token = get_jwt()
-
-        if datos_token.get("rol") != Usuario.ROL_MECANICO:
-            return None
-
-        try:
-            id_usuario = int(id_usuario)
-        except (TypeError, ValueError):
-            return None
-
-        usuario_model = UsuarioModel.query.get(id_usuario)
-        mecanico_model = MecanicoModel.query.get(id_usuario)
-
-        if usuario_model is None or mecanico_model is None:
-            return None
-
-        return MecanicoController.crear_objeto_mecanico(
-            usuario_model,
-            mecanico_model
-        )
+        return AuthService.obtener_mecanico_actual_desde_token()
 
     @staticmethod
     def crear_objeto_reporte(reporte_model):
@@ -85,16 +46,9 @@ class MecanicoController:
         reporte_model.fecha_resolucion = reporte_clase.fecha_resolucion
 
     @staticmethod
-    @jwt_required()
+    @mecanico_required
     def listar_reportes_asignados():
-        mecanico = MecanicoController.obtener_mecanico_actual()
-
-        if mecanico is None:
-            return jsonify(
-                {
-                    "mensaje": "No tenes permisos para ver estos reportes"
-                }
-            ), 403
+        mecanico = g.mecanico_actual
 
         reportes = ReporteModel.query.filter_by(
             Mecanico_Usuario_idUsuario=mecanico.id_usuario
@@ -110,16 +64,9 @@ class MecanicoController:
         ), 200
 
     @staticmethod
-    @jwt_required()
+    @mecanico_required
     def resolver_reporte(id_reporte):
-        mecanico = MecanicoController.obtener_mecanico_actual()
-
-        if mecanico is None:
-            return jsonify(
-                {
-                    "mensaje": "No tenes permisos para resolver reportes"
-                }
-            ), 403
+        mecanico = g.mecanico_actual
 
         datos = request.get_json(silent=True) or {}
         nota_reparacion = datos.get("nota_reparacion")
@@ -195,18 +142,9 @@ class MecanicoController:
         ), 200
 
     @staticmethod
-    @jwt_required()
+    @mecanico_required
     def listar_camiones_mantenimiento():
-        mecanico = MecanicoController.obtener_mecanico_actual()
-
-        if mecanico is None:
-            return jsonify(
-                {
-                    "mensaje": (
-                        "No tenes permisos para consultar mantenimiento"
-                    )
-                }
-            ), 403
+        mecanico = g.mecanico_actual
 
         if not mecanico.puede_consultar_mantenimiento():
             return jsonify(
@@ -246,18 +184,9 @@ class MecanicoController:
         ), 200
 
     @staticmethod
-    @jwt_required()
+    @mecanico_required
     def obtener_mantenimiento_camion(id_camion):
-        mecanico = MecanicoController.obtener_mecanico_actual()
-
-        if mecanico is None:
-            return jsonify(
-                {
-                    "mensaje": (
-                        "No tenes permisos para consultar mantenimiento"
-                    )
-                }
-            ), 403
+        mecanico = g.mecanico_actual
 
         if not mecanico.puede_consultar_mantenimiento():
             return jsonify(
