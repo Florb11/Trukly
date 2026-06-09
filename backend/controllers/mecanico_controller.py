@@ -1,13 +1,17 @@
 from flask import jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+
 from src.observer.EventManager import EventManager
-from src.observer.NotificacionReporteListener import NotificacionReporteListener
+from src.observer.NotificacionReporteListener import (
+    NotificacionReporteListener
+)
 
 from db_instance import db
 
 from models.usuario_model import UsuarioModel
 from models.mecanico_model import MecanicoModel
 from models.reporte_model import ReporteModel
+from models.camion_model import CamionModel
 
 from src.Mecanico import Mecanico
 
@@ -53,14 +57,20 @@ class MecanicoController:
     def listar_mecanicos():
         mecanicos = MecanicoModel.query.all()
 
-        return jsonify([mecanico.to_dict() for mecanico in mecanicos]), 200
+        return jsonify(
+            [mecanico.to_dict() for mecanico in mecanicos]
+        ), 200
 
     @staticmethod
     def obtener_mecanico(id_usuario):
         mecanico = MecanicoModel.query.get(id_usuario)
 
         if mecanico is None:
-            return jsonify({"mensaje": "Mecánico no encontrado"}), 404
+            return jsonify(
+                {
+                    "mensaje": "Mecánico no encontrado"
+                }
+            ), 404
 
         return jsonify(mecanico.to_dict()), 200
 
@@ -90,7 +100,11 @@ class MecanicoController:
         mecanico = MecanicoController.obtener_mecanico_actual()
 
         if mecanico is None:
-            return jsonify({"mensaje": "No tenés permisos para ver estos reportes"}), 403
+            return jsonify(
+                {
+                    "mensaje": "No tenés permisos para ver estos reportes"
+                }
+            ), 403
 
         reportes = ReporteModel.query.filter_by(
             Mecanico_Usuario_idUsuario=mecanico.id_usuario
@@ -98,7 +112,10 @@ class MecanicoController:
 
         return jsonify(
             {
-                "reportes": [reporte.to_dict() for reporte in reportes]
+                "reportes": [
+                    reporte.to_dict()
+                    for reporte in reportes
+                ]
             }
         ), 200
 
@@ -108,36 +125,56 @@ class MecanicoController:
         mecanico = MecanicoController.obtener_mecanico_actual()
 
         if mecanico is None:
-            return jsonify({"mensaje": "No tenés permisos para resolver reportes"}), 403
+            return jsonify(
+                {
+                    "mensaje": "No tenés permisos para resolver reportes"
+                }
+            ), 403
 
-        datos = request.get_json()
+        datos = request.get_json() or {}
         nota_reparacion = datos.get("nota_reparacion")
 
         reporte = ReporteModel.query.get(id_reporte)
 
         if reporte is None:
-            return jsonify({"mensaje": "Reporte no encontrado"}), 404
+            return jsonify(
+                {
+                    "mensaje": "Reporte no encontrado"
+                }
+            ), 404
 
-        pudo_resolver = mecanico.resolver_reporte(reporte, nota_reparacion)
+        pudo_resolver = mecanico.resolver_reporte(
+            reporte,
+            nota_reparacion
+        )
 
         if not pudo_resolver:
             return jsonify(
                 {
-                    "mensaje": "No podés resolver este reporte o falta la nota de reparación"
+                    "mensaje": (
+                        "No podés resolver este reporte o falta "
+                        "la nota de reparación"
+                    )
                 }
             ), 400
 
         event_manager = EventManager()
         listener_notificacion = NotificacionReporteListener()
 
-        event_manager.suscribir("reporte_resuelto", listener_notificacion)
+        event_manager.suscribir(
+            "reporte_resuelto",
+            listener_notificacion
+        )
 
         event_manager.notificar(
             "reporte_resuelto",
             {
                 "id_usuario": reporte.Chofer_Usuario_idUsuario,
                 "titulo": "Reporte resuelto",
-                "mensaje": f"El reporte #{reporte.id_reporte} fue resuelto. Nota: {nota_reparacion}",
+                "mensaje": (
+                    f"El reporte #{reporte.id_reporte} fue resuelto. "
+                    f"Nota: {nota_reparacion}"
+                ),
                 "tipo": "reporte_resuelto",
             }
         )
@@ -148,5 +185,111 @@ class MecanicoController:
             {
                 "mensaje": "Reporte marcado como resuelto",
                 "reporte": reporte.to_dict(),
+            }
+        ), 200
+
+    @staticmethod
+    @jwt_required()
+    def listar_camiones_mantenimiento():
+        mecanico = MecanicoController.obtener_mecanico_actual()
+
+        if mecanico is None:
+            return jsonify(
+                {
+                    "mensaje": (
+                        "No tenés permisos para consultar mantenimiento"
+                    )
+                }
+            ), 403
+
+        if not mecanico.puede_consultar_mantenimiento():
+            return jsonify(
+                {
+                    "mensaje": "El mecánico no está activo"
+                }
+            ), 403
+
+        camiones = CamionModel.query.all()
+        resultado = []
+
+        for camion in camiones:
+            reportes = ReporteModel.query.filter_by(
+                Camion_id_camion=camion.id_camion
+            ).all()
+
+            reportes_pendientes, reparaciones_realizadas = (
+                mecanico.separar_reportes_mantenimiento(reportes)
+            )
+
+            resultado.append(
+                {
+                    "camion": camion.to_dict(),
+                    "cantidad_reportes_pendientes": len(
+                        reportes_pendientes
+                    ),
+                    "cantidad_reparaciones_realizadas": len(
+                        reparaciones_realizadas
+                    ),
+                }
+            )
+
+        return jsonify(
+            {
+                "camiones": resultado
+            }
+        ), 200
+
+    @staticmethod
+    @jwt_required()
+    def obtener_mantenimiento_camion(id_camion):
+        mecanico = MecanicoController.obtener_mecanico_actual()
+
+        if mecanico is None:
+            return jsonify(
+                {
+                    "mensaje": (
+                        "No tenés permisos para consultar mantenimiento"
+                    )
+                }
+            ), 403
+
+        if not mecanico.puede_consultar_mantenimiento():
+            return jsonify(
+                {
+                    "mensaje": "El mecánico no está activo"
+                }
+            ), 403
+
+        camion = CamionModel.query.get(id_camion)
+
+        if camion is None:
+            return jsonify(
+                {
+                    "mensaje": "Camión no encontrado"
+                }
+            ), 404
+
+        reportes = (
+            ReporteModel.query
+            .filter_by(Camion_id_camion=id_camion)
+            .order_by(ReporteModel.fecha_hora.desc())
+            .all()
+        )
+
+        reportes_pendientes, reparaciones_realizadas = (
+            mecanico.separar_reportes_mantenimiento(reportes)
+        )
+
+        return jsonify(
+            {
+                "camion": camion.to_dict(),
+                "reportes_pendientes": [
+                    reporte.to_dict()
+                    for reporte in reportes_pendientes
+                ],
+                "reparaciones_realizadas": [
+                    reporte.to_dict()
+                    for reporte in reparaciones_realizadas
+                ],
             }
         ), 200

@@ -24,9 +24,10 @@ import ViajesTruckerPage from "./pages/ViajesTruckerPage";
 import AdminViajesPage from "./pages/AdminViajesPage";
 import AdminMantenimientoPage from "./pages/AdminMantenimientoPage";
 import AdminEstadisticasPage from "./pages/AdminEstadisticasPage";
-import AdminPerfilPage from "./pages/AdminPerfilPage";
+import PerfilPage from "./pages/PerfilPage";
 import MecanicoReportesPage from "./pages/MecanicoReportesPage";
 import NotificacionesPage from "./pages/NotificacionesPage";
+import MecanicoMantenimientoPage from "./pages/MecanicoMantenimientoPage";
 
 import "./App.css";
 
@@ -65,9 +66,8 @@ function AppContent() {
     return (
       <ProtectedRoute rolPermitido={rolPermitido}>
         <div
-          className={`app-shell app-shell--dashboard ${
-            esDashboardAdmin ? "app-shell--admin" : ""
-          }`}
+          className={`app-shell app-shell--dashboard ${esDashboardAdmin ? "app-shell--admin" : ""
+            }`}
         >
           <DashboardSidebar
             isOpen={sidebarOpen}
@@ -93,6 +93,7 @@ function AppContent() {
 
             <main className="dashboard-content">
               <Routes>
+                {/* CHOFER */}
                 <Route
                   path="/dashboardTrucker"
                   element={<DashboardTruckerPage />}
@@ -120,7 +121,7 @@ function AppContent() {
 
                 <Route
                   path="/dashboardTrucker/perfil"
-                  element={<DashboardTruckerPage title="Perfil" />}
+                  element={<PerfilPage />}
                 />
 
                 <Route
@@ -128,6 +129,7 @@ function AppContent() {
                   element={<NotificacionesPage />}
                 />
 
+                {/* ADMIN */}
                 <Route
                   path="/dashboardAdmin"
                   element={<DashboardAdminPage />}
@@ -165,7 +167,7 @@ function AppContent() {
 
                 <Route
                   path="/dashboardAdmin/perfil"
-                  element={<AdminPerfilPage />}
+                  element={<PerfilPage />}
                 />
 
                 <Route
@@ -173,6 +175,7 @@ function AppContent() {
                   element={<NotificacionesPage />}
                 />
 
+                {/* OPERADOR */}
                 <Route
                   path="/dashboardOperator"
                   element={<DashboardOperatorPage />}
@@ -184,10 +187,16 @@ function AppContent() {
                 />
 
                 <Route
+                  path="/dashboardOperator/perfil"
+                  element={<PerfilPage />}
+                />
+
+                <Route
                   path="/dashboardOperator/notificaciones"
                   element={<NotificacionesPage />}
                 />
 
+                {/* MECÁNICO */}
                 <Route
                   path="/dashboardMechanic"
                   element={<DashboardMecanicoPage />}
@@ -199,8 +208,17 @@ function AppContent() {
                 />
 
                 <Route
+                  path="/dashboardMechanic/perfil"
+                  element={<PerfilPage />}
+                />
+
+                <Route
                   path="/dashboardMechanic/notificaciones"
                   element={<NotificacionesPage />}
+                />
+                <Route
+                  path="/dashboardMechanic/mantenimiento"
+                  element={<MecanicoMantenimientoPage />}
                 />
 
                 <Route path="*" element={<NotFoundPage />} />

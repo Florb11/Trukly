@@ -64,3 +64,17 @@ class Mecanico(Usuario):
         datos["especialidad"] = self.especialidad
 
         return datos
+    
+    def puede_consultar_mantenimiento(self):
+     return self.estado == "activo"
+    
+    
+    def separar_reportes_mantenimiento(self, reportes):
+     reportes_pendientes = []
+     reparaciones_realizadas = []
+     for reporte in reportes:
+        if reporte.estado == "resuelto":
+            reparaciones_realizadas.append(reporte)
+        else:
+            reportes_pendientes.append(reporte)
+            return reportes_pendientes, reparaciones_realizadas

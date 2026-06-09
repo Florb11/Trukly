@@ -9,9 +9,9 @@ import {
 } from "react-icons/fa";
 import { fetchConToken } from "../utils/fetchConToken";
 import { useAuth } from "../context/AuthContext";
-import "./AdminPerfilPage.css";
+import "./PerfilPage.css";
 
-function AdminPerfilPage() {
+function PerfilPage() {
   const [perfil, setPerfil] = useState(null);
   const [formPerfil, setFormPerfil] = useState({
     nombre: "",
@@ -56,21 +56,16 @@ function AdminPerfilPage() {
       setCargando(true);
       setError("");
 
-      const resultado = await fetchConToken(
-        "http://localhost:5000/api/perfil",
-        {
-          method: "GET",
-        }
-      );
+      const resultado = await fetchConToken("http://localhost:5000/api/perfil", {
+        method: "GET",
+      });
 
       if (!resultado) return;
 
       const { respuesta, data } = resultado;
 
       if (!respuesta.ok) {
-        throw new Error(
-          data.mensaje || data.msg || "Error al cargar el perfil"
-        );
+        throw new Error(data.mensaje || data.msg || "Error al cargar el perfil");
       }
 
       setPerfil(data.perfil);
@@ -119,16 +114,13 @@ function AdminPerfilPage() {
       setMensaje("");
       setError("");
 
-      const resultado = await fetchConToken(
-        "http://localhost:5000/api/perfil",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formPerfil),
-        }
-      );
+      const resultado = await fetchConToken("http://localhost:5000/api/perfil", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formPerfil),
+      });
 
       if (!resultado) return;
 
@@ -298,7 +290,7 @@ function AdminPerfilPage() {
               {obtenerFotoPerfil() ? (
                 <img src={obtenerFotoPerfil()} alt="Foto de perfil" />
               ) : (
-                <span>{perfil.nombre?.charAt(0).toUpperCase() || "A"}</span>
+                <span>{perfil.nombre?.charAt(0).toUpperCase() || "U"}</span>
               )}
             </div>
 
@@ -458,4 +450,4 @@ function AdminPerfilPage() {
   );
 }
 
-export default AdminPerfilPage;
+export default PerfilPage;
