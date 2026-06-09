@@ -51,7 +51,7 @@ class PerfilController:
 
     @staticmethod
     def _agregar_datos_por_rol(datos_usuario, usuario_db):
-        if usuario_db.rol == "admin":
+        if usuario_db.rol == Usuario.ROL_ADMIN:
             administrador = AdministradorModel.query.get(
                 usuario_db.id_usuario
             )
@@ -59,7 +59,7 @@ class PerfilController:
             if administrador:
                 datos_usuario["legajo"] = administrador.legajo
 
-        elif usuario_db.rol == "chofer":
+        elif usuario_db.rol == Usuario.ROL_CHOFER:
             chofer = ChoferModel.query.get(
                 usuario_db.id_usuario
             )
@@ -71,7 +71,7 @@ class PerfilController:
                     chofer.vencimientoLicencia
                 )
 
-        elif usuario_db.rol == "mecanico":
+        elif usuario_db.rol == Usuario.ROL_MECANICO:
             mecanico = MecanicoModel.query.get(
                 usuario_db.id_usuario
             )
@@ -80,7 +80,7 @@ class PerfilController:
                 datos_usuario["legajo"] = mecanico.legajo
                 datos_usuario["especialidad"] = mecanico.especialidad
 
-        elif usuario_db.rol == "operador":
+        elif usuario_db.rol == Usuario.ROL_OPERADOR:
             operador = OperadorModel.query.get(
                 usuario_db.id_usuario
             )

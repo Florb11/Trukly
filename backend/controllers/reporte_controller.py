@@ -9,6 +9,7 @@ from models.camion_model import CamionModel
 from models.chofer_model import ChoferModel
 from models.mecanico_model import MecanicoModel
 from src.ReporteFalla import ReporteFalla
+from src.Usuario import Usuario
 
 
 class ReporteController:
@@ -50,7 +51,10 @@ class ReporteController:
     @staticmethod
     @jwt_required()
     def listar_reportes():
-        if not ReporteController.validar_rol(["admin", "operador"]):
+        if not ReporteController.validar_rol([
+            Usuario.ROL_ADMIN,
+            Usuario.ROL_OPERADOR,
+        ]):
             return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
 
         reportes = ReporteModel.query.all()
@@ -62,7 +66,11 @@ class ReporteController:
     @staticmethod
     @jwt_required()
     def obtener_reporte(id_reporte):
-        if not ReporteController.validar_rol(["admin", "operador", "chofer"]):
+        if not ReporteController.validar_rol([
+            Usuario.ROL_ADMIN,
+            Usuario.ROL_OPERADOR,
+            Usuario.ROL_CHOFER,
+        ]):
             return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
 
         reporte = ReporteModel.query.get(id_reporte)
@@ -73,7 +81,10 @@ class ReporteController:
         datos_token = get_jwt()
         id_usuario = int(get_jwt_identity())
 
-        if datos_token.get("rol") == "chofer" and reporte.Chofer_Usuario_idUsuario != id_usuario:
+        if (
+            datos_token.get("rol") == Usuario.ROL_CHOFER
+            and reporte.Chofer_Usuario_idUsuario != id_usuario
+        ):
             return jsonify({"mensaje": "No tenes permiso para ver este reporte"}), 403
 
         return jsonify({
@@ -83,7 +94,7 @@ class ReporteController:
     @staticmethod
     @jwt_required()
     def crear_reporte():
-        if not ReporteController.validar_rol(["chofer"]):
+        if not ReporteController.validar_rol([Usuario.ROL_CHOFER]):
             return jsonify({"mensaje": "Solo un chofer puede crear reportes"}), 403
 
         datos = request.get_json(silent=True) or {}
@@ -108,7 +119,7 @@ class ReporteController:
             None,
             datetime.now(),
             descripcion,
-            "pendiente",
+            ReporteFalla.ESTADO_PENDIENTE,
             camion_id,
             None,
             id_chofer,
@@ -129,8 +140,15 @@ class ReporteController:
             Chofer_Usuario_idUsuario=reporte_clase.Chofer_Usuario_idUsuario,
         )
 
-        db.session.add(nuevo_reporte)
-        db.session.commit()
+        try:
+            db.session.add(nuevo_reporte)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+            return jsonify({
+                "mensaje": "No se pudo crear el reporte"
+            }), 500
 
         return jsonify({
             "mensaje": "Reporte creado correctamente",
@@ -140,7 +158,10 @@ class ReporteController:
     @staticmethod
     @jwt_required()
     def cambiar_estado_reporte(id_reporte):
-        if not ReporteController.validar_rol(["admin", "operador"]):
+        if not ReporteController.validar_rol([
+            Usuario.ROL_ADMIN,
+            Usuario.ROL_OPERADOR,
+        ]):
             return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
 
         reporte_db = ReporteModel.query.get(id_reporte)
@@ -161,7 +182,14 @@ class ReporteController:
             reporte_clase
         )
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+            return jsonify({
+                "mensaje": "No se pudo modificar el estado del reporte"
+            }), 500
 
         return jsonify({
             "mensaje": "Estado del reporte modificado correctamente",
@@ -171,7 +199,10 @@ class ReporteController:
     @staticmethod
     @jwt_required()
     def asignar_mecanico(id_reporte):
-        if not ReporteController.validar_rol(["admin", "operador"]):
+        if not ReporteController.validar_rol([
+            Usuario.ROL_ADMIN,
+            Usuario.ROL_OPERADOR,
+        ]):
             return jsonify({"mensaje": "No tenes permiso para realizar esta accion"}), 403
 
         reporte_db = ReporteModel.query.get(id_reporte)
@@ -199,7 +230,14 @@ class ReporteController:
             reporte_clase
         )
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+            return jsonify({
+                "mensaje": "No se pudo asignar el mecanico"
+            }), 500
 
         return jsonify({
             "mensaje": "Mecanico asignado correctamente",

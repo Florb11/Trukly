@@ -8,7 +8,7 @@ from datetime import timedelta
 from extensions import bcrypt, jwt
 from db_instance import db, database
 
-from routes.usuario_routes import usuario_routes
+#from routes.usuario_routes import usuario_routes
 from routes.chofer_routes import chofer_routes
 from routes.auth_routes import auth_routes
 from routes.administrador_routes import administrador_routes
@@ -16,7 +16,7 @@ from routes.operador_routes import operador_routes
 from routes.mecanico_routes import mecanico_routes
 from routes.camion_routes import camion_routes
 from routes.viaje_routes import viaje_routes
-from routes.registro_routes import registro_routes
+#from routes.registro_routes import registro_routes
 from routes.reporte_routes import reporte_routes
 from routes.perfil_routes import perfil_routes
 from routes.notificacion_routes import notificacion_routes
@@ -51,7 +51,7 @@ bcrypt.init_app(app)
 jwt.init_app(app)
 
 # registro las rutas
-app.register_blueprint(usuario_routes)
+#app.register_blueprint(usuario_routes)
 app.register_blueprint(chofer_routes)
 app.register_blueprint(auth_routes)
 app.register_blueprint(administrador_routes)
@@ -59,7 +59,7 @@ app.register_blueprint(operador_routes)
 app.register_blueprint(mecanico_routes)
 app.register_blueprint(camion_routes)
 app.register_blueprint(viaje_routes)
-app.register_blueprint(registro_routes)
+#app.register_blueprint(registro_routes)
 app.register_blueprint(reporte_routes)
 app.register_blueprint(perfil_routes)
 app.register_blueprint(notificacion_routes)
