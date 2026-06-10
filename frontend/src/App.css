@@ -27,7 +27,7 @@
   align-items: center;
   gap: 14px;
   padding: 0 28px;
-  background: rgba(255, 255, 255, 0.94);
+  background: #111827;
   border-bottom: 1px solid #dceaf3;
   backdrop-filter: blur(12px);
 }
@@ -38,14 +38,14 @@
 }
 
 .dashboard-topbar span {
-  color: #1683bd;
+  color: #0dcaf0;
   font-size: 12px;
   font-weight: 850;
   text-transform: uppercase;
 }
 
 .dashboard-topbar strong {
-  color: #0b2d4d;
+  color: #ffffff;
   font-size: 18px;
   line-height: 1.25;
 }

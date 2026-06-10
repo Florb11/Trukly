@@ -14,9 +14,10 @@ def roles_required(*roles_permitidos):
             usuario = AuthService.obtener_usuario_model_actual()
 
             if usuario is None:
-                return jsonify({
-                    "mensaje": "No tenes permiso para realizar esta accion"
-                }), 403
+                return (
+                    jsonify({"mensaje": "No tenes permiso para realizar esta accion"}),
+                    403,
+                )
 
             rol_token = AuthService.obtener_rol_actual()
 
@@ -25,9 +26,10 @@ def roles_required(*roles_permitidos):
                 or usuario.rol not in roles_permitidos
                 or rol_token != usuario.rol
             ):
-                return jsonify({
-                    "mensaje": "No tenes permiso para realizar esta accion"
-                }), 403
+                return (
+                    jsonify({"mensaje": "No tenes permiso para realizar esta accion"}),
+                    403,
+                )
 
             g.usuario_actual = usuario
 
@@ -49,9 +51,10 @@ def admin_required(funcion):
         admin = obtener_admin_actual_desde_token()
 
         if admin is None:
-            return jsonify({
-                "mensaje": "No tenes permiso para realizar esta accion"
-            }), 403
+            return (
+                jsonify({"mensaje": "No tenes permiso para realizar esta accion"}),
+                403,
+            )
 
         g.admin_actual = admin
 
@@ -71,9 +74,10 @@ def mecanico_required(funcion):
         mecanico = obtener_mecanico_actual_desde_token()
 
         if mecanico is None:
-            return jsonify({
-                "mensaje": "No tenes permiso para realizar esta accion"
-            }), 403
+            return (
+                jsonify({"mensaje": "No tenes permiso para realizar esta accion"}),
+                403,
+            )
 
         g.mecanico_actual = mecanico
 
@@ -89,9 +93,10 @@ def usuario_required(funcion):
         usuario = AuthService.obtener_usuario_model_actual()
 
         if usuario is None:
-            return jsonify({
-                "mensaje": "Usuario no encontrado"
-            }), 404
+            return (
+                jsonify({"mensaje": "La sesion no corresponde a un usuario activo"}),
+                401,
+            )
 
         g.usuario_actual = usuario
 
