@@ -13,6 +13,7 @@ from src.Viaje import Viaje
 from src.Usuario import Usuario
 from services.auth_service import AuthService
 from utils.auth_decorators import roles_required
+from utils.input_sanitizer import InputSanitizer
 
 
 class ViajeController:
@@ -248,7 +249,27 @@ class ViajeController:
         rol = ViajeController.obtener_rol_actual()
         id_usuario = ViajeController.obtener_id_usuario_actual()
 
-        datos = request.get_json(silent=True) or {}
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=[
+                "fecha_salida",
+                "fecha_llegada",
+                "fecha_estimada_llegada",
+                "origen",
+                "destino",
+                "estado",
+                "observaciones",
+            ],
+            campos_enteros=[
+                "OperadorLogistico_Usuario_idUsuario",
+                "id_operador",
+                "Chofer_Usuario_idUsuario",
+                "id_chofer",
+                "Camion_id_camion",
+                "id_camion",
+            ],
+            campos_decimales=["recorrido"],
+        )
 
         campos_obligatorios = [
             "fecha_salida",
@@ -351,7 +372,10 @@ class ViajeController:
     @staticmethod
     @roles_required(Usuario.ROL_ADMIN)
     def cancelar_viaje_admin(id_viaje):
-        datos = request.get_json(silent=True) or {}
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=["motivo"],
+        )
         motivo = datos.get("motivo")
 
         if not motivo or motivo.strip() == "":
@@ -386,3 +410,4 @@ class ViajeController:
             "mensaje": "Viaje cancelado correctamente",
             "viaje": viaje_model.to_dict()
         }), 200
+

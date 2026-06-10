@@ -2,6 +2,7 @@ from flask import jsonify, request
 from db_instance import db
 
 from models.operador_model import OperadorModel
+from utils.input_sanitizer import InputSanitizer
 
 
 def listar_operadores():
@@ -23,7 +24,14 @@ def obtener_operador(id_usuario):
 
 def crear_operador():
 
-    datos = request.get_json()
+    datos = InputSanitizer.sanitizar_campos(
+        request.get_json(silent=True) or {},
+        campos_texto=[
+            "Legajo",
+            "Sector",
+        ],
+        campos_enteros=["Usuario_idUsuario"],
+    )
 
     nuevo_operador = OperadorModel(
         Usuario_idUsuario=datos["Usuario_idUsuario"],

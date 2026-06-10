@@ -14,6 +14,7 @@ from src.Camion import Camion
 from src.ReporteFalla import ReporteFalla
 from services.auth_service import AuthService
 from utils.auth_decorators import mecanico_required
+from utils.input_sanitizer import InputSanitizer
 
 
 class MecanicoController:
@@ -108,7 +109,10 @@ class MecanicoController:
     def resolver_reporte(id_reporte):
         mecanico = g.mecanico_actual
 
-        datos = request.get_json(silent=True) or {}
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=["nota_reparacion"],
+        )
         nota_reparacion = datos.get("nota_reparacion")
 
         reporte_model = ReporteModel.query.get(id_reporte)
