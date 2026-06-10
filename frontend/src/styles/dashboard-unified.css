@@ -1,0 +1,87 @@
+.app-shell--admin,
+.app-shell--mechanic {
+  --dash-bg: #f5f7fb;
+  --dash-surface: #ffffff;
+  --dash-border: #e2e8f0;
+  --dash-text: #0f172a;
+  --dash-muted: #64748b;
+  --dash-primary: #2563eb;
+  --dash-primary-hover: #1d4ed8;
+  --dash-success: #059669;
+  --dash-warning: #b45309;
+  --dash-danger: #dc2626;
+  background: var(--dash-bg);
+}
+
+.app-shell--admin .dashboard-content,
+.app-shell--mechanic .dashboard-content {
+  max-width: 1560px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.app-shell--admin :is(.admin-card, .reportes-card, .camiones-card, .usuarios-card, .mantenimiento-card, .estadisticas-card, .admin-viajes-card, .admin-perfil-card, .notificaciones-card),
+.app-shell--mechanic :is(.mecanico-reportes-card, .mecanico-mantenimiento-table-wrap, .admin-perfil-card, .notificaciones-card) {
+  border: 1px solid var(--dash-border);
+  border-radius: 8px;
+  background: var(--dash-surface);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+.app-shell--admin :is(.btn-reporte, .btn-camion, .admin-viajes-btn, .admin-table__action, .admin-perfil-form__footer button, .notificacion-action, .mantenimiento-action, .btn-nuevo-camion, .btn-nuevo-usuario),
+.app-shell--mechanic :is(.mecanico-action-btn, .mecanico-main-action, .mecanico-panel__link, .admin-perfil-form__footer button, .notificacion-action, .mecanico-mantenimiento-action) {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 8px;
+  border: 0;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.app-shell--admin :is(.btn-reporte--detalle, .btn-camion--detalle, .admin-viajes-btn--view),
+.app-shell--mechanic :is(.mecanico-panel__link, .mecanico-mantenimiento-action) {
+  color: #ffffff;
+  background: var(--dash-primary);
+}
+
+.app-shell--admin :is(.btn-reporte--detalle, .btn-camion--detalle, .admin-viajes-btn--view):hover,
+.app-shell--mechanic :is(.mecanico-panel__link, .mecanico-mantenimiento-action):hover {
+  background: var(--dash-primary-hover);
+}
+
+.app-shell--admin :is(.btn-reporte--estado, .btn-camion--editar, .admin-table__action--editar) {
+  color: #ffffff;
+  background: var(--dash-warning);
+}
+
+.app-shell--admin :is(.btn-camion--desactivar, .admin-viajes-btn--cancel, .admin-table__action--desactivar) {
+  color: #ffffff;
+  background: var(--dash-danger);
+}
+
+.app-shell--admin :is(.btn-camion--activar, .admin-table__action, .btn-nuevo-camion, .btn-nuevo-usuario),
+.app-shell--mechanic :is(.mecanico-action-btn, .mecanico-main-action) {
+  color: #ffffff;
+  background: var(--dash-success);
+}
+
+.app-shell--admin :is(.reportes-actions, .camiones-actions, .admin-viajes-actions, .admin-actions) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.app-shell--admin :is(.reporte-estado, .camion-estado, .estado-badge, .mantenimiento-estado, .admin-viajes-badge, .admin-badge),
+.app-shell--mechanic :is(.mecanico-badge, .mecanico-estado, .mecanico-mantenimiento-status, .mecanico-mantenimiento-modal__badge) {
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0;
+}

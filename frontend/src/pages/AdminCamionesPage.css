@@ -37,7 +37,7 @@
     padding: 11px 22px;
     border: none;
     border-radius: 10px;
-    background: linear-gradient(135deg, #059669, #047857);
+    background: #059669;
     color: #ffffff;
     font-size: 14px;
     font-weight: 700;
@@ -50,7 +50,7 @@
 }
 
 .btn-nuevo-camion:hover {
-    background: linear-gradient(135deg, #047857, #065f46);
+    background: #047857;
     box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
     transform: translateY(-1px);
 }

@@ -1,133 +1,229 @@
 .mecanico-dashboard {
-  padding: 2rem;
-  color: #f8fafc;
+  width: 100%;
+  color: #0f172a;
+  --mecanico-dark: #063f36;
+  --mecanico-deep: #052e27;
+  --mecanico-main: #0f766e;
+  --mecanico-soft: #d9fbe8;
+  --mecanico-soft-strong: #baf3d1;
+  --mecanico-border: #b8e8d1;
 }
 
 .mecanico-dashboard__header {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  border-radius: 22px;
-  background: linear-gradient(135deg, rgba(88, 28, 135, 0.95), rgba(15, 23, 42, 0.96));
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
-  margin-bottom: 1.5rem;
+  gap: 18px;
+  margin-bottom: 22px;
+  padding: 24px 28px;
+  overflow: hidden;
+  color: #0f172a;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
 }
 
 .mecanico-dashboard__header span {
-  color: #86efac;
-  font-weight: 700;
+  display: block;
+  color: var(--mecanico-main);
+  font-size: 13px;
+  font-weight: 850;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.8rem;
 }
 
 .mecanico-dashboard__header h1 {
-  margin: 0.4rem 0;
-  font-size: 2rem;
+  margin: 4px 0 6px;
+  color: #0f172a;
+  font-size: 34px;
+  line-height: 1.12;
 }
 
-.mecanico-dashboard__header p {
+.mecanico-dashboard__welcome {
+  margin: 8px 0 0;
+  color: var(--mecanico-deep) !important;
+  font-size: 20px !important;
+  font-weight: 850;
+  line-height: 1.2 !important;
+}
+
+.mecanico-dashboard__header p:not(.mecanico-dashboard__welcome) {
+  max-width: 760px;
   margin: 0;
-  color: #dbeafe;
-  max-width: 680px;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.55;
 }
 
 .mecanico-dashboard__header-icon {
-  width: 70px;
-  height: 70px;
-  border-radius: 20px;
+  width: 58px;
+  height: 58px;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.12);
-  color: #86efac;
-  font-size: 2rem;
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  color: var(--mecanico-main);
+  background: #ecfdf5;
+  font-size: 24px;
+  box-shadow: none;
 }
 
 .mecanico-dashboard__cards {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.mecanico-dashboard > .notification-prompt {
+  margin-bottom: 18px;
+}
+
+.mecanico-card,
+.mecanico-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
 }
 
 .mecanico-card {
-  padding: 1.3rem;
-  border-radius: 20px;
-  background: rgba(15, 23, 42, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.25);
+  position: relative;
+  min-height: 152px;
+  padding: 20px 20px 46px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  background: #ffffff;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.07);
+}
+
+.mecanico-card::before {
+  content: none;
+}
+
+.mecanico-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 4px;
+  background: #64748b;
+}
+
+.mecanico-card--asignados {
+  background: #ffffff;
+}
+
+.mecanico-card--pendientes {
+  background: #ffffff;
+}
+
+.mecanico-card--resueltos {
+  background: #ffffff;
+}
+
+.mecanico-card--asignados::after {
+  background: #475569;
+}
+
+.mecanico-card--pendientes::after {
+  background: #f59e0b;
+}
+
+.mecanico-card--resueltos::after {
+  background: #078457;
 }
 
 .mecanico-card__icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
+  position: absolute;
+  right: 18px;
+  top: 22px;
+  width: 76px;
+  height: 76px;
   display: grid;
   place-items: center;
-  background: rgba(134, 239, 172, 0.12);
-  color: #86efac;
-  margin-bottom: 0.8rem;
+  border-radius: 18px;
+  color: #64748b;
+  background: #f1f5f9;
+  font-size: 38px;
+  margin-bottom: 12px;
+  transform: rotate(-5deg);
 }
 
 .mecanico-card span {
+  position: relative;
+  z-index: 1;
   display: block;
-  color: #c4b5fd;
-  font-weight: 700;
-  margin-bottom: 0.35rem;
+  max-width: calc(100% - 92px);
+  color: #334155;
+  font-size: 14px;
+  font-weight: 850;
 }
 
 .mecanico-card strong {
+  position: relative;
+  z-index: 1;
   display: block;
-  font-size: 2.1rem;
-  margin-bottom: 0.35rem;
+  color: #0f172a;
+  font-size: 40px;
+  line-height: 1;
+  margin: 8px 0;
 }
 
 .mecanico-card p {
+  position: absolute;
+  z-index: 1;
+  right: 20px;
+  bottom: 9px;
+  left: 20px;
   margin: 0;
-  color: #cbd5e1;
-  font-size: 0.95rem;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.mecanico-panel p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .mecanico-dashboard__content {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.55fr);
+  gap: 18px;
 }
 
 .mecanico-panel {
-  padding: 1.4rem;
-  border-radius: 20px;
-  background: rgba(15, 23, 42, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.25);
+  padding: 0;
+  overflow: hidden;
+  border-color: #e2e8f0;
 }
 
 .mecanico-panel__header {
+  min-height: 58px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 14px;
+  padding: 16px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
 }
 
 .mecanico-panel span {
-  color: #86efac;
-  font-size: 0.8rem;
-  font-weight: 700;
+  color: var(--mecanico-main);
+  font-size: 12px;
+  font-weight: 850;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
 }
 
 .mecanico-panel h2 {
-  margin: 0.35rem 0 0;
-  font-size: 1.25rem;
-}
-
-.mecanico-panel p {
-  color: #cbd5e1;
+  margin: 4px 0 0;
+  color: var(--mecanico-deep);
+  font-size: 18px;
 }
 
 .mecanico-panel__link,
@@ -135,85 +231,104 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 36px;
+  padding: 8px 13px;
+  border-radius: 8px;
+  color: #ffffff;
+  background: #078457;
   text-decoration: none;
-  border-radius: 999px;
-  padding: 0.65rem 1rem;
-  background: #86efac;
-  color: #111827;
-  font-weight: 800;
-  border: none;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.app-shell--mechanic .mecanico-dashboard .mecanico-panel__link,
+.app-shell--mechanic .mecanico-dashboard .mecanico-main-action {
+  color: #ffffff;
+  background: #078457;
 }
 
 .mecanico-panel__link:hover,
 .mecanico-main-action:hover {
-  transform: translateY(-1px);
-  opacity: 0.9;
+  color: #ffffff;
+  background: #056343;
+}
+
+.app-shell--mechanic .mecanico-dashboard .mecanico-panel__link:hover,
+.app-shell--mechanic .mecanico-dashboard .mecanico-main-action:hover {
+  color: #ffffff;
+  background: #056343;
 }
 
 .mecanico-reportes-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
+  display: grid;
+  gap: 10px;
+  padding: 16px;
 }
 
 .mecanico-reporte-item {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.055);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
 }
 
 .mecanico-reporte-item strong {
   display: block;
-  margin-bottom: 0.3rem;
+  color: #0f172a;
+  margin-bottom: 4px;
 }
 
 .mecanico-reporte-item p {
-  margin: 0 0 0.45rem;
-  color: #e5e7eb;
+  margin-bottom: 8px;
 }
 
 .mecanico-reporte-item span {
-  color: #cbd5e1;
+  color: #64748b;
+  font-size: 13px;
   text-transform: none;
-  letter-spacing: 0;
-  font-size: 0.9rem;
 }
 
 .mecanico-estado {
-  padding: 0.35rem 0.75rem;
+  flex: 0 0 auto;
+  padding: 5px 9px;
   border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 800;
+  color: #92400e !important;
+  background: #fef3c7;
+  font-size: 12px !important;
+  font-weight: 850;
   white-space: nowrap;
-  background: rgba(250, 204, 21, 0.16);
-  color: #fde68a !important;
+  text-transform: lowercase !important;
 }
 
 .mecanico-estado--resuelto {
-  background: rgba(134, 239, 172, 0.15);
-  color: #86efac !important;
+  color: #166534 !important;
+  background: #dcfce7;
 }
 
 .mecanico-estado--pendiente {
-  background: rgba(250, 204, 21, 0.16);
-  color: #fde68a !important;
+  color: #92400e !important;
+  background: #fef3c7;
 }
 
+.mecanico-estado--en-revision,
+.mecanico-estado--en_reparacion,
 .mecanico-estado--en-reparacion {
-  background: rgba(96, 165, 250, 0.16);
-  color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+  background: #dbeafe;
 }
 
 .mecanico-panel--info {
+  padding: 18px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: 10px;
+  border-top: 5px solid var(--mecanico-main);
+  background: #ffffff;
 }
 
 .mecanico-panel--info .mecanico-main-action {
@@ -222,29 +337,22 @@
 
 .mecanico-empty,
 .mecanico-message {
-  padding: 1rem;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #e5e7eb;
+  margin: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  font-size: 14px;
 }
 
 .mecanico-message--error {
-  background: rgba(239, 68, 68, 0.15);
-  color: #fecaca;
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  margin-bottom: 1rem;
+  color: #991b1b;
+  background: #fef2f2;
+  border-color: #fecaca;
 }
 
-@media (max-width: 900px) {
-  .mecanico-dashboard {
-    padding: 1rem;
-  }
-
-  .mecanico-dashboard__header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
+@media (max-width: 1040px) {
   .mecanico-dashboard__cards {
     grid-template-columns: 1fr;
   }
@@ -252,8 +360,25 @@
   .mecanico-dashboard__content {
     grid-template-columns: 1fr;
   }
+}
 
+@media (max-width: 620px) {
+  .mecanico-dashboard__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mecanico-dashboard__header h1 {
+    font-size: 28px;
+  }
+
+  .mecanico-dashboard__header-icon {
+    display: none;
+  }
+
+  .mecanico-panel__header,
   .mecanico-reporte-item {
     flex-direction: column;
   }
 }
+

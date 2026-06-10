@@ -512,7 +512,9 @@ function AdminUsuariosPage() {
                                                 </span>
                                             </td>
                                             <td>{getDetalle(usuario)}</td>
-                                            <td>{renderAcciones(usuario)}</td>
+                                            <td className="usuarios-table__acciones">
+                                                {renderAcciones(usuario)}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>

@@ -61,7 +61,7 @@ function NotificacionesPage() {
 
       if (!respuesta.ok) {
         throw new Error(
-          data.mensaje || data.msg || "Error al marcar la notificación"
+          data.mensaje || data.msg || "Error al marcar la notificacion"
         );
       }
 
@@ -73,7 +73,8 @@ function NotificacionesPage() {
         )
       );
 
-      setMensaje(data.mensaje || "Notificación marcada como leída");
+      window.dispatchEvent(new Event("notificacionesActualizadas"));
+      setMensaje(data.mensaje || "Notificacion marcada como leida");
     } catch (error) {
       setError(error.message);
     }
@@ -94,7 +95,7 @@ function NotificacionesPage() {
           <span>Centro de avisos</span>
           <h1>Notificaciones</h1>
           <p>
-            Acá podés ver los avisos generados por el sistema, como reportes
+            Aca podes ver los avisos generados por el sistema, como reportes
             resueltos o cambios importantes.
           </p>
         </div>
@@ -119,7 +120,7 @@ function NotificacionesPage() {
       <div className="notificaciones-card">
         {notificaciones.length === 0 ? (
           <p className="notificaciones-empty">
-            No tenés notificaciones por ahora.
+            No tenes notificaciones por ahora.
           </p>
         ) : (
           <div className="notificaciones-list">
@@ -143,7 +144,7 @@ function NotificacionesPage() {
                         notificacion.leida ? "notificacion-badge--leida" : ""
                       }`}
                     >
-                      {notificacion.leida ? "Leída" : "Nueva"}
+                      {notificacion.leida ? "Leida" : "Nueva"}
                     </span>
                   </div>
 
@@ -170,7 +171,7 @@ function NotificacionesPage() {
                       }
                     >
                       <FaCheckCircle />
-                      Marcar leída
+                      Marcar leida
                     </button>
                   )}
                 </div>

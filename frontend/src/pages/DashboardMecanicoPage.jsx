@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaTools, FaClipboardList, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
+import NotificationPromptCard from "../components/NotificationPromptCard";
 import { fetchConToken } from "../utils/fetchConToken";
 import "./DashboardMecanicoPage.css";
 
 function DashboardMecanicoPage() {
+  const { usuario } = useAuth();
   const [reportes, setReportes] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
@@ -57,6 +60,14 @@ function DashboardMecanicoPage() {
     .filter((reporte) => reporte.estado !== "resuelto")
     .slice(0, 3);
 
+  const nombreMecanico = usuario?.nombre || usuario?.username || "mecanico";
+
+  const getEstadoClass = (estado) => {
+    const estadoNormalizado = estado?.toString().trim().replaceAll(" ", "-");
+
+    return `mecanico-estado mecanico-estado--${estadoNormalizado}`;
+  };
+
   if (cargando) {
     return (
       <section className="mecanico-dashboard">
@@ -70,6 +81,9 @@ function DashboardMecanicoPage() {
       <div className="mecanico-dashboard__header">
         <div>
           <span>Panel de mecánico</span>
+          <p className="mecanico-dashboard__welcome">
+            Bienvenido, {nombreMecanico}
+          </p>
           <h1>Mantenimiento</h1>
           <p>
             Desde acá podés revisar los reportes asignados, controlar trabajos
@@ -89,7 +103,7 @@ function DashboardMecanicoPage() {
       )}
 
       <div className="mecanico-dashboard__cards">
-        <article className="mecanico-card">
+        <article className="mecanico-card mecanico-card--asignados">
           <div className="mecanico-card__icon">
             <FaClipboardList />
           </div>
@@ -99,7 +113,7 @@ function DashboardMecanicoPage() {
           <p>Total de fallas asignadas a tu usuario.</p>
         </article>
 
-        <article className="mecanico-card">
+        <article className="mecanico-card mecanico-card--pendientes">
           <div className="mecanico-card__icon">
             <FaExclamationTriangle />
           </div>
@@ -109,7 +123,7 @@ function DashboardMecanicoPage() {
           <p>Reportes que todavía necesitan revisión.</p>
         </article>
 
-        <article className="mecanico-card">
+        <article className="mecanico-card mecanico-card--resueltos">
           <div className="mecanico-card__icon">
             <FaCheckCircle />
           </div>
@@ -119,6 +133,11 @@ function DashboardMecanicoPage() {
           <p>Reparaciones finalizadas correctamente.</p>
         </article>
       </div>
+
+      <NotificationPromptCard
+        to="/dashboardMechanic/notificaciones"
+        tone="mechanic"
+      />
 
       <div className="mecanico-dashboard__content">
         <article className="mecanico-panel">
@@ -153,7 +172,7 @@ function DashboardMecanicoPage() {
                     </span>
                   </div>
 
-                  <span className={`mecanico-estado mecanico-estado--${reporte.estado}`}>
+                  <span className={getEstadoClass(reporte.estado)}>
                     {reporte.estado}
                   </span>
                 </div>

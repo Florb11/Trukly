@@ -1,0 +1,124 @@
+.notification-prompt {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+.notification-prompt__icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 14px;
+  font-size: 1.25rem;
+}
+
+.notification-prompt__content {
+  min-width: 0;
+  flex: 1;
+}
+
+.notification-prompt__content span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.notification-prompt__content h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.notification-prompt__content p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.notification-prompt__content strong {
+  color: inherit;
+}
+
+.notification-prompt__action {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 9px 13px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.84rem;
+  font-weight: 850;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.notification-prompt--mechanic {
+  border-color: #e2e8f0;
+  background: #ffffff;
+}
+
+.notification-prompt--mechanic .notification-prompt__icon {
+  color: #078457;
+  background: #ecfdf5;
+}
+
+.notification-prompt--mechanic .notification-prompt__content span {
+  color: #0f766e;
+}
+
+.notification-prompt--mechanic .notification-prompt__action {
+  background: #078457;
+}
+
+.notification-prompt--mechanic .notification-prompt__action:hover {
+  color: #ffffff;
+  background: #056343;
+}
+
+.notification-prompt--admin {
+  border-color: #ddd6fe;
+  background: #fbfaff;
+}
+
+.notification-prompt--admin .notification-prompt__icon {
+  color: #4c1d95;
+  background: #ede9fe;
+}
+
+.notification-prompt--admin .notification-prompt__content span {
+  color: #6d28d9;
+}
+
+.notification-prompt--admin .notification-prompt__action {
+  background: #6d28d9;
+}
+
+.notification-prompt--admin .notification-prompt__action:hover {
+  color: #ffffff;
+  background: #5b21b6;
+}
+
+@media (max-width: 760px) {
+  .notification-prompt {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .notification-prompt__action {
+    width: 100%;
+  }
+}

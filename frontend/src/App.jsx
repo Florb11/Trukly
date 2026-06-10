@@ -30,6 +30,7 @@ import NotificacionesPage from "./pages/NotificacionesPage";
 import MecanicoMantenimientoPage from "./pages/MecanicoMantenimientoPage";
 
 import "./App.css";
+import "./styles/dashboard-unified.css";
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -66,8 +67,12 @@ function AppContent() {
     return (
       <ProtectedRoute rolPermitido={rolPermitido}>
         <div
-          className={`app-shell app-shell--dashboard ${esDashboardAdmin ? "app-shell--admin" : ""
-            }`}
+          className={[
+            "app-shell",
+            "app-shell--dashboard",
+            esDashboardAdmin ? "app-shell--admin" : "",
+            esDashboardMechanic ? "app-shell--mechanic" : "",
+          ].filter(Boolean).join(" ")}
         >
           <DashboardSidebar
             isOpen={sidebarOpen}

@@ -10,10 +10,10 @@
   justify-content: space-between;
   gap: 1.5rem;
   padding: 1.5rem;
-  border-radius: 24px;
-  background: linear-gradient(135deg, #ffffff 0%, #f7f2ff 48%, #ecfff7 100%);
-  border: 1px solid rgba(115, 75, 170, 0.16);
-  box-shadow: 0 18px 45px rgba(75, 43, 111, 0.08);
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
 }
 
 .admin-perfil-header span {
@@ -89,7 +89,7 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6f42c1, #3abf8a);
+  background: #2563eb;
   color: #ffffff;
   font-size: 3.3rem;
   font-weight: 900;
