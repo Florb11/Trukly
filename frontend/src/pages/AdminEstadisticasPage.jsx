@@ -64,19 +64,21 @@ function AdminEstadisticasPage() {
   };
 
   const getEstadoViajeClass = (estado) => {
-    if (estado === "pendiente") {
+    const estadoNormalizado = (estado || "").toLowerCase().replace(/\s+/g, "-");
+
+    if (estadoNormalizado === "pendiente") {
       return "estadisticas-badge estadisticas-badge--pendiente";
     }
 
-    if (estado === "aceptado") {
+    if (estadoNormalizado === "aceptado") {
       return "estadisticas-badge estadisticas-badge--aceptado";
     }
 
-    if (estado === "en-curso") {
+    if (estadoNormalizado === "en-curso") {
       return "estadisticas-badge estadisticas-badge--curso";
     }
 
-    if (estado === "finalizado") {
+    if (estadoNormalizado === "finalizado") {
       return "estadisticas-badge estadisticas-badge--finalizado";
     }
 

@@ -181,6 +181,41 @@
   font-weight: 800;
 }
 
+.app-shell--mechanic .notificaciones-header,
+.app-shell--mechanic .notificaciones-card,
+.app-shell--mechanic .notificacion-item {
+  border-color: #e2e8f0;
+}
+
+.app-shell--mechanic .notificaciones-header span,
+.app-shell--mechanic .notificacion-destino {
+  color: #0f766e;
+}
+
+.app-shell--mechanic .notificaciones-header__icon,
+.app-shell--mechanic .notificacion-item__icon {
+  color: #078457;
+  background: #ecfdf5;
+}
+
+.app-shell--mechanic .notificacion-badge {
+  color: #047857;
+  background: #ecfdf5;
+}
+
+.app-shell--mechanic .notificacion-badge--leida {
+  color: #6b7280;
+  background: #f3f4f6;
+}
+
+.app-shell--mechanic .notificacion-action {
+  background: #078457;
+}
+
+.app-shell--mechanic .notificacion-action:hover {
+  background: #056343;
+}
+
 @media (max-width: 760px) {
   .notificaciones-header {
     flex-direction: column;

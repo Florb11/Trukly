@@ -9,6 +9,9 @@ function MecanicoReportesPage() {
   const [cargando, setCargando] = useState(true);
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
+  const [textoBusqueda, setTextoBusqueda] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("todos");
+  const [filtroCamion, setFiltroCamion] = useState("todos");
 
   const [reporteSeleccionado, setReporteSeleccionado] = useState(null);
   const [notaReparacion, setNotaReparacion] = useState("");
@@ -59,6 +62,43 @@ function MecanicoReportesPage() {
     setReporteSeleccionado(null);
     setNotaReparacion("");
   };
+
+  const getEstadoClass = (estado) => {
+    const estadoNormalizado = estado?.toString().trim().replaceAll(" ", "-");
+
+    return `mecanico-badge mecanico-badge--${estadoNormalizado}`;
+  };
+
+  const estadosDisponibles = [
+    ...new Set(reportes.map((reporte) => reporte.estado).filter(Boolean)),
+  ];
+
+  const camionesDisponibles = [
+    ...new Set(
+      reportes.map((reporte) => reporte.Camion_id_camion).filter(Boolean)
+    ),
+  ];
+
+  const reportesFiltrados = reportes.filter((reporte) => {
+    const texto = textoBusqueda.trim().toLowerCase();
+
+    const coincideBusqueda =
+      texto === "" ||
+      reporte.id_reporte?.toString().includes(texto) ||
+      reporte.fecha_hora?.toLowerCase().includes(texto) ||
+      reporte.Camion_id_camion?.toString().includes(texto) ||
+      reporte.descripcion?.toLowerCase().includes(texto) ||
+      reporte.nota_reparacion?.toLowerCase().includes(texto);
+
+    const coincideEstado =
+      filtroEstado === "todos" || reporte.estado === filtroEstado;
+
+    const coincideCamion =
+      filtroCamion === "todos" ||
+      reporte.Camion_id_camion?.toString() === filtroCamion;
+
+    return coincideBusqueda && coincideEstado && coincideCamion;
+  });
 
   const resolverReporte = async (e) => {
     e.preventDefault();
@@ -148,7 +188,55 @@ function MecanicoReportesPage() {
         {reportes.length === 0 ? (
           <p className="mecanico-empty">No tenés reportes asignados por ahora.</p>
         ) : (
-          <div className="mecanico-reportes-table-wrap">
+          <>
+            <div className="mecanico-reportes-filtros">
+              <label className="mecanico-reportes-filtro mecanico-reportes-filtro--busqueda">
+                <span>Buscar reporte</span>
+                <input
+                  type="text"
+                  value={textoBusqueda}
+                  onChange={(e) => setTextoBusqueda(e.target.value)}
+                  placeholder="Buscar por ID, fecha, camión, descripción..."
+                />
+              </label>
+
+              <label className="mecanico-reportes-filtro">
+                <span>Estado</span>
+                <select
+                  value={filtroEstado}
+                  onChange={(e) => setFiltroEstado(e.target.value)}
+                >
+                  <option value="todos">Todos</option>
+                  {estadosDisponibles.map((estado) => (
+                    <option key={estado} value={estado}>
+                      {estado}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="mecanico-reportes-filtro">
+                <span>Camión</span>
+                <select
+                  value={filtroCamion}
+                  onChange={(e) => setFiltroCamion(e.target.value)}
+                >
+                  <option value="todos">Todos</option>
+                  {camionesDisponibles.map((camion) => (
+                    <option key={camion} value={camion}>
+                      Camión {camion}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            {reportesFiltrados.length === 0 ? (
+              <p className="mecanico-empty mecanico-empty--filtrado">
+                No hay reportes que coincidan con los filtros.
+              </p>
+            ) : (
+              <div className="mecanico-reportes-table-wrap">
             <table className="mecanico-reportes-table">
               <thead>
                 <tr>
@@ -163,16 +251,14 @@ function MecanicoReportesPage() {
               </thead>
 
               <tbody>
-                {reportes.map((reporte) => (
+                {reportesFiltrados.map((reporte) => (
                   <tr key={reporte.id_reporte}>
                     <td>#{reporte.id_reporte}</td>
                     <td>{reporte.fecha_hora}</td>
                     <td>{reporte.Camion_id_camion}</td>
                     <td>{reporte.descripcion}</td>
                     <td>
-                      <span
-                        className={`mecanico-badge mecanico-badge--${reporte.estado}`}
-                      >
+                      <span className={getEstadoClass(reporte.estado)}>
                         {reporte.estado}
                       </span>
                     </td>
@@ -203,7 +289,9 @@ function MecanicoReportesPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
