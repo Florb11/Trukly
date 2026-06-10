@@ -1,7 +1,7 @@
 
 .app-shell--chofer .dashboard-topbar,
 .app-shell--chofer .dashboard-topbar * {
-  color: #ffffff;
+  color: #111827;
 }
 
 .app-shell--chofer .dashboard-menu-btn {
@@ -54,7 +54,7 @@
   padding: 11px 22px;
   border: none;
   border-radius: 10px;
-  background: #2563eb;
+  background: #166534;
   color: #ffffff;
   font-size: 14px;
   font-weight: 700;

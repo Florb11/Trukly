@@ -1,6 +1,6 @@
 import { useState } from "react";
 import NuevoReporteModal from "../components/NuevoReporteModal";
-// import DetalleReporteModal from "../components/DetalleReporteModal";
+import DetalleReporteModal from "../components/DetalleReporteModal";
 import "./ChoferReportesPage.css";
 
 const REPORTES_MOCK = [
@@ -181,7 +181,7 @@ function ChoferReportesPage() {
           className="btn-nuevo-reporte"
           onClick={abrirNuevoReporte}
         >
-          + Nuevo reporte
+           Nuevo reporte
         </button>
       </div>
 
