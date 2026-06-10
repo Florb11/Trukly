@@ -18,7 +18,7 @@ class AuthService:
         try:
             return int(identidad)
         except (TypeError, ValueError):
-            return identidad
+            return None
 
     @staticmethod
     def obtener_rol_actual():
@@ -28,19 +28,30 @@ class AuthService:
     def obtener_usuario_model_actual():
         id_usuario = AuthService.obtener_id_usuario_actual()
 
-        if not id_usuario:
+        if id_usuario is None:
             return None
 
-        return UsuarioModel.query.get(id_usuario)
+        usuario = UsuarioModel.query.get(id_usuario)
+
+        if usuario is None:
+            return None
+
+        if usuario.estado != Usuario.ESTADO_ACTIVO:
+            return None
+
+        return usuario
 
     @staticmethod
     def obtener_admin_actual_desde_token():
-        if AuthService.obtener_rol_actual() != Usuario.ROL_ADMIN:
-            return None
-
         usuario = AuthService.obtener_usuario_model_actual()
 
         if usuario is None:
+            return None
+
+        if (
+            AuthService.obtener_rol_actual() != Usuario.ROL_ADMIN
+            or usuario.rol != Usuario.ROL_ADMIN
+        ):
             return None
 
         administrador = AdministradorModel.query.get(
@@ -60,16 +71,20 @@ class AuthService:
             usuario.estado,
             usuario.rol,
             administrador.legajo,
+            foto_perfil=usuario.foto_perfil,
         )
 
     @staticmethod
     def obtener_mecanico_actual_desde_token():
-        if AuthService.obtener_rol_actual() != Usuario.ROL_MECANICO:
-            return None
-
         usuario = AuthService.obtener_usuario_model_actual()
 
         if usuario is None:
+            return None
+
+        if (
+            AuthService.obtener_rol_actual() != Usuario.ROL_MECANICO
+            or usuario.rol != Usuario.ROL_MECANICO
+        ):
             return None
 
         mecanico = MecanicoModel.query.get(usuario.id_usuario)
