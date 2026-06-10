@@ -90,7 +90,7 @@ def usuario_required(funcion):
 
         if usuario is None:
             return jsonify({
-                "mensaje": "Usuario no encontrado"
+                  "mensaje": "La sesion no corresponde a un usuario activo"
             }), 404
 
         g.usuario_actual = usuario
