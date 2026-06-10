@@ -331,7 +331,14 @@ function AdminCamionesPage() {
                 <button
                     type="button"
                     className="btn-camion btn-camion--activar"
-                    onClick={() => cambiarEstadoCamion(camion.id_camion, "disponible")}
+                    onClick={() =>
+                        cambiarEstadoCamion(
+                            camion.id_camion,
+                            camion.reportes_activos > 0
+                                ? "en mantenimiento"
+                                : "disponible"
+                        )
+                    }
                 >
                     Activar
                 </button>

@@ -2,8 +2,10 @@ from flask import g, jsonify, request
 
 from db_instance import db
 from models.camion_model import CamionModel
+from models.reporte_model import ReporteModel
 
 from src.Camion import Camion
+from src.ReporteFalla import ReporteFalla
 from utils.auth_decorators import admin_required
 
 
@@ -53,12 +55,61 @@ class CamionController:
         camion_db.nroTanque = camion_clase.nroTanque
 
     @staticmethod
+    def _contar_reportes_activos(id_camion):
+        return (
+            ReporteModel.query
+            .filter(
+                ReporteModel.Camion_id_camion == id_camion,
+                ReporteModel.estado.in_(ReporteFalla.ESTADOS_ACTIVOS),
+            )
+            .count()
+        )
+
+    @staticmethod
+    def _preparar_respuesta_camion(camion_db):
+        datos_camion = camion_db.to_dict()
+        reportes_activos = CamionController._contar_reportes_activos(
+            camion_db.id_camion
+        )
+
+        datos_camion["reportes_activos"] = reportes_activos
+
+        if (
+            reportes_activos > 0
+            and camion_db.estado == Camion.ESTADO_DISPONIBLE
+        ):
+            datos_camion["estado"] = Camion.ESTADO_EN_MANTENIMIENTO
+            datos_camion["estado_guardado"] = camion_db.estado
+
+        return datos_camion
+
+    @staticmethod
+    def _puede_usar_estado(camion_db, nuevo_estado):
+        reportes_activos = CamionController._contar_reportes_activos(
+            camion_db.id_camion
+        )
+
+        if (
+            reportes_activos > 0
+            and nuevo_estado == Camion.ESTADO_DISPONIBLE
+        ):
+            return False, (
+                "No se puede marcar como disponible un camion con "
+                "reportes activos. Activarlo debe dejarlo en mantenimiento"
+            )
+
+        return True, None
+
+    @staticmethod
     @admin_required
     def listar_camiones():
         camiones = CamionModel.query.all()
 
         return jsonify({
-            "camiones": [camion.to_dict() for camion in camiones]
+            "camiones": [
+                CamionController._preparar_respuesta_camion(camion)
+                for camion in camiones
+            ]
         }), 200
 
     @staticmethod
@@ -70,7 +121,7 @@ class CamionController:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
 
         return jsonify({
-            "camion": camion.to_dict()
+            "camion": CamionController._preparar_respuesta_camion(camion)
         }), 200
 
     @staticmethod
@@ -134,6 +185,16 @@ class CamionController:
             camion_db
         )
 
+        estado_permitido, mensaje_error = (
+            CamionController._puede_usar_estado(
+                camion_db,
+                camion_clase.estado
+            )
+        )
+
+        if not estado_permitido:
+            return jsonify({"mensaje": mensaje_error}), 400
+
         if not admin.modificar_camion(camion_clase):
             return jsonify({"mensaje": "Faltan datos obligatorios o hay datos invalidos"}), 400
 
@@ -160,7 +221,7 @@ class CamionController:
 
         return jsonify({
             "mensaje": "Camion modificado correctamente",
-            "camion": camion_db.to_dict(),
+            "camion": CamionController._preparar_respuesta_camion(camion_db),
         }), 200
 
     @staticmethod
@@ -185,6 +246,16 @@ class CamionController:
         if not admin.cambiar_estado_camion(camion_clase, nuevo_estado):
             return jsonify({"mensaje": "Estado invalido"}), 400
 
+        estado_permitido, mensaje_error = (
+            CamionController._puede_usar_estado(
+                camion_db,
+                camion_clase.estado
+            )
+        )
+
+        if not estado_permitido:
+            return jsonify({"mensaje": mensaje_error}), 400
+
         camion_db.estado = camion_clase.estado
 
         try:
@@ -198,5 +269,5 @@ class CamionController:
 
         return jsonify({
             "mensaje": "Estado del camion modificado correctamente",
-            "camion": camion_db.to_dict(),
+            "camion": CamionController._preparar_respuesta_camion(camion_db),
         }), 200

@@ -10,6 +10,7 @@ from db_instance import db
 from models.reporte_model import ReporteModel
 from models.camion_model import CamionModel
 
+from src.Camion import Camion
 from src.ReporteFalla import ReporteFalla
 from services.auth_service import AuthService
 from utils.auth_decorators import mecanico_required
@@ -46,6 +47,45 @@ class MecanicoController:
         reporte_model.fecha_resolucion = reporte_clase.fecha_resolucion
 
     @staticmethod
+    def preparar_respuesta_reporte(reporte_model):
+        reporte_clase = MecanicoController.crear_objeto_reporte(
+            reporte_model
+        )
+
+        return reporte_clase.to_dict()
+
+    @staticmethod
+    def crear_objeto_camion(camion_model):
+        if camion_model is None:
+            return None
+
+        return Camion(
+            id_camion=camion_model.id_camion,
+            matricula=camion_model.matricula,
+            marca=camion_model.marca,
+            modelo=camion_model.modelo,
+            capacidad_carga=camion_model.capacidad_carga,
+            estado=camion_model.estado,
+            nroTanque=camion_model.nroTanque,
+        )
+
+    @staticmethod
+    def actualizar_modelo_camion(camion_model, camion_clase):
+        camion_model.estado = camion_clase.estado
+
+    @staticmethod
+    def obtener_reportes_activos_camion(id_camion, id_reporte_resuelto):
+        return (
+            ReporteModel.query
+            .filter(
+                ReporteModel.Camion_id_camion == id_camion,
+                ReporteModel.id_reporte != id_reporte_resuelto,
+                ReporteModel.estado.in_(ReporteFalla.ESTADOS_ACTIVOS),
+            )
+            .all()
+        )
+
+    @staticmethod
     @mecanico_required
     def listar_reportes_asignados():
         mecanico = g.mecanico_actual
@@ -57,7 +97,7 @@ class MecanicoController:
         return jsonify(
             {
                 "reportes": [
-                    reporte.to_dict()
+                    MecanicoController.preparar_respuesta_reporte(reporte)
                     for reporte in reportes
                 ]
             }
@@ -102,6 +142,26 @@ class MecanicoController:
             reporte
         )
 
+        camion_model = CamionModel.query.get(reporte_model.Camion_id_camion)
+        camion = MecanicoController.crear_objeto_camion(camion_model)
+        reportes_activos = (
+            MecanicoController.obtener_reportes_activos_camion(
+                reporte_model.Camion_id_camion,
+                reporte_model.id_reporte
+            )
+        )
+
+        camion_liberado = mecanico.liberar_camion_si_corresponde(
+            camion,
+            reportes_activos
+        )
+
+        if camion_liberado:
+            MecanicoController.actualizar_modelo_camion(
+                camion_model,
+                camion
+            )
+
         event_manager = EventManager()
         listener_notificacion = NotificacionReporteListener()
 
@@ -137,7 +197,10 @@ class MecanicoController:
         return jsonify(
             {
                 "mensaje": "Reporte marcado como resuelto",
-                "reporte": reporte_model.to_dict(),
+                "reporte": MecanicoController.preparar_respuesta_reporte(
+                    reporte_model
+                ),
+                "camion_liberado": camion_liberado,
             }
         ), 200
 
@@ -219,11 +282,11 @@ class MecanicoController:
             {
                 "camion": camion.to_dict(),
                 "reportes_pendientes": [
-                    reporte.to_dict()
+                    MecanicoController.preparar_respuesta_reporte(reporte)
                     for reporte in reportes_pendientes
                 ],
                 "reparaciones_realizadas": [
-                    reporte.to_dict()
+                    MecanicoController.preparar_respuesta_reporte(reporte)
                     for reporte in reparaciones_realizadas
                 ],
             }

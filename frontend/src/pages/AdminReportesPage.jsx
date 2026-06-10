@@ -66,7 +66,11 @@ function AdminReportesPage() {
 
     const abrirCambiarEstadoReporte = (reporte) => {
         setReporteCambiandoEstado(reporte);
-        setNuevoEstado(reporte.estado || "pendiente");
+        setNuevoEstado(
+            reporte.Mecanico_Usuario_idUsuario && reporte.estado === "pendiente"
+                ? "en revision"
+                : reporte.estado || "pendiente"
+        );
         setErrorEstado("");
         setErrorReportes("");
     };

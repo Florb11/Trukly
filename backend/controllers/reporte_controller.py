@@ -13,6 +13,10 @@ from src.Chofer import Chofer
 from src.Mecanico import Mecanico
 from src.ReporteFalla import ReporteFalla
 from src.Usuario import Usuario
+from src.observer.EventManager import EventManager
+from src.observer.NotificacionReporteListener import (
+    NotificacionReporteListener
+)
 from services.auth_service import AuthService
 from utils.auth_decorators import obtener_admin_actual_desde_token
 from utils.auth_decorators import roles_required
@@ -151,6 +155,103 @@ class ReporteController:
         reporte_model.fecha_resolucion = reporte_clase.fecha_resolucion
 
     @staticmethod
+    def preparar_respuesta_reporte(reporte_model):
+        reporte_clase = ReporteController.crear_objeto_reporte(
+            reporte_model,
+            cargar_relaciones=False
+        )
+
+        return reporte_clase.to_dict()
+
+    @staticmethod
+    def actualizar_modelo_camion(camion_model, camion_clase):
+        camion_model.estado = camion_clase.estado
+
+    @staticmethod
+    def obtener_reportes_activos_camion(id_camion, id_reporte_excluido):
+        return (
+            ReporteModel.query
+            .filter(
+                ReporteModel.Camion_id_camion == id_camion,
+                ReporteModel.id_reporte != id_reporte_excluido,
+                ReporteModel.estado.in_(ReporteFalla.ESTADOS_ACTIVOS),
+            )
+            .all()
+        )
+
+    @staticmethod
+    def liberar_camion_si_corresponde(reporte_clase):
+        if reporte_clase.estado in ReporteFalla.ESTADOS_ACTIVOS:
+            return False
+
+        camion_model = CamionModel.query.get(reporte_clase.Camion_id_camion)
+        camion = ReporteController.crear_objeto_camion(camion_model)
+
+        if camion is None:
+            return False
+
+        reportes_activos = ReporteController.obtener_reportes_activos_camion(
+            reporte_clase.Camion_id_camion,
+            reporte_clase.id_reporte
+        )
+
+        camion_liberado = camion.liberar_si_no_tiene_reportes_activos(
+            reportes_activos
+        )
+
+        if camion_liberado:
+            ReporteController.actualizar_modelo_camion(
+                camion_model,
+                camion
+            )
+
+        return camion_liberado
+
+    @staticmethod
+    def marcar_camion_en_mantenimiento_si_corresponde(reporte_clase):
+        if reporte_clase.estado not in ReporteFalla.ESTADOS_ACTIVOS:
+            return False
+
+        camion_model = CamionModel.query.get(reporte_clase.Camion_id_camion)
+        camion = ReporteController.crear_objeto_camion(camion_model)
+
+        if camion is None:
+            return False
+
+        camion_en_mantenimiento = camion.marcar_en_mantenimiento()
+
+        if camion_en_mantenimiento:
+            ReporteController.actualizar_modelo_camion(
+                camion_model,
+                camion
+            )
+
+        return camion_en_mantenimiento
+
+    @staticmethod
+    def notificar_reporte_asignado(reporte_clase, mecanico):
+        event_manager = EventManager()
+        listener_notificacion = NotificacionReporteListener()
+
+        event_manager.suscribir(
+            "reporte_asignado",
+            listener_notificacion
+        )
+
+        event_manager.notificar(
+            "reporte_asignado",
+            {
+                "id_usuario": mecanico.id_usuario,
+                "titulo": "Nueva reparacion asignada",
+                "mensaje": (
+                    f"Se te asigno el reporte #{reporte_clase.id_reporte} "
+                    f"del camion #{reporte_clase.Camion_id_camion}."
+                ),
+                "tipo": "reporte_asignado",
+            }
+        )
+
+    @staticmethod
     @roles_required(
         Usuario.ROL_ADMIN,
         Usuario.ROL_OPERADOR,
@@ -159,7 +260,10 @@ class ReporteController:
         reportes = ReporteModel.query.all()
 
         return jsonify({
-            "reportes": [reporte.to_dict() for reporte in reportes]
+            "reportes": [
+                ReporteController.preparar_respuesta_reporte(reporte)
+                for reporte in reportes
+            ]
         }), 200
 
     @staticmethod
@@ -184,7 +288,7 @@ class ReporteController:
             return jsonify({"mensaje": "No tenes permiso para ver este reporte"}), 403
 
         return jsonify({
-            "reporte": reporte.to_dict()
+            "reporte": ReporteController.preparar_respuesta_reporte(reporte)
         }), 200
 
     @staticmethod
@@ -245,7 +349,9 @@ class ReporteController:
 
         return jsonify({
             "mensaje": "Reporte creado correctamente",
-            "reporte": nuevo_reporte.to_dict(),
+            "reporte": ReporteController.preparar_respuesta_reporte(
+                nuevo_reporte
+            ),
         }), 201
 
     @staticmethod
@@ -282,6 +388,20 @@ class ReporteController:
             reporte_clase
         )
 
+        camion_liberado = ReporteController.liberar_camion_si_corresponde(
+            reporte_clase
+        )
+        camion_en_mantenimiento = (
+            ReporteController.marcar_camion_en_mantenimiento_si_corresponde(
+                reporte_clase
+            )
+        )
+
+        ReporteController.notificar_reporte_asignado(
+            reporte_clase,
+            mecanico
+        )
+
         try:
             db.session.commit()
         except Exception:
@@ -293,14 +413,15 @@ class ReporteController:
 
         return jsonify({
             "mensaje": "Estado del reporte modificado correctamente",
-            "reporte": reporte_db.to_dict(),
+            "reporte": ReporteController.preparar_respuesta_reporte(
+                reporte_db
+            ),
+            "camion_liberado": camion_liberado,
+            "camion_en_mantenimiento": camion_en_mantenimiento,
         }), 200
 
     @staticmethod
-    @roles_required(
-        Usuario.ROL_ADMIN,
-        Usuario.ROL_OPERADOR,
-    )
+    @roles_required(Usuario.ROL_OPERADOR)
     def asignar_mecanico(id_reporte):
         reporte_db = ReporteModel.query.get(id_reporte)
 
@@ -325,6 +446,12 @@ class ReporteController:
             reporte_clase
         )
 
+        camion_en_mantenimiento = (
+            ReporteController.marcar_camion_en_mantenimiento_si_corresponde(
+                reporte_clase
+            )
+        )
+
         try:
             db.session.commit()
         except Exception:
@@ -336,5 +463,8 @@ class ReporteController:
 
         return jsonify({
             "mensaje": "Mecanico asignado correctamente",
-            "reporte": reporte_db.to_dict(),
+            "reporte": ReporteController.preparar_respuesta_reporte(
+                reporte_db
+            ),
+            "camion_en_mantenimiento": camion_en_mantenimiento,
         }), 200
