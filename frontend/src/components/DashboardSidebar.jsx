@@ -1,7 +1,8 @@
+import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
+  FaBell,
   FaChartLine,
-  FaCog,
   FaHome,
   FaMapMarkedAlt,
   FaSignOutAlt,
@@ -12,8 +13,10 @@ import {
   FaWrench,
   FaClipboardList,
   FaTools,
+  FaRoute,
 } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
+import { fetchConToken } from "../utils/fetchConToken";
 import "./DashboardSidebar.css";
 
 const menusPorRol = {
@@ -63,9 +66,9 @@ const menusPorRol = {
             icon: <FaUser />,
           },
           {
-            label: "Configuración",
-            path: "/dashboardTrucker/configuracion",
-            icon: <FaCog />,
+            label: "Notificaciones",
+            path: "/dashboardTrucker/notificaciones",
+            icon: <FaBell />,
           },
         ],
       },
@@ -91,6 +94,11 @@ const menusPorRol = {
             label: "Camiones",
             path: "/dashboardAdmin/camiones",
             icon: <FaTruck />,
+          },
+          {
+            label: "Viajes",
+            path: "/dashboardAdmin/viajes",
+            icon: <FaRoute />,
           },
         ],
       },
@@ -123,9 +131,9 @@ const menusPorRol = {
             icon: <FaUser />,
           },
           {
-            label: "Configuración",
-            path: "/dashboardAdmin/configuracion",
-            icon: <FaCog />,
+            label: "Notificaciones",
+            path: "/dashboardAdmin/notificaciones",
+            icon: <FaBell />,
           },
         ],
       },
@@ -163,9 +171,9 @@ const menusPorRol = {
             icon: <FaUser />,
           },
           {
-            label: "Configuración",
-            path: "/dashboardMechanic/configuracion",
-            icon: <FaCog />,
+            label: "Notificaciones",
+            path: "/dashboardMechanic/notificaciones",
+            icon: <FaBell />,
           },
         ],
       },
@@ -218,9 +226,9 @@ const menusPorRol = {
             icon: <FaUser />,
           },
           {
-            label: "Configuración",
-            path: "/dashboardOperator/configuracion",
-            icon: <FaCog />,
+            label: "Notificaciones",
+            path: "/dashboardOperator/notificaciones",
+            icon: <FaBell />,
           },
         ],
       },
@@ -231,9 +239,71 @@ const menusPorRol = {
 function DashboardSidebar({ isOpen, onClose }) {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
+  const [notificacionesSinLeer, setNotificacionesSinLeer] = useState(0);
 
   const rol = usuario?.rol || "chofer";
   const menu = menusPorRol[rol] || menusPorRol.chofer;
+
+  const API_URL = "http://localhost:5000";
+
+  const fotoPerfil = usuario?.foto_perfil
+    ? `${API_URL}${usuario.foto_perfil}`
+    : null;
+
+  useEffect(() => {
+    let componenteActivo = true;
+
+    const cargarNotificacionesSinLeer = async () => {
+      if (!usuario) {
+        setNotificacionesSinLeer(0);
+        return;
+      }
+
+      try {
+        const resultado = await fetchConToken(
+          `${API_URL}/api/notificaciones`,
+          { method: "GET" }
+        );
+
+        if (!resultado || !componenteActivo) return;
+
+        const { respuesta, data } = resultado;
+
+        if (!respuesta.ok) {
+          setNotificacionesSinLeer(0);
+          return;
+        }
+
+        const notificaciones = data.notificaciones || [];
+        const sinLeer = notificaciones.filter(
+          (notificacion) => !notificacion.leida
+        );
+
+        setNotificacionesSinLeer(sinLeer.length);
+      } catch {
+        if (componenteActivo) {
+          setNotificacionesSinLeer(0);
+        }
+      }
+    };
+
+    cargarNotificacionesSinLeer();
+
+    window.addEventListener(
+      "notificacionesActualizadas",
+      cargarNotificacionesSinLeer
+    );
+    window.addEventListener("focus", cargarNotificacionesSinLeer);
+
+    return () => {
+      componenteActivo = false;
+      window.removeEventListener(
+        "notificacionesActualizadas",
+        cargarNotificacionesSinLeer
+      );
+      window.removeEventListener("focus", cargarNotificacionesSinLeer);
+    };
+  }, [usuario, API_URL]);
 
   const handleLogout = () => {
     logout();
@@ -249,9 +319,17 @@ function DashboardSidebar({ isOpen, onClose }) {
     <>
       {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
 
-      <aside className={`sidebar sidebar--${rol} ${isOpen ? "sidebar--open" : ""}`}>
+      <aside
+        className={`sidebar sidebar--${rol} ${
+          isOpen ? "sidebar--open" : ""
+        }`}
+      >
         <div className="sidebar__header">
-          <NavLink to={menu.dashboard} className="sidebar__logo" onClick={onClose}>
+          <NavLink
+            to={menu.dashboard}
+            className="sidebar__logo"
+            onClick={onClose}
+          >
             <span className="sidebar__logo-icon">T</span>
             <span className="sidebar__logo-text">Trukly</span>
           </NavLink>
@@ -286,6 +364,14 @@ function DashboardSidebar({ isOpen, onClose }) {
                     >
                       <span className="sidebar__item-icon">{item.icon}</span>
                       <span className="sidebar__item-label">{item.label}</span>
+                      {item.label === "Notificaciones" &&
+                        notificacionesSinLeer > 0 && (
+                          <span className="sidebar__notification-badge">
+                            {notificacionesSinLeer > 9
+                              ? "9+"
+                              : notificacionesSinLeer}
+                          </span>
+                        )}
                       <span className="sidebar__item-indicator" />
                     </NavLink>
                   </li>
@@ -304,7 +390,13 @@ function DashboardSidebar({ isOpen, onClose }) {
 
         <div className="sidebar__footer">
           <div className="sidebar__user">
-            <div className="sidebar__avatar">{inicialUsuario}</div>
+            <div className="sidebar__avatar">
+              {fotoPerfil ? (
+                <img src={fotoPerfil} alt="Foto de perfil" />
+              ) : (
+                inicialUsuario
+              )}
+            </div>
 
             <div className="sidebar__user-info">
               <span className="sidebar__user-name">

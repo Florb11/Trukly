@@ -7,8 +7,8 @@ class Chofer(Usuario):
         self,
         id_usuario,
         username,
-        password,
         email,
+        password,
         nombre,
         apellido,
         estado,
@@ -16,21 +16,59 @@ class Chofer(Usuario):
         licencia,
         vencimientoLicencia,
         legajo,
+        foto_perfil=None,
+        viajes_asignados=None,
+        reportes_creados=None,
     ):
         super().__init__(
             id_usuario,
             username,
-            password,
             email,
+            password,
             nombre,
             apellido,
             estado,
             rol,
+            foto_perfil,
         )
 
         self.licencia = licencia
         self.vencimientoLicencia = vencimientoLicencia
         self.legajo = legajo
+        self.viajes_asignados = viajes_asignados or []
+        self.reportes_creados = reportes_creados or []
+
+    def asignar_viaje(self, viaje):
+        if viaje is None:
+            return False
+
+        if not viaje.asignar_chofer(self):
+            return False
+
+        self.viajes_asignados.append(viaje)
+        return True
+
+    def registrar_reporte(self, reporte):
+        if reporte is None:
+            return False
+
+        if not reporte.asociar_chofer(self):
+            return False
+
+        self.reportes_creados.append(reporte)
+        return True
+
+    def puede_ver_viaje(self, viaje):
+        if viaje is None:
+            return False
+
+        return viaje.pertenece_a_chofer(self)
+
+    def puede_ver_reporte(self, reporte):
+        if reporte is None:
+            return False
+
+        return reporte.pertenece_a_chofer(self)
 
     @staticmethod
     def validar_licencia(licencia):
@@ -53,10 +91,9 @@ class Chofer(Usuario):
             return False, "La fecha de vencimiento de la licencia es obligatoria"
 
         try:
-            fecha_vencimiento = datetime.strptime(
-                vencimientoLicencia,
-                "%Y-%m-%d"
-            ).date()
+            fecha_vencimiento = Chofer.convertir_vencimiento_licencia(
+                vencimientoLicencia
+            )
         except ValueError:
             return False, "La fecha de vencimiento debe tener formato YYYY-MM-DD"
 
@@ -64,6 +101,16 @@ class Chofer(Usuario):
             return False, "La licencia no puede estar vencida"
 
         return True, None
+
+    @staticmethod
+    def convertir_vencimiento_licencia(vencimientoLicencia):
+        if isinstance(vencimientoLicencia, date):
+            return vencimientoLicencia
+
+        return datetime.strptime(
+            vencimientoLicencia,
+            "%Y-%m-%d"
+        ).date()
 
     def to_dict(self):
         datos_usuario = super().to_dict()

@@ -1,0 +1,310 @@
+.admin-perfil-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.admin-perfil-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+.admin-perfil-header span {
+  color: #6f42c1;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-perfil-header h1 {
+  margin: 0.3rem 0;
+  color: #2f2342;
+  font-size: clamp(1.8rem, 4vw, 2.7rem);
+}
+
+.admin-perfil-header p {
+  max-width: 700px;
+  margin: 0;
+  color: #6f657a;
+}
+
+.admin-perfil-header__icon {
+  display: grid;
+  place-items: center;
+  width: 74px;
+  height: 74px;
+  min-width: 74px;
+  border-radius: 22px;
+  background: #6f42c1;
+  color: #ffffff;
+  font-size: 2rem;
+  box-shadow: 0 15px 35px rgba(111, 66, 193, 0.25);
+}
+
+.admin-perfil-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 1.3rem;
+  align-items: start;
+}
+
+.admin-perfil-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+}
+
+.admin-perfil-card {
+  overflow: hidden;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid rgba(115, 75, 170, 0.14);
+  box-shadow: 0 18px 45px rgba(75, 43, 111, 0.08);
+}
+
+.admin-perfil-card--identity {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.admin-perfil-avatar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.admin-perfil-avatar {
+  width: 138px;
+  height: 138px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 3.3rem;
+  font-weight: 900;
+  border: 6px solid #f5efff;
+  box-shadow: 0 16px 35px rgba(111, 66, 193, 0.22);
+}
+
+.admin-perfil-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-perfil-photo-button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background: #f3ecff;
+  color: #6f42c1;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-perfil-photo-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.admin-perfil-card--identity h2 {
+  margin: 1.1rem 0 0.45rem;
+  color: #2f2342;
+}
+
+.admin-perfil-role {
+  display: inline-flex;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.admin-perfil-account-data {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1.4rem;
+  text-align: left;
+}
+
+.admin-perfil-account-data div {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.65rem;
+  align-items: center;
+  padding: 0.85rem;
+  border-radius: 16px;
+  background: #faf7ff;
+  border: 1px solid rgba(115, 75, 170, 0.1);
+}
+
+.admin-perfil-account-data svg {
+  grid-row: 1 / 3;
+  color: #6f42c1;
+  font-size: 1.1rem;
+}
+
+.admin-perfil-account-data span {
+  color: #7b7088;
+  font-size: 0.8rem;
+}
+
+.admin-perfil-account-data strong {
+  color: #2f2342;
+  overflow-wrap: anywhere;
+}
+
+.admin-perfil-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem 1.4rem;
+  border-bottom: 1px solid rgba(115, 75, 170, 0.12);
+}
+
+.admin-perfil-card__header h2 {
+  margin: 0;
+  color: #2f2342;
+  font-size: 1.15rem;
+}
+
+.admin-perfil-card__header span {
+  color: #7b7088;
+  font-size: 0.88rem;
+}
+
+.admin-perfil-card__header > svg {
+  color: #6f42c1;
+  font-size: 1.3rem;
+}
+
+.admin-perfil-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.4rem;
+}
+
+.admin-perfil-form__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.admin-perfil-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.admin-perfil-form label span {
+  color: #5f536b;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.admin-perfil-form input {
+  width: 100%;
+  border: 1px solid rgba(115, 75, 170, 0.2);
+  border-radius: 14px;
+  padding: 0.85rem 0.95rem;
+  background: #ffffff;
+  color: #2f2342;
+  font: inherit;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.admin-perfil-form input:focus {
+  border-color: #6f42c1;
+  box-shadow: 0 0 0 4px rgba(111, 66, 193, 0.12);
+}
+
+.admin-perfil-form__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.2rem;
+}
+
+.admin-perfil-form__footer button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background: #6f42c1;
+  color: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(111, 66, 193, 0.2);
+}
+
+.admin-perfil-form__footer button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+@media (max-width: 980px) {
+  .admin-perfil-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-perfil-card--identity {
+    text-align: left;
+  }
+
+  .admin-perfil-avatar-wrap {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-perfil-header {
+    align-items: flex-start;
+  }
+
+  .admin-perfil-header__icon {
+    display: none;
+  }
+
+  .admin-perfil-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-perfil-form__footer {
+    justify-content: stretch;
+  }
+
+  .admin-perfil-form__footer button {
+    width: 100%;
+  }
+
+  .admin-perfil-card--identity {
+    text-align: center;
+  }
+
+  .admin-perfil-avatar-wrap {
+    align-items: center;
+  }
+}

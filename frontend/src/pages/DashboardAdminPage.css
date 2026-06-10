@@ -24,9 +24,10 @@
   margin: 8px 0 0;
 }
 
-.admin-dashboard__heading button {
+.admin-dashboard__action {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
   padding: 10px 20px;
   border: none;
@@ -35,6 +36,7 @@
   background: #059669;
   font-size: 14px;
   font-weight: 700;
+  text-decoration: none;
   white-space: nowrap;
   flex-shrink: 0;
   cursor: pointer;
@@ -42,13 +44,14 @@
   transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
 }
 
-.admin-dashboard__heading button:hover {
+.admin-dashboard__action:hover {
+  color: #ffffff;
   background: #047857;
   box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
   transform: translateY(-1px);
 }
 
-.admin-dashboard__heading button:active {
+.admin-dashboard__action:active {
   background: #065f46;
   box-shadow: none;
   transform: translateY(0);
@@ -76,6 +79,10 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
+  margin-bottom: 18px;
+}
+
+.admin-dashboard > .notification-prompt {
   margin-bottom: 18px;
 }
 
@@ -180,18 +187,11 @@
 }
 
 .admin-chart {
-  height: 250px;
-  display: flex;
-  align-items: end;
-  gap: 14px;
-  padding: 24px;
+  display: none;
 }
 
 .admin-chart span {
-  flex: 1;
-  min-width: 18px;
-  border-radius: 7px 7px 0 0;
-  background: linear-gradient(180deg, #a78bfa, #5b21b6);
+  display: none;
 }
 
 .admin-progress-list {

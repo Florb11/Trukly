@@ -1,0 +1,394 @@
+.mecanico-mantenimiento-page {
+  min-height: 100%;
+  padding: 28px;
+  background: #f6f7fb;
+  --mecanico-dark: #063f36;
+  --mecanico-deep: #052e27;
+  --mecanico-main: #0f766e;
+  --mecanico-soft: #d9fbe8;
+  --mecanico-soft-strong: #baf3d1;
+  --mecanico-border: #b8e8d1;
+}
+
+.mecanico-mantenimiento-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 26px;
+  margin-bottom: 24px;
+  color: #0f172a;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+}
+
+.mecanico-mantenimiento-header span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--mecanico-main);
+}
+
+.mecanico-mantenimiento-header h1 {
+  margin: 6px 0;
+  font-size: 2rem;
+  color: #0f172a;
+}
+
+.mecanico-mantenimiento-header p {
+  max-width: 650px;
+  margin: 0;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.mecanico-mantenimiento-header__icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 66px;
+  height: 66px;
+  color: var(--mecanico-main);
+  font-size: 2rem;
+  background: #ecfdf5;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.mecanico-mantenimiento-message {
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  color: var(--mecanico-deep);
+  font-weight: 600;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(6, 63, 54, 0.06);
+}
+
+.mecanico-mantenimiento-message--error {
+  color: #b42318;
+  background: #fff0f0;
+  border: 1px solid #ffc9c9;
+}
+
+.mecanico-mantenimiento-toolbar {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.mecanico-mantenimiento-search {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  max-width: 520px;
+  padding: 0 15px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+}
+
+.mecanico-mantenimiento-search svg {
+  color: var(--mecanico-main);
+}
+
+.mecanico-mantenimiento-search input {
+  width: 100%;
+  padding: 14px 0;
+  color: #0f172a;
+  font-size: 0.95rem;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.mecanico-mantenimiento-table-wrap {
+  overflow-x: auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+}
+
+.mecanico-mantenimiento-table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+}
+
+.mecanico-mantenimiento-table th,
+.mecanico-mantenimiento-table td {
+  padding: 16px 18px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.mecanico-mantenimiento-table th {
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  background: #f8fafc;
+}
+
+.mecanico-mantenimiento-table tbody tr {
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.mecanico-mantenimiento-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.mecanico-mantenimiento-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.mecanico-mantenimiento-camion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mecanico-mantenimiento-camion__icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  color: #475569;
+  font-size: 1.1rem;
+  background: #f1f5f9;
+  border-radius: 13px;
+}
+
+.mecanico-mantenimiento-camion div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mecanico-mantenimiento-camion strong {
+  color: var(--mecanico-deep);
+}
+
+.mecanico-mantenimiento-camion span {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.mecanico-mantenimiento-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: capitalize;
+  background: #f1f5f9;
+  border-radius: 999px;
+}
+
+.mecanico-mantenimiento-status--activo,
+.mecanico-mantenimiento-status--disponible {
+  color: #147a43;
+  background: #e5faef;
+}
+
+.mecanico-mantenimiento-status--mantenimiento,
+.mecanico-mantenimiento-status--en-mantenimiento {
+  color: #9a6700;
+  background: #fff3cc;
+}
+
+.mecanico-mantenimiento-status--inactivo,
+.mecanico-mantenimiento-status--fuera-de-servicio {
+  color: #b42318;
+  background: #ffe9e7;
+}
+
+.mecanico-mantenimiento-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 30px;
+  padding: 0 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  border-radius: 999px;
+}
+
+.mecanico-mantenimiento-count--pending {
+  color: #9a6700;
+  background: #fff3cc;
+}
+
+.mecanico-mantenimiento-count--resolved {
+  color: #147a43;
+  background: #e5faef;
+}
+
+.mecanico-mantenimiento-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 13px;
+  color: #ffffff;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  background: #078457;
+  border: none;
+  border-radius: 12px;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.mecanico-mantenimiento-action:hover {
+  background: #056343;
+  transform: translateY(-1px);
+}
+
+.mecanico-mantenimiento-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 34px;
+  color: #64748b;
+  text-align: center;
+}
+
+.mecanico-mantenimiento-empty svg {
+  font-size: 2rem;
+  color: var(--mecanico-main);
+}
+
+.mecanico-mantenimiento-empty p {
+  margin: 0;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .mecanico-mantenimiento-page {
+    padding: 18px;
+  }
+
+  .mecanico-mantenimiento-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 22px;
+  }
+
+  .mecanico-mantenimiento-header h1 {
+    font-size: 1.7rem;
+  }
+
+  .mecanico-mantenimiento-header__icon {
+    width: 54px;
+    height: 54px;
+    font-size: 1.5rem;
+  }
+
+  .mecanico-mantenimiento-search {
+    max-width: none;
+  }
+
+  .mecanico-mantenimiento-table-wrap {
+    overflow: visible;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .mecanico-mantenimiento-table {
+    min-width: 0;
+  }
+
+  .mecanico-mantenimiento-table thead {
+    display: none;
+  }
+
+  .mecanico-mantenimiento-table,
+  .mecanico-mantenimiento-table tbody,
+  .mecanico-mantenimiento-table tr,
+  .mecanico-mantenimiento-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .mecanico-mantenimiento-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .mecanico-mantenimiento-table tbody tr {
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+  }
+
+  .mecanico-mantenimiento-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    text-align: right;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .mecanico-mantenimiento-table td::before {
+    content: attr(data-label);
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .mecanico-mantenimiento-table td:first-child {
+    align-items: flex-start;
+  }
+
+  .mecanico-mantenimiento-table td:first-child::before {
+    display: none;
+  }
+
+  .mecanico-mantenimiento-table td:last-child {
+    padding-top: 14px;
+    border-bottom: none;
+  }
+
+  .mecanico-mantenimiento-camion {
+    width: 100%;
+  }
+
+  .mecanico-mantenimiento-action {
+    width: 100%;
+  }
+
+  .mecanico-mantenimiento-table td[colspan] {
+    display: block;
+  }
+
+  .mecanico-mantenimiento-table td[colspan]::before {
+    display: none;
+  }
+}

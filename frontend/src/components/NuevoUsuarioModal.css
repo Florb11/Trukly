@@ -164,12 +164,13 @@
 }
 
 .usuarios-modal__actions button[type="submit"] {
-  background: linear-gradient(135deg, #059669, #047857);
+  background: #059669;
   color: #ffffff !important;
   box-shadow: 0 2px 8px rgba(5, 150, 105, 0.35);
 }
 
 .usuarios-modal__actions button[type="submit"]:hover {
+  background: #047857;
   box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
 }
 

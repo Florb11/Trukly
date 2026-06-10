@@ -1,0 +1,161 @@
+.cambiar-estado-reporte-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(17, 24, 39, 0.62);
+}
+
+.cambiar-estado-reporte-modal {
+    width: 100%;
+    max-width: 520px;
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 18px 40px rgba(17, 24, 39, 0.28);
+}
+
+.cambiar-estado-reporte-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 22px 24px;
+    border-top: 4px solid #d97706;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fafafa;
+}
+
+.cambiar-estado-reporte-header span {
+    display: block;
+    color: #d97706;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+}
+
+.cambiar-estado-reporte-header h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.cambiar-estado-reporte-header p {
+    margin: 6px 0 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.cambiar-estado-reporte-close {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 10px;
+    background: #fef3c7;
+    color: #b45309;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.cambiar-estado-reporte-close:hover {
+    background: #fde68a;
+}
+
+.cambiar-estado-reporte-form {
+    padding: 22px 24px 0;
+}
+
+.cambiar-estado-reporte-error {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border-left: 4px solid #ef4444;
+    border-radius: 10px;
+    background: #fef2f2;
+    color: #991b1b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.cambiar-estado-reporte-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cambiar-estado-reporte-field label {
+    color: #374151;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.cambiar-estado-reporte-field select {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 11px 12px;
+    color: #111827;
+    font-size: 14px;
+    outline: none;
+    background: #ffffff;
+}
+
+.cambiar-estado-reporte-field select:focus {
+    border-color: #d97706;
+    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.14);
+}
+
+.cambiar-estado-reporte-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin: 22px -24px 0;
+    padding: 18px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #fafafa;
+}
+
+.cambiar-estado-reporte-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cambiar-estado-reporte-btn--cancelar {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.cambiar-estado-reporte-btn--guardar {
+    background: #d97706;
+    color: #ffffff;
+}
+
+@media (max-width: 520px) {
+    .cambiar-estado-reporte-header,
+    .cambiar-estado-reporte-form {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .cambiar-estado-reporte-footer {
+        flex-direction: column;
+        margin-left: -18px;
+        margin-right: -18px;
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .cambiar-estado-reporte-btn {
+        width: 100%;
+    }
+}

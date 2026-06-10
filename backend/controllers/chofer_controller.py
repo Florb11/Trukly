@@ -2,6 +2,7 @@ from flask import jsonify, request
 from db_instance import db
 
 from models.chofer_model import ChoferModel
+from utils.input_sanitizer import InputSanitizer
 
 class ChoferController:
 
@@ -24,7 +25,15 @@ class ChoferController:
     @staticmethod
     def crear_chofer():
         # funcion para crear choferes
-        datos = request.get_json()
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=[
+                "legajo",
+                "vencimientoLicencia",
+                "licencia",
+            ],
+            campos_enteros=["Usuario_idUsuario"],
+        )
 
         nuevo_chofer = ChoferModel(
             Usuario_idUsuario=datos["Usuario_idUsuario"],

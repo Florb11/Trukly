@@ -1,4 +1,16 @@
 class Camion:
+    ESTADO_DISPONIBLE = "disponible"
+    ESTADO_EN_VIAJE = "en viaje"
+    ESTADO_EN_MANTENIMIENTO = "en mantenimiento"
+    ESTADO_INACTIVO = "inactivo"
+
+    ESTADOS_VALIDOS = [
+        ESTADO_DISPONIBLE,
+        ESTADO_EN_VIAJE,
+        ESTADO_EN_MANTENIMIENTO,
+        ESTADO_INACTIVO,
+    ]
+
     def __init__(
         self,
         id_camion,
@@ -8,6 +20,8 @@ class Camion:
         capacidad_carga,
         estado,
         nroTanque,
+        viajes_asignados=None,
+        reportes_falla=None,
     ):
         self.id_camion = id_camion
         self.matricula = matricula
@@ -16,6 +30,31 @@ class Camion:
         self.capacidad_carga = capacidad_carga
         self.estado = estado
         self.nroTanque = nroTanque
+        self.viajes_asignados = viajes_asignados or []
+        self.reportes_falla = reportes_falla or []
+
+    def asignar_viaje(self, viaje):
+        if viaje is None:
+            return False
+
+        if not self.esta_disponible():
+            return False
+
+        if not viaje.asignar_camion(self):
+            return False
+
+        self.viajes_asignados.append(viaje)
+        return True
+
+    def registrar_reporte(self, reporte):
+        if reporte is None:
+            return False
+
+        if not reporte.asociar_camion(self):
+            return False
+
+        self.reportes_falla.append(reporte)
+        return True
 
     # valida que los datos principales del camion esten completos
     def validar_datos(self):
@@ -44,18 +83,14 @@ class Camion:
 
     # valida que el estado sea uno de los permitidos
     def validar_estado(self):
-        estados_validos = ["disponible", "en viaje", "en mantenimiento", "inactivo"]
-
-        if self.estado not in estados_validos:
+        if self.estado not in self.ESTADOS_VALIDOS:
             return False
 
         return True
 
     # cambia el estado del camion si es valido
     def cambiar_estado(self, nuevo_estado):
-        estados_validos = ["disponible", "en viaje", "en mantenimiento", "inactivo"]
-
-        if nuevo_estado not in estados_validos:
+        if nuevo_estado not in self.ESTADOS_VALIDOS:
             return False
 
         self.estado = nuevo_estado
@@ -63,7 +98,34 @@ class Camion:
 
     # si el camion esta disponible para asignarlo a un viaje
     def esta_disponible(self):
-        return self.estado == "disponible"
+        return self.estado == self.ESTADO_DISPONIBLE
+
+    def esta_en_mantenimiento(self):
+        return self.estado == self.ESTADO_EN_MANTENIMIENTO
+
+    def marcar_disponible(self):
+        return self.cambiar_estado(self.ESTADO_DISPONIBLE)
+
+    def puede_entrar_en_mantenimiento(self):
+        return self.estado != self.ESTADO_INACTIVO
+
+    def marcar_en_mantenimiento(self):
+        if not self.puede_entrar_en_mantenimiento():
+            return False
+
+        return self.cambiar_estado(self.ESTADO_EN_MANTENIMIENTO)
+
+    def puede_liberarse_de_mantenimiento(self, reportes_activos):
+        return (
+            self.esta_en_mantenimiento()
+            and len(reportes_activos) == 0
+        )
+
+    def liberar_si_no_tiene_reportes_activos(self, reportes_activos):
+        if not self.puede_liberarse_de_mantenimiento(reportes_activos):
+            return False
+
+        return self.marcar_disponible()
     # porcentaje d camiones disponible para el dash
     @staticmethod
     def calcular_porcentaje_disponible(camiones_disponibles, camiones_totales):
@@ -82,3 +144,4 @@ class Camion:
             "estado": self.estado,
             "nroTanque": self.nroTanque,
         }
+

@@ -1,7 +1,3 @@
-.app-shell--admin .dashboard-topbar {
-  background: linear-gradient(90deg, #2e1065, #5b21b6);
-}
-
 .app-shell--admin .dashboard-topbar,
 .app-shell--admin .dashboard-topbar * {
   color: #ffffff;
@@ -57,7 +53,7 @@
   padding: 11px 22px;
   border: none;
   border-radius: 10px;
-  background: linear-gradient(135deg, #059669, #047857);
+  background: #059669;
   color: #ffffff;
   font-size: 14px;
   font-weight: 700;
@@ -69,7 +65,7 @@
 }
 
 .btn-nuevo-usuario:hover {
-  background: linear-gradient(135deg, #047857, #065f46);
+  background: #047857;
   box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
   transform: translateY(-1px);
 }
@@ -198,7 +194,8 @@
 .usuarios-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 760px;
+  min-width: 1120px;
+  table-layout: auto;
 }
 
 .usuarios-table thead tr {
@@ -242,6 +239,13 @@
 .usuarios-table td:first-child {
   font-weight: 700;
   font-size: 13px;
+}
+
+.usuarios-table th:last-child,
+.usuarios-table__acciones {
+  width: 300px;
+  min-width: 300px;
+  text-align: right;
 }
 
 .id-badge {
@@ -302,6 +306,9 @@
 .btn-accion {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 34px;
   padding: 6px 14px;
   border: none;
   border-radius: 7px;
@@ -346,10 +353,12 @@
 }
 
 .acciones-group {
-  display: flex;
+  display: grid;
+  grid-template-columns: 96px 96px 76px;
   gap: 6px;
   align-items: center;
-  flex-wrap: wrap;
+  justify-content: flex-end;
+  width: 100%;
 }
 
 
@@ -416,6 +425,16 @@
   flex-wrap: wrap;
   padding-top: 12px;
   border-top: 1px solid #e5e7eb;
+}
+
+.usuario-card-mobile__actions .acciones-group {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.usuario-card-mobile__actions .btn-accion {
+  width: auto;
 }
 
 

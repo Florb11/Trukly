@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   FaClipboardList,
   FaExclamationTriangle,
   FaTruck,
   FaUsers,
 } from "react-icons/fa";
+import DashboardBarChart from "../components/dashboard/DashboardBarChart";
+import NotificationPromptCard from "../components/NotificationPromptCard";
 import "./DashboardAdminPage.css";
 import { fetchConToken } from "../utils/fetchConToken";
 
@@ -143,12 +146,20 @@ function DashboardAdminPage({ title = "Panel de administrador" }) {
       0, 0, 0, 0, 0, 0, 0,
     ];
 
-    const maximo = Math.max(...actividad, 1);
+    const formatoDia = new Intl.DateTimeFormat("es-AR", {
+      weekday: "short",
+    });
 
-    return actividad.map((valor) => {
-      if (valor === 0) return "8%";
+    const hoy = new Date();
 
-      return `${Math.round((valor / maximo) * 100)}%`;
+    return actividad.map((valor, index) => {
+      const fecha = new Date(hoy);
+      fecha.setDate(hoy.getDate() - (actividad.length - 1 - index));
+
+      return {
+        label: formatoDia.format(fecha).replace(".", ""),
+        value: Number(valor) || 0,
+      };
     });
   };
 
@@ -162,7 +173,9 @@ function DashboardAdminPage({ title = "Panel de administrador" }) {
           <h1>{title}</h1>
         </div>
 
-        <button type="button">Nuevo usuario</button>
+        <Link to="/dashboardAdmin/usuarios" className="admin-dashboard__action">
+          Nuevo usuario
+        </Link>
       </div>
 
       {cargandoResumen ? (
@@ -188,6 +201,11 @@ function DashboardAdminPage({ title = "Panel de administrador" }) {
             ))}
           </div>
 
+          <NotificationPromptCard
+            to="/dashboardAdmin/notificaciones"
+            tone="admin"
+          />
+
           <div className="admin-dashboard__grid">
             <article className="admin-card admin-card--chart">
               <div className="admin-card__header">
@@ -195,11 +213,7 @@ function DashboardAdminPage({ title = "Panel de administrador" }) {
                 <span>Últimos 7 días</span>
               </div>
 
-              <div className="admin-chart">
-                {getActividadOperativa().map((altura, index) => (
-                  <span key={index} style={{ height: altura }} />
-                ))}
-              </div>
+              <DashboardBarChart data={getActividadOperativa()} />
             </article>
 
             <article className="admin-card">
