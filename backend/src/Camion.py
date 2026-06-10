@@ -99,6 +99,33 @@ class Camion:
     # si el camion esta disponible para asignarlo a un viaje
     def esta_disponible(self):
         return self.estado == self.ESTADO_DISPONIBLE
+
+    def esta_en_mantenimiento(self):
+        return self.estado == self.ESTADO_EN_MANTENIMIENTO
+
+    def marcar_disponible(self):
+        return self.cambiar_estado(self.ESTADO_DISPONIBLE)
+
+    def puede_entrar_en_mantenimiento(self):
+        return self.estado != self.ESTADO_INACTIVO
+
+    def marcar_en_mantenimiento(self):
+        if not self.puede_entrar_en_mantenimiento():
+            return False
+
+        return self.cambiar_estado(self.ESTADO_EN_MANTENIMIENTO)
+
+    def puede_liberarse_de_mantenimiento(self, reportes_activos):
+        return (
+            self.esta_en_mantenimiento()
+            and len(reportes_activos) == 0
+        )
+
+    def liberar_si_no_tiene_reportes_activos(self, reportes_activos):
+        if not self.puede_liberarse_de_mantenimiento(reportes_activos):
+            return False
+
+        return self.marcar_disponible()
     # porcentaje d camiones disponible para el dash
     @staticmethod
     def calcular_porcentaje_disponible(camiones_disponibles, camiones_totales):
@@ -117,3 +144,4 @@ class Camion:
             "estado": self.estado,
             "nroTanque": self.nroTanque,
         }
+

@@ -10,6 +10,10 @@ function CambiarEstadoReporteModal({
 }) {
     if (!reporte) return null;
 
+    const tieneMecanicoAsignado = Boolean(
+        reporte.Mecanico_Usuario_idUsuario
+    );
+
     return (
         <div className="cambiar-estado-reporte-backdrop">
             <div className="cambiar-estado-reporte-modal">
@@ -41,7 +45,9 @@ function CambiarEstadoReporteModal({
                             value={nuevoEstado}
                             onChange={onChange}
                         >
-                            <option value="pendiente">Pendiente</option>
+                            {!tieneMecanicoAsignado && (
+                                <option value="pendiente">Pendiente</option>
+                            )}
                             <option value="en revision">En revisión</option>
                             <option value="cancelado">Cancelado</option>
                         </select>

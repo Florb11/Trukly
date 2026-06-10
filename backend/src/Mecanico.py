@@ -71,6 +71,18 @@ class Mecanico(Usuario):
             nota_reparacion
         )
 
+    def puede_liberar_camion(self, camion, reportes_activos):
+        if camion is None:
+            return False
+
+        return camion.puede_liberarse_de_mantenimiento(reportes_activos)
+
+    def liberar_camion_si_corresponde(self, camion, reportes_activos):
+        if not self.puede_liberar_camion(camion, reportes_activos):
+            return False
+
+        return camion.liberar_si_no_tiene_reportes_activos(reportes_activos)
+
     def to_dict(self):
         datos = super().to_dict()
 

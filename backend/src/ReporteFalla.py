@@ -45,6 +45,7 @@ class ReporteFalla:
         self.camion = camion
         self.mecanico = mecanico
         self.chofer = chofer
+        self.sincronizar_estado_por_asignacion()
 
     @staticmethod
     def obtener_id_usuario(usuario):
@@ -151,8 +152,24 @@ class ReporteFalla:
         if nuevo_estado not in self.ESTADOS_VALIDOS:
             return False
 
+        if (
+            nuevo_estado == self.ESTADO_PENDIENTE
+            and self.tiene_mecanico_asignado()
+        ):
+            return False
+
         self.estado = nuevo_estado
         return True
+
+    def sincronizar_estado_por_asignacion(self):
+        if (
+            self.estado == self.ESTADO_PENDIENTE
+            and self.tiene_mecanico_asignado()
+        ):
+            self.estado = self.ESTADO_EN_REVISION
+            return True
+
+        return False
 
     # asigna un mecanico al reporte y lo pasa a revision
     def asignar_mecanico(self, mecanico):
