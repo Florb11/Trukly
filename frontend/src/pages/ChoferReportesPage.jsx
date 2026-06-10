@@ -1,5 +1,5 @@
 import { useState } from "react";
-// import NuevoReporteModal from "../components/NuevoReporteModal";
+import NuevoReporteModal from "../components/NuevoReporteModal";
 // import DetalleReporteModal from "../components/DetalleReporteModal";
 import "./ChoferReportesPage.css";
 
