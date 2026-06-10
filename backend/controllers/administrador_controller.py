@@ -8,7 +8,11 @@ from models.usuario_model import UsuarioModel
 from src.Usuario import Usuario
 from services.auth_service import AuthService
 from utils.auth_decorators import admin_required
+from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+
+
+logger = get_app_logger()
 
 
 class AdministradorController:
@@ -99,6 +103,7 @@ class AdministradorController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo crear el administrador")
 
             return jsonify({
                 "mensaje": "No se pudo crear el administrador"

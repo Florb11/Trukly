@@ -15,7 +15,11 @@ from src.Mecanico import Mecanico
 from src.OperadorLogistico import OperadorLogistico
 from src.Usuario import Usuario
 from utils.auth_decorators import admin_required
+from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+
+
+logger = get_app_logger()
 
 
 class AdminUsuariosController:
@@ -372,6 +376,7 @@ class AdminUsuariosController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo activar el usuario")
 
             return jsonify({
                 "mensaje": "No se pudo activar el usuario"
@@ -417,6 +422,7 @@ class AdminUsuariosController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo desactivar el usuario")
 
             return jsonify({
                 "mensaje": "No se pudo desactivar el usuario"
@@ -570,6 +576,7 @@ class AdminUsuariosController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo modificar el usuario")
 
             return jsonify({
                 "mensaje": "No se pudo modificar el usuario"
@@ -678,6 +685,7 @@ class AdminUsuariosController:
 
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo registrar el usuario")
 
             return jsonify({
                 "mensaje": "No se pudo registrar el usuario"

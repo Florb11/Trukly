@@ -13,7 +13,11 @@ from models.operador_model import OperadorModel
 
 from src.Usuario import Usuario
 from utils.auth_decorators import usuario_required
+from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+
+
+logger = get_app_logger()
 
 
 class PerfilController:
@@ -186,6 +190,7 @@ class PerfilController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo actualizar el perfil")
 
             return jsonify({
                 "mensaje": "No se pudo actualizar el perfil"
@@ -248,6 +253,7 @@ class PerfilController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo actualizar la contrasena")
 
             return jsonify({
                 "mensaje": "No se pudo actualizar la contrasena"
@@ -309,6 +315,7 @@ class PerfilController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo actualizar la foto de perfil")
 
             if os.path.exists(ruta_archivo):
                 os.remove(ruta_archivo)

@@ -13,7 +13,11 @@ from src.Viaje import Viaje
 from src.Usuario import Usuario
 from services.auth_service import AuthService
 from utils.auth_decorators import roles_required
+from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+
+
+logger = get_app_logger()
 
 
 class ViajeController:
@@ -342,6 +346,7 @@ class ViajeController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo crear el viaje")
 
             return jsonify({
                 "mensaje": "No se pudo crear el viaje"
@@ -401,6 +406,7 @@ class ViajeController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo cancelar el viaje")
 
             return jsonify({
                 "mensaje": "No se pudo cancelar el viaje"

@@ -7,7 +7,11 @@ from models.reporte_model import ReporteModel
 from src.Camion import Camion
 from src.ReporteFalla import ReporteFalla
 from utils.auth_decorators import admin_required
+from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+
+
+logger = get_app_logger()
 
 
 class CamionController:
@@ -174,6 +178,7 @@ class CamionController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo crear el camion")
 
             return jsonify({
                 "mensaje": "No se pudo crear el camion"
@@ -233,6 +238,7 @@ class CamionController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo modificar el camion")
 
             return jsonify({
                 "mensaje": "No se pudo modificar el camion"
@@ -284,6 +290,7 @@ class CamionController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo modificar el estado del camion")
 
             return jsonify({
                 "mensaje": "No se pudo modificar el estado del camion"

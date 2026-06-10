@@ -14,7 +14,11 @@ from src.Camion import Camion
 from src.ReporteFalla import ReporteFalla
 from services.auth_service import AuthService
 from utils.auth_decorators import mecanico_required
+from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+
+
+logger = get_app_logger()
 
 
 class MecanicoController:
@@ -191,6 +195,7 @@ class MecanicoController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo resolver el reporte")
 
             return jsonify(
                 {
