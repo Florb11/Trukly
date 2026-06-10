@@ -13,6 +13,7 @@ from models.operador_model import OperadorModel
 
 from src.Usuario import Usuario
 from utils.auth_decorators import usuario_required
+from utils.input_sanitizer import InputSanitizer
 
 
 class PerfilController:
@@ -132,7 +133,11 @@ class PerfilController:
     def modificar_perfil():
         usuario_db = PerfilController._obtener_usuario_actual()
 
-        datos = request.get_json(silent=True) or {}
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=["nombre", "apellido"],
+            campos_email=["email"],
+        )
 
         if not datos:
             return jsonify({
@@ -203,7 +208,14 @@ class PerfilController:
     def cambiar_password():
         usuario_db = PerfilController._obtener_usuario_actual()
 
-        datos = request.get_json(silent=True) or {}
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_password=[
+                "password_actual",
+                "password_nueva",
+                "confirmar_password",
+            ],
+        )
 
         if not datos:
             return jsonify({

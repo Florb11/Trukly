@@ -7,9 +7,24 @@ from models.reporte_model import ReporteModel
 from src.Camion import Camion
 from src.ReporteFalla import ReporteFalla
 from utils.auth_decorators import admin_required
+from utils.input_sanitizer import InputSanitizer
 
 
 class CamionController:
+
+    @staticmethod
+    def _sanitizar_datos_camion(datos):
+        return InputSanitizer.sanitizar_campos(
+            datos,
+            campos_texto=[
+                "matricula",
+                "marca",
+                "modelo",
+                "estado",
+            ],
+            campos_enteros=["nroTanque"],
+            campos_decimales=["capacidad_carga"],
+        )
 
     @staticmethod
     def _crear_camion_clase(
@@ -129,7 +144,9 @@ class CamionController:
     def crear_camion():
         admin = g.admin_actual
 
-        datos = request.get_json(silent=True) or {}
+        datos = CamionController._sanitizar_datos_camion(
+            request.get_json(silent=True) or {}
+        )
 
         camion_clase = CamionController._crear_camion_clase(datos)
 
@@ -177,7 +194,9 @@ class CamionController:
         if camion_db is None:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
 
-        datos = request.get_json(silent=True) or {}
+        datos = CamionController._sanitizar_datos_camion(
+            request.get_json(silent=True) or {}
+        )
 
         camion_clase = CamionController._crear_camion_clase(
             datos,
@@ -234,7 +253,10 @@ class CamionController:
         if camion_db is None:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
 
-        datos = request.get_json(silent=True) or {}
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=["estado"],
+        )
         nuevo_estado = datos.get("estado")
 
         camion_clase = CamionController._crear_camion_clase(

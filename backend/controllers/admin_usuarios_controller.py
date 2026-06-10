@@ -15,9 +15,30 @@ from src.Mecanico import Mecanico
 from src.OperadorLogistico import OperadorLogistico
 from src.Usuario import Usuario
 from utils.auth_decorators import admin_required
+from utils.input_sanitizer import InputSanitizer
 
 
 class AdminUsuariosController:
+
+    @staticmethod
+    def _sanitizar_datos_usuario(datos):
+        return InputSanitizer.sanitizar_campos(
+            datos,
+            campos_texto=[
+                "username",
+                "nombre",
+                "apellido",
+                "estado",
+                "rol",
+                "legajo",
+                "licencia",
+                "vencimientoLicencia",
+                "especialidad",
+                "sector",
+            ],
+            campos_email=["email"],
+            campos_password=["password"],
+        )
 
     @staticmethod
     def _crear_usuario_clase(usuario_db):
@@ -446,7 +467,9 @@ class AdminUsuariosController:
     def modificar_usuario(id_usuario):
         admin = g.admin_actual
 
-        datos = request.get_json(silent=True) or {}
+        datos = AdminUsuariosController._sanitizar_datos_usuario(
+            request.get_json(silent=True) or {}
+        )
 
         if not datos:
             return jsonify({
@@ -568,7 +591,9 @@ class AdminUsuariosController:
     def registrar_usuario():
         admin = g.admin_actual
 
-        datos = request.get_json(silent=True) or {}
+        datos = AdminUsuariosController._sanitizar_datos_usuario(
+            request.get_json(silent=True) or {}
+        )
 
         if not datos:
             return jsonify({

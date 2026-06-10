@@ -9,6 +9,7 @@ from models.chofer_model import ChoferModel
 
 from src.Usuario import Usuario
 from src.Chofer import Chofer
+from utils.input_sanitizer import InputSanitizer
 
 
 class AuthController:
@@ -29,7 +30,19 @@ class AuthController:
 
     @staticmethod
     def registrar_chofer():
-        datos = request.get_json(silent=True) or {}
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=[
+                "username",
+                "nombre",
+                "apellido",
+                "licencia",
+                "vencimientoLicencia",
+                "legajo",
+            ],
+            campos_email=["email"],
+            campos_password=["password"],
+        )
 
         campos_obligatorios = [
             "username",
@@ -150,7 +163,11 @@ class AuthController:
 
     @staticmethod
     def login():
-        datos = request.get_json(silent=True) or {}
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=["username"],
+            campos_password=["password"],
+        )
 
         if not datos.get("username") or not datos.get("password"):
             return jsonify({
@@ -196,4 +213,5 @@ class AuthController:
             "token": token,
             "usuario": usuario_clase.to_dict(),
         }), 200
+
         

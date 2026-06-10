@@ -8,6 +8,7 @@ from models.usuario_model import UsuarioModel
 from src.Usuario import Usuario
 from services.auth_service import AuthService
 from utils.auth_decorators import admin_required
+from utils.input_sanitizer import InputSanitizer
 
 
 class AdministradorController:
@@ -37,7 +38,11 @@ class AdministradorController:
     @staticmethod
     @admin_required
     def crear_administrador():
-        datos = request.get_json(silent=True) or {}
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=["legajo"],
+            campos_enteros=["Usuario_idUsuario"],
+        )
 
         if not datos:
             return jsonify({
@@ -54,14 +59,14 @@ class AdministradorController:
                 "mensaje": "Falta el campo legajo"
             }), 400
 
-        try:
-            id_usuario = int(datos["Usuario_idUsuario"])
-        except (TypeError, ValueError):
+        id_usuario = datos["Usuario_idUsuario"]
+
+        if id_usuario is None:
             return jsonify({
                 "mensaje": "Usuario_idUsuario no valido"
             }), 400
 
-        legajo = str(datos["legajo"]).strip()
+        legajo = datos["legajo"]
 
         usuario = UsuarioModel.query.get(id_usuario)
 

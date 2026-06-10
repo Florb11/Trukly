@@ -20,6 +20,7 @@ from src.observer.NotificacionReporteListener import (
 from services.auth_service import AuthService
 from utils.auth_decorators import obtener_admin_actual_desde_token
 from utils.auth_decorators import roles_required
+from utils.input_sanitizer import InputSanitizer
 
 
 class ReporteController:
@@ -294,7 +295,11 @@ class ReporteController:
     @staticmethod
     @roles_required(Usuario.ROL_CHOFER)
     def crear_reporte():
-        datos = request.get_json(silent=True) or {}
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=["descripcion"],
+            campos_enteros=["Camion_id_camion"],
+        )
         id_chofer = AuthService.obtener_id_usuario_actual()
 
         camion_id = datos.get("Camion_id_camion")
@@ -365,7 +370,10 @@ class ReporteController:
         if reporte_db is None:
             return jsonify({"mensaje": "Reporte no encontrado"}), 404
 
-        datos = request.get_json(silent=True) or {}
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=["estado"],
+        )
         nuevo_estado = datos.get("estado")
 
         reporte_clase = ReporteController.crear_objeto_reporte(reporte_db)
@@ -397,11 +405,6 @@ class ReporteController:
             )
         )
 
-        ReporteController.notificar_reporte_asignado(
-            reporte_clase,
-            mecanico
-        )
-
         try:
             db.session.commit()
         except Exception:
@@ -428,7 +431,10 @@ class ReporteController:
         if reporte_db is None:
             return jsonify({"mensaje": "Reporte no encontrado"}), 404
 
-        datos = request.get_json(silent=True) or {}
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_enteros=["Mecanico_Usuario_idUsuario"],
+        )
         id_mecanico = datos.get("Mecanico_Usuario_idUsuario")
 
         mecanico = ReporteController.obtener_mecanico_clase(id_mecanico)
@@ -450,6 +456,11 @@ class ReporteController:
             ReporteController.marcar_camion_en_mantenimiento_si_corresponde(
                 reporte_clase
             )
+        )
+
+        ReporteController.notificar_reporte_asignado(
+            reporte_clase,
+            mecanico
         )
 
         try:
