@@ -37,6 +37,7 @@ class Administrador(Usuario):
         estado,
         rol,
         legajo,
+        foto_perfil=None,
         usuarios_gestionados=None,
         reportes_falla=None,
         camiones_gestionados=None,
@@ -50,6 +51,7 @@ class Administrador(Usuario):
             apellido,
             estado,
             rol,
+            foto_perfil,
         )
 
         self.legajo = legajo

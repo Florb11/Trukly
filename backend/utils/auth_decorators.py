@@ -11,12 +11,25 @@ def roles_required(*roles_permitidos):
         @wraps(funcion)
         @jwt_required()
         def wrapper(*args, **kwargs):
-            rol = AuthService.obtener_rol_actual()
+            usuario = AuthService.obtener_usuario_model_actual()
 
-            if rol not in roles_permitidos:
+            if usuario is None:
                 return jsonify({
                     "mensaje": "No tenes permiso para realizar esta accion"
                 }), 403
+
+            rol_token = AuthService.obtener_rol_actual()
+
+            if (
+                rol_token not in roles_permitidos
+                or usuario.rol not in roles_permitidos
+                or rol_token != usuario.rol
+            ):
+                return jsonify({
+                    "mensaje": "No tenes permiso para realizar esta accion"
+                }), 403
+
+            g.usuario_actual = usuario
 
             return funcion(*args, **kwargs)
 
