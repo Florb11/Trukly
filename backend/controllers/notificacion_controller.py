@@ -7,6 +7,10 @@ from models.usuario_model import UsuarioModel
 from src.Notificacion import Notificacion
 from src.Usuario import Usuario
 from utils.auth_decorators import usuario_required
+from utils.app_logger import get_app_logger
+
+
+logger = get_app_logger()
 
 
 class NotificacionController:
@@ -134,6 +138,7 @@ class NotificacionController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo marcar la notificacion como leida")
 
             return jsonify({
                 "mensaje": "No se pudo marcar la notificacion como leida"

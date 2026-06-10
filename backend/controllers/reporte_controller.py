@@ -20,7 +20,11 @@ from src.observer.NotificacionReporteListener import (
 from services.auth_service import AuthService
 from utils.auth_decorators import obtener_admin_actual_desde_token
 from utils.auth_decorators import roles_required
+from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+
+
+logger = get_app_logger()
 
 
 class ReporteController:
@@ -347,6 +351,7 @@ class ReporteController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo crear el reporte")
 
             return jsonify({
                 "mensaje": "No se pudo crear el reporte"
@@ -409,6 +414,7 @@ class ReporteController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo modificar el estado del reporte")
 
             return jsonify({
                 "mensaje": "No se pudo modificar el estado del reporte"
@@ -467,6 +473,7 @@ class ReporteController:
             db.session.commit()
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo asignar el mecanico")
 
             return jsonify({
                 "mensaje": "No se pudo asignar el mecanico"

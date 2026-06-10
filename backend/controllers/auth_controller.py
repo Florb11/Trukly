@@ -9,7 +9,11 @@ from models.chofer_model import ChoferModel
 
 from src.Usuario import Usuario
 from src.Chofer import Chofer
+from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+
+
+logger = get_app_logger()
 
 
 class AuthController:
@@ -150,6 +154,7 @@ class AuthController:
 
         except Exception:
             db.session.rollback()
+            logger.exception("No se pudo registrar el chofer")
 
             return jsonify({
                 "mensaje": "No se pudo registrar el chofer"
@@ -179,6 +184,11 @@ class AuthController:
         ).first()
 
         if usuario is None:
+            logger.warning(
+                "Login fallido: usuario inexistente %s",
+                datos.get("username")
+            )
+
             return jsonify({
                 "mensaje": "Usuario o contrasena incorrectos"
             }), 401
@@ -191,11 +201,21 @@ class AuthController:
         )
 
         if not password_correcta:
+            logger.warning(
+                "Login fallido: contrasena incorrecta para %s",
+                datos.get("username")
+            )
+
             return jsonify({
                 "mensaje": "Usuario o contrasena incorrectos"
             }), 401
 
         if not usuario_clase.esta_activo():
+            logger.warning(
+                "Login rechazado: usuario inactivo %s",
+                datos.get("username")
+            )
+
             return jsonify({
                 "mensaje": "La cuenta todavia no esta activa"
             }), 403
