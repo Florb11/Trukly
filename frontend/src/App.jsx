@@ -28,6 +28,7 @@ import PerfilPage from "./pages/PerfilPage";
 import MecanicoReportesPage from "./pages/MecanicoReportesPage";
 import NotificacionesPage from "./pages/NotificacionesPage";
 import MecanicoMantenimientoPage from "./pages/MecanicoMantenimientoPage";
+import ChoferReportesPage from "./pages/ChoferReportesPage";
 
 import "./App.css";
 import "./styles/dashboard-unified.css";
@@ -116,7 +117,7 @@ function AppContent() {
 
                 <Route
                   path="/dashboardTrucker/fallas"
-                  element={<DashboardTruckerPage title="Reportar falla" />}
+                  element={<ChoferReportesPage title="Reportar falla" />}
                 />
 
                 <Route
