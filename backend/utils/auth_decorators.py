@@ -89,9 +89,9 @@ def usuario_required(funcion):
         usuario = AuthService.obtener_usuario_model_actual()
 
         if usuario is None:
-            return jsonify({
-                  "mensaje": "La sesion no corresponde a un usuario activo"
-            }), 404
+             return jsonify({
+                "mensaje": "La sesion no corresponde a un usuario activo"
+            }), 401
 
         g.usuario_actual = usuario
 
