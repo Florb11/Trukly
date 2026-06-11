@@ -16,12 +16,24 @@ from services.auth_service import AuthService
 from utils.auth_decorators import mecanico_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+from utils.validation_composite import CampoObligatorio, ValidadorCompuesto
 
 
 logger = get_app_logger()
 
 
 class MecanicoController:
+
+    @staticmethod
+    def crear_validador_resolucion_reporte():
+        return ValidadorCompuesto(
+            [
+                CampoObligatorio(
+                    "nota_reparacion",
+                    "La nota de reparacion es obligatoria"
+                ),
+            ]
+        )
 
     @staticmethod
     def obtener_mecanico_actual():
@@ -91,6 +103,19 @@ class MecanicoController:
         )
 
     @staticmethod
+    def separar_reportes_mantenimiento(reportes):
+        reportes_pendientes = []
+        reparaciones_realizadas = []
+
+        for reporte in reportes:
+            if reporte.estado == ReporteFalla.ESTADO_RESUELTO:
+                reparaciones_realizadas.append(reporte)
+            else:
+                reportes_pendientes.append(reporte)
+
+        return reportes_pendientes, reparaciones_realizadas
+
+    @staticmethod
     @mecanico_required
     def listar_reportes_asignados():
         mecanico = g.mecanico_actual
@@ -117,6 +142,12 @@ class MecanicoController:
             request.get_json(silent=True) or {},
             campos_texto=["nota_reparacion"],
         )
+        validador = MecanicoController.crear_validador_resolucion_reporte()
+        datos_validos, mensaje_error = validador.validar(datos)
+
+        if not datos_validos:
+            return jsonify({"mensaje": mensaje_error}), 400
+
         nota_reparacion = datos.get("nota_reparacion")
 
         reporte_model = ReporteModel.query.get(id_reporte)
@@ -218,7 +249,7 @@ class MecanicoController:
     def listar_camiones_mantenimiento():
         mecanico = g.mecanico_actual
 
-        if not mecanico.puede_consultar_mantenimiento():
+        if not mecanico.esta_activo():
             return jsonify(
                 {
                     "mensaje": "El mecanico no esta activo"
@@ -234,7 +265,7 @@ class MecanicoController:
             ).all()
 
             reportes_pendientes, reparaciones_realizadas = (
-                mecanico.separar_reportes_mantenimiento(reportes)
+                MecanicoController.separar_reportes_mantenimiento(reportes)
             )
 
             resultado.append(
@@ -260,7 +291,7 @@ class MecanicoController:
     def obtener_mantenimiento_camion(id_camion):
         mecanico = g.mecanico_actual
 
-        if not mecanico.puede_consultar_mantenimiento():
+        if not mecanico.esta_activo():
             return jsonify(
                 {
                     "mensaje": "El mecanico no esta activo"
@@ -284,7 +315,7 @@ class MecanicoController:
         )
 
         reportes_pendientes, reparaciones_realizadas = (
-            mecanico.separar_reportes_mantenimiento(reportes)
+            MecanicoController.separar_reportes_mantenimiento(reportes)
         )
 
         return jsonify(

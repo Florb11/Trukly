@@ -199,17 +199,6 @@ class Viaje:
             return False
         return str(self.estado).strip().lower() in self.ESTADOS_VALIDOS
 
-    def normalizar_datos(self):
-        self.fecha_salida = self.convertir_fecha(self.fecha_salida)
-        self.fecha_llegada = self.convertir_fecha(self.fecha_llegada)
-        self.origen = str(self.origen).strip()
-        self.destino = str(self.destino).strip()
-        self.estado = str(self.estado).strip().lower()
-        self.recorrido = float(self.recorrido)
-
-        if self.observaciones is not None:
-            self.observaciones = str(self.observaciones).strip()
-
     def pertenece_a_chofer(self, chofer):
         id_chofer = self.obtener_id_usuario(chofer) or chofer
 

@@ -92,16 +92,16 @@ class Usuario:
         bcrypt
     ):
         if not password_actual:
-            return False, "La contraseña actual es obligatoria"
+            return False, "La contrasena actual es obligatoria"
 
         if not self.verificar_password(password_actual, bcrypt):
-            return False, "La contraseña actual es incorrecta"
+            return False, "La contrasena actual es incorrecta"
 
         if not password_nueva:
-            return False, "La contraseña nueva es obligatoria"
+            return False, "La contrasena nueva es obligatoria"
 
         if password_nueva != confirmar_password:
-            return False, "Las contraseñas nuevas no coinciden"
+            return False, "Las contrasenas nuevas no coinciden"
 
         password_valida, mensaje_error = (
             Usuario.validar_password_registro(password_nueva)
@@ -111,7 +111,7 @@ class Usuario:
             return False, mensaje_error
 
         if self.verificar_password(password_nueva, bcrypt):
-            return False, "La contraseña nueva debe ser diferente a la actual"
+            return False, "La contrasena nueva debe ser diferente a la actual"
 
         return True, None
 
@@ -172,10 +172,10 @@ class Usuario:
     @staticmethod
     def validar_password_registro(password):
         if not password:
-            return False, "La contraseña es obligatoria"
+            return False, "La contrasena es obligatoria"
 
         if len(password) < 8:
-            return False, "La contraseña debe tener al menos 8 caracteres"
+            return False, "La contrasena debe tener al menos 8 caracteres"
 
         tiene_letra = any(
             caracter.isalpha()
@@ -189,7 +189,7 @@ class Usuario:
 
         if not tiene_letra or not tiene_numero:
             return False, (
-                "La contraseña debe contener al menos una letra y un número"
+                "La contrasena debe contener al menos una letra y un numero"
             )
 
         return True, None

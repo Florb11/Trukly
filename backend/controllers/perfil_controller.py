@@ -15,6 +15,11 @@ from src.Usuario import Usuario
 from utils.auth_decorators import usuario_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+from utils.validation_composite import (
+    CampoObligatorio,
+    ValidacionDatos,
+    ValidadorCompuesto,
+)
 
 
 logger = get_app_logger()
@@ -34,6 +39,51 @@ class PerfilController:
     @staticmethod
     def _obtener_usuario_actual():
         return g.usuario_actual
+
+    @staticmethod
+    def _crear_validador_modificacion_perfil():
+        return ValidadorCompuesto(
+            [
+                ValidacionDatos(
+                    PerfilController._validar_datos_modificacion_perfil
+                ),
+            ]
+        )
+
+    @staticmethod
+    def _crear_validador_cambio_password():
+        return ValidadorCompuesto(
+            [
+                CampoObligatorio(
+                    "password_actual",
+                    "La contrasena actual es obligatoria"
+                ),
+                CampoObligatorio(
+                    "password_nueva",
+                    "La contrasena nueva es obligatoria"
+                ),
+                CampoObligatorio(
+                    "confirmar_password",
+                    "Tenes que confirmar la contrasena nueva"
+                ),
+            ]
+        )
+
+    @staticmethod
+    def _validar_datos_modificacion_perfil(datos):
+        if not datos:
+            return False, "No se recibieron datos"
+
+        campos_permitidos = ["nombre", "apellido", "email"]
+
+        for campo in campos_permitidos:
+            if campo not in datos:
+                continue
+
+            if datos[campo] is None or str(datos[campo]).strip() == "":
+                return False, f"El campo {campo} no puede estar vacio"
+
+        return True, None
 
     @staticmethod
     def _crear_usuario_clase(usuario_db):
@@ -143,9 +193,12 @@ class PerfilController:
             campos_email=["email"],
         )
 
-        if not datos:
+        validador = PerfilController._crear_validador_modificacion_perfil()
+        datos_validos, mensaje_error = validador.validar(datos)
+
+        if not datos_validos:
             return jsonify({
-                "mensaje": "No se recibieron datos"
+                "mensaje": mensaje_error
             }), 400
 
         nuevo_email = datos.get(
@@ -222,9 +275,12 @@ class PerfilController:
             ],
         )
 
-        if not datos:
+        validador = PerfilController._crear_validador_cambio_password()
+        datos_validos, mensaje_error = validador.validar(datos)
+
+        if not datos_validos:
             return jsonify({
-                "mensaje": "No se recibieron datos"
+                "mensaje": mensaje_error
             }), 400
 
         usuario_clase = PerfilController._crear_usuario_clase(

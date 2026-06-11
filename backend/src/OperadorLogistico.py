@@ -44,6 +44,8 @@ class OperadorLogistico(Usuario):
 
         self.viajes_gestionados.append(viaje)
         return True
+#En OperadorLogistico.asignar_camion_a_viaje no conviene llamar primero a viaje.asignar_camion(camion), 
+# porque después camion.asignar_viaje(viaje) vuelve a asignarlo. La validación de disponibilidad debe quedar en Camion. El operador debería coordinar llamando solo a camion.asignar_viaje(viaje).
 
     def asignar_camion_a_viaje(self, camion, viaje):
         if camion is None or viaje is None:

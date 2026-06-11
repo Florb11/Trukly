@@ -11,12 +11,32 @@ from src.Usuario import Usuario
 from src.Chofer import Chofer
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+from utils.validation_composite import (
+    CampoObligatorio,
+    ValidacionFuncion,
+    ValidadorCompuesto,
+)
 
 
 logger = get_app_logger()
 
 
 class AuthController:
+    CAMPOS_REGISTRO_CHOFER = [
+        "username",
+        "password",
+        "email",
+        "nombre",
+        "apellido",
+        "licencia",
+        "vencimientoLicencia",
+        "legajo",
+    ]
+
+    CAMPOS_LOGIN = [
+        "username",
+        "password",
+    ]
 
     @staticmethod
     def crear_objeto_usuario(usuario_model):
@@ -30,6 +50,48 @@ class AuthController:
             usuario_model.estado,
             usuario_model.rol,
             usuario_model.foto_perfil,
+        )
+
+    @staticmethod
+    def _crear_validador_campos_obligatorios(campos):
+        validador = ValidadorCompuesto()
+
+        for campo in campos:
+            validador.agregar(CampoObligatorio(campo))
+
+        return validador
+
+    @staticmethod
+    def _crear_validador_registro_chofer():
+        validador = AuthController._crear_validador_campos_obligatorios(
+            AuthController.CAMPOS_REGISTRO_CHOFER
+        )
+
+        validador.agregar(
+            ValidacionFuncion(
+                "password",
+                Usuario.validar_password_registro
+            )
+        )
+        validador.agregar(
+            ValidacionFuncion(
+                "licencia",
+                Chofer.validar_licencia
+            )
+        )
+        validador.agregar(
+            ValidacionFuncion(
+                "vencimientoLicencia",
+                Chofer.validar_vencimiento_licencia
+            )
+        )
+
+        return validador
+
+    @staticmethod
+    def _crear_validador_login():
+        return AuthController._crear_validador_campos_obligatorios(
+            AuthController.CAMPOS_LOGIN
         )
 
     @staticmethod
@@ -48,20 +110,11 @@ class AuthController:
             campos_password=["password"],
         )
 
-        campos_obligatorios = [
-            "username",
-            "password",
-            "email",
-            "nombre",
-            "apellido",
-            "licencia",
-            "vencimientoLicencia",
-            "legajo",
-        ]
+        validador = AuthController._crear_validador_registro_chofer()
+        datos_validos, mensaje_error = validador.validar(datos)
 
-        for campo in campos_obligatorios:
-            if campo not in datos or str(datos[campo]).strip() == "":
-                return jsonify({"mensaje": f"Falta el campo {campo}"}), 400
+        if not datos_validos:
+            return jsonify({"mensaje": mensaje_error}), 400
 
         usuario_existente = UsuarioModel.query.filter_by(
             username=datos["username"]
@@ -80,29 +133,6 @@ class AuthController:
             return jsonify({
                 "mensaje": "Ya existe un usuario con ese email"
             }), 409
-
-        password_valida, mensaje_error = (
-            Usuario.validar_password_registro(datos["password"])
-        )
-
-        if not password_valida:
-            return jsonify({"mensaje": mensaje_error}), 400
-
-        licencia_valida, mensaje_error = Chofer.validar_licencia(
-            datos["licencia"]
-        )
-
-        if not licencia_valida:
-            return jsonify({"mensaje": mensaje_error}), 400
-
-        vencimiento_valido, mensaje_error = (
-            Chofer.validar_vencimiento_licencia(
-                datos["vencimientoLicencia"]
-            )
-        )
-
-        if not vencimiento_valido:
-            return jsonify({"mensaje": mensaje_error}), 400
 
         vencimiento_licencia = Chofer.convertir_vencimiento_licencia(
             datos["vencimientoLicencia"]
@@ -174,9 +204,12 @@ class AuthController:
             campos_password=["password"],
         )
 
-        if not datos.get("username") or not datos.get("password"):
+        validador = AuthController._crear_validador_login()
+        datos_validos, mensaje_error = validador.validar(datos)
+
+        if not datos_validos:
             return jsonify({
-                "mensaje": "Faltan datos para iniciar sesion"
+                "mensaje": mensaje_error
             }), 400
 
         usuario = UsuarioModel.query.filter_by(
@@ -233,5 +266,4 @@ class AuthController:
             "token": token,
             "usuario": usuario_clase.to_dict(),
         }), 200
-
         

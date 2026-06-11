@@ -1,30 +1,10 @@
 from src.Usuario import Usuario
-from src.Chofer import Chofer
 from src.ReporteFalla import ReporteFalla
 
 
 class Administrador(Usuario):
     ROLES_VALIDOS = Usuario.ROLES_VALIDOS
     ESTADOS_VALIDOS = Usuario.ESTADOS_VALIDOS
-    CAMPOS_REGISTRO_USUARIO = [
-        "username",
-        "email",
-        "password",
-        "nombre",
-        "apellido",
-        "estado",
-        "rol",
-        "legajo",
-    ]
-    CAMPOS_BASE_USUARIO = [
-        "username",
-        "email",
-        "nombre",
-        "apellido",
-        "estado",
-        "rol",
-        "legajo",
-    ]
 
     def __init__(
         self,
@@ -99,158 +79,6 @@ class Administrador(Usuario):
 
         return round((parte / total) * 100)
 
-    @staticmethod
-    def normalizar_campos(datos, campos):
-        for campo in campos:
-            datos[campo] = str(datos[campo]).strip()
-
-    @staticmethod
-    def validar_campos_obligatorios(datos, campos):
-        for campo in campos:
-            if campo not in datos or not Administrador.texto_valido(
-                datos[campo]
-            ):
-                return False, f"Falta el campo {campo}"
-
-        return True, None
-
-    @staticmethod
-    def validar_datos_chofer(datos):
-        valido, mensaje_error = Administrador.validar_campos_obligatorios(
-            datos,
-            ["licencia", "vencimientoLicencia"]
-        )
-
-        if not valido:
-            return False, mensaje_error
-
-        Administrador.normalizar_campos(
-            datos,
-            ["licencia", "vencimientoLicencia"]
-        )
-
-        licencia_valida, mensaje_error = Chofer.validar_licencia(
-            datos["licencia"]
-        )
-
-        if not licencia_valida:
-            return False, mensaje_error
-
-        vencimiento_valido, mensaje_error = (
-            Chofer.validar_vencimiento_licencia(
-                datos["vencimientoLicencia"]
-            )
-        )
-
-        if not vencimiento_valido:
-            return False, mensaje_error
-
-        datos["vencimientoLicencia"] = (
-            Chofer.convertir_vencimiento_licencia(
-                datos["vencimientoLicencia"]
-            )
-        )
-
-        return True, None
-
-    @staticmethod
-    def validar_datos_mecanico(datos):
-        valido, mensaje_error = Administrador.validar_campos_obligatorios(
-            datos,
-            ["especialidad"]
-        )
-
-        if not valido:
-            return False, mensaje_error
-
-        Administrador.normalizar_campos(datos, ["especialidad"])
-
-        return True, None
-
-    @staticmethod
-    def validar_datos_operador(datos):
-        valido, mensaje_error = Administrador.validar_campos_obligatorios(
-            datos,
-            ["sector"]
-        )
-
-        if not valido:
-            return False, mensaje_error
-
-        Administrador.normalizar_campos(datos, ["sector"])
-
-        return True, None
-
-    @staticmethod
-    def validar_datos_especificos_por_rol(rol, datos):
-        if rol == Usuario.ROL_CHOFER:
-            return Administrador.validar_datos_chofer(datos)
-
-        if rol == Usuario.ROL_MECANICO:
-            return Administrador.validar_datos_mecanico(datos)
-
-        if rol == Usuario.ROL_OPERADOR:
-            return Administrador.validar_datos_operador(datos)
-
-        return True, None
-
-    def validar_datos_registro_usuario(self, datos):
-        valido, mensaje_error = self.validar_campos_obligatorios(
-            datos,
-            self.CAMPOS_REGISTRO_USUARIO
-        )
-
-        if not valido:
-            return False, mensaje_error
-
-        self.normalizar_campos(datos, self.CAMPOS_BASE_USUARIO)
-
-        if not self.rol_valido(datos["rol"]):
-            return False, "Rol no valido"
-
-        if not self.estado_valido(datos["estado"]):
-            return False, "Estado no valido"
-
-        password_valida, mensaje_error = Usuario.validar_password_registro(
-            datos["password"]
-        )
-
-        if not password_valida:
-            return False, mensaje_error
-
-        return self.validar_datos_especificos_por_rol(
-            datos["rol"],
-            datos
-        )
-
-    def validar_datos_especificos_modificacion(
-        self,
-        rol,
-        datos,
-        datos_actuales
-    ):
-        datos_validados = dict(datos_actuales)
-
-        for campo, valor in datos.items():
-            if campo in datos_validados:
-                datos_validados[campo] = valor
-
-        campos = list(datos_validados.keys())
-        self.normalizar_campos(datos_validados, campos)
-
-        if not self.texto_valido(datos_validados.get("legajo")):
-            return False, "El legajo es obligatorio", None
-
-        valido, mensaje_error = self.validar_datos_especificos_por_rol(
-            rol,
-            datos_validados
-        )
-
-        if not valido:
-            return False, mensaje_error, None
-
-        return True, None, datos_validados
-
     # activa un usuario si esta pendiente o inactivo
     def activar_usuario(self, usuario):
         if usuario.estado not in [
@@ -297,10 +125,10 @@ class Administrador(Usuario):
         if not self.estado_valido(estado):
             return False
 
-        usuario.username = str(username).strip()
-        usuario.email = str(email).strip()
-        usuario.nombre = str(nombre).strip()
-        usuario.apellido = str(apellido).strip()
+        usuario.username = username
+        usuario.email = email
+        usuario.nombre = nombre
+        usuario.apellido = apellido
         usuario.estado = estado
         self.agregar_usuario_gestionado(usuario)
         return True
@@ -327,11 +155,6 @@ class Administrador(Usuario):
 
         if not self.texto_valido(usuario.apellido):
             return False
-
-        usuario.username = str(usuario.username).strip()
-        usuario.email = str(usuario.email).strip()
-        usuario.nombre = str(usuario.nombre).strip()
-        usuario.apellido = str(usuario.apellido).strip()
 
         self.agregar_usuario_gestionado(usuario)
         return True
