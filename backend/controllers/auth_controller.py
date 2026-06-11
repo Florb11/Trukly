@@ -40,17 +40,10 @@ class AuthController:
 
     @staticmethod
     def crear_objeto_usuario(usuario_model):
-        return Usuario(
-            usuario_model.id_usuario,
-            usuario_model.username,
-            usuario_model.email,
-            usuario_model.password,
-            usuario_model.nombre,
-            usuario_model.apellido,
-            usuario_model.estado,
-            usuario_model.rol,
-            usuario_model.foto_perfil,
-        )
+        datos_usuario = usuario_model.to_dict()
+        datos_usuario["password"] = usuario_model.password
+
+        return Usuario.crear_desde_datos(datos_usuario)
 
     @staticmethod
     def _crear_validador_campos_obligatorios(campos):
@@ -142,18 +135,20 @@ class AuthController:
             datos["password"]
         ).decode("utf-8")
 
-        chofer_clase = Chofer(
-            None,
-            datos["username"],
-            datos["email"],
-            password_hash,
-            datos["nombre"],
-            datos["apellido"],
-            Usuario.ESTADO_PENDIENTE,
-            Usuario.ROL_CHOFER,
-            datos["licencia"],
-            vencimiento_licencia,
-            datos["legajo"],
+        chofer_clase = Chofer.crear_desde_datos(
+            {
+                "id_usuario": None,
+                "username": datos["username"],
+                "email": datos["email"],
+                "password": password_hash,
+                "nombre": datos["nombre"],
+                "apellido": datos["apellido"],
+                "estado": Usuario.ESTADO_PENDIENTE,
+                "rol": Usuario.ROL_CHOFER,
+                "licencia": datos["licencia"],
+                "vencimientoLicencia": vencimiento_licencia,
+                "legajo": datos["legajo"],
+            }
         )
 
         nuevo_usuario = UsuarioModel(

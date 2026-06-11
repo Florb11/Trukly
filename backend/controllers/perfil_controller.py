@@ -87,17 +87,10 @@ class PerfilController:
 
     @staticmethod
     def _crear_usuario_clase(usuario_db):
-        return Usuario(
-            usuario_db.id_usuario,
-            usuario_db.username,
-            usuario_db.email,
-            usuario_db.password,
-            usuario_db.nombre,
-            usuario_db.apellido,
-            usuario_db.estado,
-            usuario_db.rol,
-            usuario_db.foto_perfil
-        )
+        datos_usuario = usuario_db.to_dict()
+        datos_usuario["password"] = usuario_db.password
+
+        return Usuario.crear_desde_datos(datos_usuario)
 
     @staticmethod
     def _agregar_datos_por_rol(datos_usuario, usuario_db):

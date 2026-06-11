@@ -70,14 +70,16 @@ class ReporteController:
         if camion_model is None:
             return None
 
-        return Camion(
-            id_camion=camion_model.id_camion,
-            matricula=camion_model.matricula,
-            marca=camion_model.marca,
-            modelo=camion_model.modelo,
-            capacidad_carga=camion_model.capacidad_carga,
-            estado=camion_model.estado,
-            nroTanque=camion_model.nroTanque,
+        return Camion.crear_desde_datos(
+            {
+                "id_camion": camion_model.id_camion,
+                "matricula": camion_model.matricula,
+                "marca": camion_model.marca,
+                "modelo": camion_model.modelo,
+                "capacidad_carga": camion_model.capacidad_carga,
+                "estado": camion_model.estado,
+                "nroTanque": camion_model.nroTanque,
+            }
         )
 
     @staticmethod
@@ -85,19 +87,21 @@ class ReporteController:
         if usuario_model is None or chofer_model is None:
             return None
 
-        return Chofer(
-            id_usuario=usuario_model.id_usuario,
-            username=usuario_model.username,
-            email=usuario_model.email,
-            password=usuario_model.password,
-            nombre=usuario_model.nombre,
-            apellido=usuario_model.apellido,
-            estado=usuario_model.estado,
-            rol=usuario_model.rol,
-            licencia=chofer_model.licencia,
-            vencimientoLicencia=chofer_model.vencimientoLicencia,
-            legajo=chofer_model.legajo,
-            foto_perfil=usuario_model.foto_perfil,
+        return Chofer.crear_desde_datos(
+            {
+                "id_usuario": usuario_model.id_usuario,
+                "username": usuario_model.username,
+                "email": usuario_model.email,
+                "password": usuario_model.password,
+                "nombre": usuario_model.nombre,
+                "apellido": usuario_model.apellido,
+                "estado": usuario_model.estado,
+                "rol": usuario_model.rol,
+                "licencia": chofer_model.licencia,
+                "vencimientoLicencia": chofer_model.vencimientoLicencia,
+                "legajo": chofer_model.legajo,
+                "foto_perfil": usuario_model.foto_perfil,
+            }
         )
 
     @staticmethod
@@ -105,18 +109,20 @@ class ReporteController:
         if usuario_model is None or mecanico_model is None:
             return None
 
-        return Mecanico(
-            id_usuario=usuario_model.id_usuario,
-            username=usuario_model.username,
-            email=usuario_model.email,
-            password=usuario_model.password,
-            nombre=usuario_model.nombre,
-            apellido=usuario_model.apellido,
-            estado=usuario_model.estado,
-            rol=usuario_model.rol,
-            legajo=mecanico_model.legajo,
-            especialidad=mecanico_model.especialidad,
-            foto_perfil=usuario_model.foto_perfil,
+        return Mecanico.crear_desde_datos(
+            {
+                "id_usuario": usuario_model.id_usuario,
+                "username": usuario_model.username,
+                "email": usuario_model.email,
+                "password": usuario_model.password,
+                "nombre": usuario_model.nombre,
+                "apellido": usuario_model.apellido,
+                "estado": usuario_model.estado,
+                "rol": usuario_model.rol,
+                "legajo": mecanico_model.legajo,
+                "especialidad": mecanico_model.especialidad,
+                "foto_perfil": usuario_model.foto_perfil,
+            }
         )
 
     @staticmethod
@@ -167,20 +173,22 @@ class ReporteController:
                     reporte_model.Mecanico_Usuario_idUsuario
                 )
 
-        return ReporteFalla(
-            id_reporte=reporte_model.id_reporte,
-            fecha_hora=reporte_model.fecha_hora,
-            descripcion=reporte_model.descripcion,
-            estado=reporte_model.estado,
-            id_camion=reporte_model.Camion_id_camion,
-            id_mecanico=(
-                reporte_model.Mecanico_Usuario_idUsuario
-            ),
-            id_chofer=(
-                reporte_model.Chofer_Usuario_idUsuario
-            ),
-            nota_reparacion=reporte_model.nota_reparacion,
-            fecha_resolucion=reporte_model.fecha_resolucion,
+        return ReporteFalla.crear_desde_datos(
+            {
+                "id_reporte": reporte_model.id_reporte,
+                "fecha_hora": reporte_model.fecha_hora,
+                "descripcion": reporte_model.descripcion,
+                "estado": reporte_model.estado,
+                "id_camion": reporte_model.Camion_id_camion,
+                "id_mecanico": (
+                    reporte_model.Mecanico_Usuario_idUsuario
+                ),
+                "id_chofer": (
+                    reporte_model.Chofer_Usuario_idUsuario
+                ),
+                "nota_reparacion": reporte_model.nota_reparacion,
+                "fecha_resolucion": reporte_model.fecha_resolucion,
+            },
             camion=camion,
             mecanico=mecanico,
             chofer=chofer,
@@ -368,18 +376,15 @@ class ReporteController:
         if chofer is None:
             return jsonify({"mensaje": "Chofer no encontrado"}), 404
 
-        reporte_clase = ReporteFalla(
-            None,
-            datetime.now(),
-            descripcion,
-            ReporteFalla.ESTADO_PENDIENTE,
-            None,
-            None,
-            None,
+        reporte_clase = ReporteFalla.crear_desde_datos(
+            {
+                "fecha_hora": datetime.now(),
+                "descripcion": descripcion,
+                "estado": ReporteFalla.ESTADO_PENDIENTE,
+            },
+            camion=camion,
+            chofer=chofer,
         )
-
-        camion.registrar_reporte(reporte_clase)
-        chofer.registrar_reporte(reporte_clase)
 
         if not reporte_clase.validar_datos():
             return jsonify({"mensaje": "Faltan datos obligatorios"}), 400

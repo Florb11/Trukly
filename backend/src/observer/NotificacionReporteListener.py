@@ -16,14 +16,15 @@ class NotificacionReporteListener(EventListener):
         mensaje = datos.get("mensaje")
         tipo = datos.get("tipo")
 
-        notificacion = Notificacion(
-            id_notificacion=None,
-            id_usuario=id_usuario,
-            titulo=titulo,
-            mensaje=mensaje,
-            leida=False,
-            fecha_hora=datetime.now(),
-            tipo=tipo,
+        notificacion = Notificacion.crear_desde_datos(
+            {
+                "id_usuario": id_usuario,
+                "titulo": titulo,
+                "mensaje": mensaje,
+                "leida": False,
+                "fecha_hora": datetime.now(),
+                "tipo": tipo,
+            }
         )
 
         if not notificacion.validar_datos():

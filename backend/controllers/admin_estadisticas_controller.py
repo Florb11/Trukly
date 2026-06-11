@@ -1,4 +1,4 @@
-from flask import g, jsonify
+from flask import jsonify
 from sqlalchemy import case, func
 
 from db_instance import db
@@ -87,7 +87,49 @@ class AdminEstadisticasController:
         ]
 
     @staticmethod
-    def _obtener_resumen(admin):
+    def _armar_resumen_estadisticas(
+        total_viajes,
+        viajes_finalizados,
+        viajes_cancelados,
+        viajes_en_curso,
+        total_reportes,
+        reportes_activos,
+        reportes_resueltos,
+    ):
+        return {
+            "total_viajes": total_viajes,
+            "viajes_finalizados": viajes_finalizados,
+            "viajes_cancelados": viajes_cancelados,
+            "viajes_en_curso": viajes_en_curso,
+            "total_reportes": total_reportes,
+            "reportes_activos": reportes_activos,
+            "reportes_resueltos": reportes_resueltos,
+        }
+
+    @staticmethod
+    def _armar_estadisticas(
+        resumen,
+        choferes_mas_viajes,
+        operadores_mas_viajes,
+        choferes_mas_reportes,
+        mecanicos_mas_reparaciones,
+        camiones_mas_reportes,
+        ultimos_viajes,
+        ultimos_reportes,
+    ):
+        return {
+            "resumen": resumen,
+            "choferes_mas_viajes": choferes_mas_viajes,
+            "operadores_mas_viajes": operadores_mas_viajes,
+            "choferes_mas_reportes": choferes_mas_reportes,
+            "mecanicos_mas_reparaciones": mecanicos_mas_reparaciones,
+            "camiones_mas_reportes": camiones_mas_reportes,
+            "ultimos_viajes": ultimos_viajes,
+            "ultimos_reportes": ultimos_reportes,
+        }
+
+    @staticmethod
+    def _obtener_resumen():
         total_viajes = ViajeModel.query.count()
 
         viajes_finalizados = ViajeModel.query.filter_by(
@@ -116,7 +158,7 @@ class AdminEstadisticasController:
             estado=ReporteFalla.ESTADO_RESUELTO
         ).count()
 
-        return admin.armar_resumen_estadisticas(
+        return AdminEstadisticasController._armar_resumen_estadisticas(
             total_viajes=total_viajes,
             viajes_finalizados=viajes_finalizados,
             viajes_cancelados=viajes_cancelados,
@@ -337,9 +379,7 @@ class AdminEstadisticasController:
     @staticmethod
     @admin_required
     def obtener_estadisticas():
-        admin = g.admin_actual
-
-        resumen = AdminEstadisticasController._obtener_resumen(admin)
+        resumen = AdminEstadisticasController._obtener_resumen()
 
         choferes_mas_viajes = (
             AdminEstadisticasController
@@ -383,7 +423,7 @@ class AdminEstadisticasController:
             )
         )
 
-        respuesta = admin.armar_estadisticas(
+        respuesta = AdminEstadisticasController._armar_estadisticas(
             resumen=resumen,
             choferes_mas_viajes=choferes_mas_viajes,
             operadores_mas_viajes=operadores_mas_viajes,

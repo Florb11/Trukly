@@ -20,28 +20,23 @@ class NotificacionController:
         if usuario_model is None:
             return None
 
-        return Usuario(
-            usuario_model.id_usuario,
-            usuario_model.username,
-            usuario_model.email,
-            usuario_model.password,
-            usuario_model.nombre,
-            usuario_model.apellido,
-            usuario_model.estado,
-            usuario_model.rol,
-            usuario_model.foto_perfil,
-        )
+        datos_usuario = usuario_model.to_dict()
+        datos_usuario["password"] = usuario_model.password
+
+        return Usuario.crear_desde_datos(datos_usuario)
 
     @staticmethod
     def crear_objeto_notificacion(notificacion_model, usuario=None):
-        return Notificacion(
-            id_notificacion=notificacion_model.id_notificacion,
-            id_usuario=notificacion_model.Usuario_idUsuario,
-            titulo=notificacion_model.titulo,
-            mensaje=notificacion_model.mensaje,
-            leida=notificacion_model.leida,
-            fecha_hora=notificacion_model.fecha_hora,
-            tipo=notificacion_model.tipo,
+        return Notificacion.crear_desde_datos(
+            {
+                "id_notificacion": notificacion_model.id_notificacion,
+                "id_usuario": notificacion_model.Usuario_idUsuario,
+                "titulo": notificacion_model.titulo,
+                "mensaje": notificacion_model.mensaje,
+                "leida": notificacion_model.leida,
+                "fecha_hora": notificacion_model.fecha_hora,
+                "tipo": notificacion_model.tipo,
+            },
             usuario=usuario,
         )
 

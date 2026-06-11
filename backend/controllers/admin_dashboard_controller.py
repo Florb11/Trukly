@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from flask import g, jsonify
+from flask import jsonify
 
 from models.usuario_model import UsuarioModel
 from models.chofer_model import ChoferModel
@@ -18,10 +18,80 @@ from utils.auth_decorators import admin_required
 class AdminDashboardController:
 
     @staticmethod
+    def _calcular_porcentaje(parte, total):
+        if total <= 0:
+            return 0
+
+        return round((parte / total) * 100)
+
+    @staticmethod
+    def _preparar_chofer_pendiente(datos_usuario, datos_chofer=None):
+        if datos_usuario is None:
+            return None
+
+        datos = dict(datos_usuario)
+
+        if datos_chofer:
+            datos["licencia"] = datos_chofer.get("licencia")
+            datos["legajo"] = datos_chofer.get("legajo")
+            datos["vencimientoLicencia"] = datos_chofer.get(
+                "vencimientoLicencia"
+            )
+        else:
+            datos["licencia"] = "-"
+
+        return datos
+
+    @staticmethod
+    def _armar_resumen_dashboard(
+        usuarios_activos,
+        camiones_registrados,
+        camiones_disponibles,
+        reportes_abiertos,
+        reportes_resueltos,
+        total_reportes,
+        viajes_del_dia,
+        viajes_en_curso,
+        viajes_finalizados,
+        total_viajes,
+        actividad_operativa,
+        usuarios_pendientes,
+    ):
+        return {
+            "usuarios_activos": usuarios_activos,
+            "camiones_registrados": camiones_registrados,
+            "camiones_disponibles": camiones_disponibles,
+            "reportes_abiertos": reportes_abiertos,
+            "reportes_prioridad_alta": 0,
+            "viajes_del_dia": viajes_del_dia,
+            "viajes_en_curso": viajes_en_curso,
+            "estado_general": {
+                "flota_disponible": (
+                    AdminDashboardController._calcular_porcentaje(
+                        camiones_disponibles,
+                        camiones_registrados
+                    )
+                ),
+                "reportes_resueltos": (
+                    AdminDashboardController._calcular_porcentaje(
+                        reportes_resueltos,
+                        total_reportes
+                    )
+                ),
+                "viajes_finalizados": (
+                    AdminDashboardController._calcular_porcentaje(
+                        viajes_finalizados,
+                        total_viajes
+                    )
+                ),
+            },
+            "actividad_operativa": actividad_operativa,
+            "usuarios_pendientes": usuarios_pendientes,
+        }
+
+    @staticmethod
     @admin_required
     def obtener_resumen_dashboard():
-        admin = g.admin_actual
-
         usuarios_activos = UsuarioModel.query.filter_by(
             estado=Usuario.ESTADO_ACTIVO
         ).count()
@@ -47,7 +117,7 @@ class AdminDashboardController:
                 }
 
             choferes_pendientes.append(
-                admin.preparar_chofer_pendiente(
+                AdminDashboardController._preparar_chofer_pendiente(
                     usuario.to_dict(),
                     datos_chofer
                 )
@@ -98,7 +168,7 @@ class AdminDashboardController:
 
             actividad_operativa.append(cantidad_viajes)
 
-        resumen = admin.armar_resumen_dashboard(
+        resumen = AdminDashboardController._armar_resumen_dashboard(
             usuarios_activos=usuarios_activos,
             camiones_registrados=camiones_registrados,
             camiones_disponibles=camiones_disponibles,

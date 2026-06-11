@@ -1,3 +1,6 @@
+from utils.domain_helpers import texto_valido
+
+
 class RegistroIngresoSalida:
     def __init__(
         self,
@@ -22,10 +25,6 @@ class RegistroIngresoSalida:
 
         return getattr(viaje, "id_viaje", None)
 
-    @staticmethod
-    def texto_valido(valor):
-        return valor is not None and str(valor).strip() != ""
-
     def asociar_viaje(self, viaje):
         id_viaje = self.obtener_id_viaje(viaje)
 
@@ -39,14 +38,14 @@ class RegistroIngresoSalida:
     def tiene_viaje_asociado(self):
         return (
             self.viaje is not None
-            or self.texto_valido(self.id_viaje)
+            or texto_valido(self.id_viaje)
         )
 
     def validar_datos(self):
         if self.fecha_hora is None:
             return False
 
-        if not self.texto_valido(self.tipo_registro):
+        if not texto_valido(self.tipo_registro):
             return False
 
         if not self.tiene_viaje_asociado():

@@ -1,4 +1,5 @@
 from src.Usuario import Usuario
+from utils.domain_helpers import formatear_fecha, texto_valido
 
 
 class Notificacion:
@@ -22,6 +23,26 @@ class Notificacion:
         self.tipo = tipo
         self.usuario = usuario
 
+    @classmethod
+    def crear_desde_datos(cls, datos, usuario=None):
+        if datos is None:
+            return None
+
+        notificacion = cls(
+            id_notificacion=datos.get("id_notificacion"),
+            id_usuario=datos.get("id_usuario"),
+            titulo=datos.get("titulo"),
+            mensaje=datos.get("mensaje"),
+            leida=datos.get("leida", False),
+            fecha_hora=datos.get("fecha_hora"),
+            tipo=datos.get("tipo"),
+        )
+
+        if usuario is not None:
+            notificacion.asignar_usuario(usuario)
+
+        return notificacion
+
     @staticmethod
     def obtener_id_usuario(usuario):
         if usuario is None:
@@ -42,19 +63,8 @@ class Notificacion:
     def tiene_usuario_destino(self):
         return (
             self.usuario is not None
-            or self.id_usuario is not None
-            and str(self.id_usuario).strip() != ""
+            or texto_valido(self.id_usuario)
         )
-
-    @staticmethod
-    def formatear_fecha(fecha):
-        if fecha is None:
-            return None
-
-        if hasattr(fecha, "strftime"):
-            return fecha.strftime("%Y-%m-%d %H:%M:%S")
-
-        return fecha
 
     def validar_datos(self):
         if not self.tiene_usuario_destino():
@@ -102,6 +112,9 @@ class Notificacion:
             "titulo": self.titulo,
             "mensaje": self.mensaje,
             "leida": self.leida,
-            "fecha_hora": self.formatear_fecha(self.fecha_hora),
+            "fecha_hora": formatear_fecha(
+                self.fecha_hora,
+                incluir_hora=True
+            ),
             "tipo": self.tipo,
         }

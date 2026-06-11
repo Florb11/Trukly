@@ -33,6 +33,21 @@ class Camion:
         self.viajes_asignados = viajes_asignados or []
         self.reportes_falla = reportes_falla or []
 
+    @classmethod
+    def crear_desde_datos(cls, datos, id_camion=None):
+        if datos is None:
+            return None
+
+        return cls(
+            id_camion=id_camion or datos.get("id_camion"),
+            matricula=datos.get("matricula"),
+            marca=datos.get("marca"),
+            modelo=datos.get("modelo"),
+            capacidad_carga=datos.get("capacidad_carga"),
+            estado=datos.get("estado"),
+            nroTanque=datos.get("nroTanque"),
+        )
+
     def asignar_viaje(self, viaje):
         if viaje is None:
             return False
@@ -127,9 +142,9 @@ class Camion:
 
         return self.marcar_disponible()
 
-    def ajustar_estado_por_reportes_activos(self, cantidad_reportes_activos):
+    def ajustar_estado_por_reportes_activos(self, reportes_activos):
         if (
-            cantidad_reportes_activos > 0
+            len(reportes_activos) > 0
             and self.estado == self.ESTADO_DISPONIBLE
         ):
             self.estado = self.ESTADO_EN_MANTENIMIENTO

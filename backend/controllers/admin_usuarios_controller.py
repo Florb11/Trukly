@@ -9,10 +9,7 @@ from models.chofer_model import ChoferModel
 from models.mecanico_model import MecanicoModel
 from models.operador_model import OperadorModel
 
-from src.Administrador import Administrador as AdministradorClase
 from src.Chofer import Chofer
-from src.Mecanico import Mecanico
-from src.OperadorLogistico import OperadorLogistico
 from src.Usuario import Usuario
 from utils.auth_decorators import admin_required
 from utils.app_logger import get_app_logger
@@ -236,92 +233,79 @@ class AdminUsuariosController:
         return True, None, datos_validados
 
     @staticmethod
-    def _crear_usuario_clase(usuario_db):
+    def _crear_usuario_base(usuario_db):
+        datos_usuario = usuario_db.to_dict()
+        datos_usuario["password"] = usuario_db.password
+
+        return Usuario.crear_desde_datos(datos_usuario)
+
+    @staticmethod
+    def _preparar_datos_usuario_clase(usuario_db):
+        datos_usuario = usuario_db.to_dict()
+
         if usuario_db.rol == Usuario.ROL_ADMIN:
             administrador = AdministradorModel.query.get(
                 usuario_db.id_usuario
             )
 
             if administrador:
-                return AdministradorClase(
-                    usuario_db.id_usuario,
-                    usuario_db.username,
-                    usuario_db.email,
-                    usuario_db.password,
-                    usuario_db.nombre,
-                    usuario_db.apellido,
-                    usuario_db.estado,
-                    usuario_db.rol,
-                    administrador.legajo,
-                    foto_perfil=usuario_db.foto_perfil,
-                )
+                datos_usuario["legajo"] = administrador.legajo
 
-        if usuario_db.rol == Usuario.ROL_CHOFER:
+                return datos_usuario
+
+        elif usuario_db.rol == Usuario.ROL_CHOFER:
             chofer = ChoferModel.query.get(usuario_db.id_usuario)
 
             if chofer:
-                return Chofer(
-                    usuario_db.id_usuario,
-                    usuario_db.username,
-                    usuario_db.email,
-                    usuario_db.password,
-                    usuario_db.nombre,
-                    usuario_db.apellido,
-                    usuario_db.estado,
-                    usuario_db.rol,
-                    chofer.licencia,
-                    chofer.vencimientoLicencia,
-                    chofer.legajo,
-                    usuario_db.foto_perfil,
+                datos_usuario["licencia"] = chofer.licencia
+                datos_usuario["vencimientoLicencia"] = (
+                    chofer.vencimientoLicencia
                 )
+                datos_usuario["legajo"] = chofer.legajo
 
-        if usuario_db.rol == Usuario.ROL_MECANICO:
+                return datos_usuario
+
+        elif usuario_db.rol == Usuario.ROL_MECANICO:
             mecanico = MecanicoModel.query.get(usuario_db.id_usuario)
 
             if mecanico:
-                return Mecanico(
-                    usuario_db.id_usuario,
-                    usuario_db.username,
-                    usuario_db.email,
-                    usuario_db.password,
-                    usuario_db.nombre,
-                    usuario_db.apellido,
-                    usuario_db.estado,
-                    usuario_db.rol,
-                    mecanico.legajo,
-                    mecanico.especialidad,
-                    usuario_db.foto_perfil,
-                )
+                datos_usuario["legajo"] = mecanico.legajo
+                datos_usuario["especialidad"] = mecanico.especialidad
 
-        if usuario_db.rol == Usuario.ROL_OPERADOR:
+                return datos_usuario
+
+        elif usuario_db.rol == Usuario.ROL_OPERADOR:
             operador = OperadorModel.query.get(usuario_db.id_usuario)
 
             if operador:
-                return OperadorLogistico(
-                    usuario_db.id_usuario,
-                    usuario_db.username,
-                    usuario_db.email,
-                    usuario_db.password,
-                    usuario_db.nombre,
-                    usuario_db.apellido,
-                    usuario_db.estado,
-                    usuario_db.rol,
-                    operador.legajo,
-                    operador.sector,
-                    usuario_db.foto_perfil,
-                )
+                datos_usuario["legajo"] = operador.legajo
+                datos_usuario["sector"] = operador.sector
 
-        return Usuario(
-            usuario_db.id_usuario,
-            usuario_db.username,
-            usuario_db.email,
-            usuario_db.password,
-            usuario_db.nombre,
-            usuario_db.apellido,
-            usuario_db.estado,
-            usuario_db.rol,
-            usuario_db.foto_perfil,
+                return datos_usuario
+
+        return None
+
+    @staticmethod
+    def _crear_usuario_clase(admin, usuario_db):
+        datos_usuario = AdminUsuariosController._preparar_datos_usuario_clase(
+            usuario_db
         )
+
+        if datos_usuario is None:
+            return AdminUsuariosController._crear_usuario_base(usuario_db)
+
+        usuario_clase = admin.crear_usuario(
+            datos_usuario,
+            usuario_db.password
+        )
+
+        if usuario_clase is None:
+            return AdminUsuariosController._crear_usuario_base(usuario_db)
+
+        usuario_clase.id_usuario = usuario_db.id_usuario
+        usuario_clase.foto_perfil = usuario_db.foto_perfil
+
+        return usuario_clase
 
     @staticmethod
     def _agregar_datos_por_rol(datos_usuario, id_usuario, rol):
@@ -552,6 +536,7 @@ class AdminUsuariosController:
             }), 404
 
         usuario_clase = AdminUsuariosController._crear_usuario_clase(
+            admin,
             usuario_db
         )
 
@@ -598,6 +583,7 @@ class AdminUsuariosController:
             }), 404
 
         usuario_clase = AdminUsuariosController._crear_usuario_clase(
+            admin,
             usuario_db
         )
 
@@ -695,6 +681,7 @@ class AdminUsuariosController:
             }), 409
 
         usuario_clase = AdminUsuariosController._crear_usuario_clase(
+            admin,
             usuario_db
         )
 
@@ -823,22 +810,16 @@ class AdminUsuariosController:
             datos["password"]
         ).decode("utf-8")
 
-        usuario_clase = Usuario(
-            None,
-            username,
-            email,
-            password_hash,
-            datos["nombre"],
-            datos["apellido"],
-            datos["estado"],
-            datos["rol"],
+        datos_usuario = dict(datos)
+        datos_usuario["username"] = username
+        datos_usuario["email"] = email
+
+        usuario_clase = admin.crear_usuario(
+            datos_usuario,
+            password_hash
         )
 
-        accion_realizada = admin.registrar_usuario(
-            usuario_clase
-        )
-
-        if not accion_realizada:
+        if usuario_clase is None:
             return jsonify({
                 "mensaje": "No se pudo registrar el usuario"
             }), 400

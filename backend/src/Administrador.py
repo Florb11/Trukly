@@ -1,5 +1,9 @@
 from src.Usuario import Usuario
 from src.ReporteFalla import ReporteFalla
+from src.Camion import Camion
+from src.Chofer import Chofer
+from src.Mecanico import Mecanico
+from src.OperadorLogistico import OperadorLogistico
 
 
 class Administrador(Usuario):
@@ -39,6 +43,24 @@ class Administrador(Usuario):
         self.reportes_falla = reportes_falla or []
         self.camiones_gestionados = camiones_gestionados or []
 
+    @classmethod
+    def crear_desde_datos(cls, datos):
+        if datos is None:
+            return None
+
+        return cls(
+            id_usuario=datos.get("id_usuario"),
+            username=datos.get("username"),
+            email=datos.get("email"),
+            password=datos.get("password"),
+            nombre=datos.get("nombre"),
+            apellido=datos.get("apellido"),
+            estado=datos.get("estado"),
+            rol=datos.get("rol"),
+            legajo=datos.get("legajo"),
+            foto_perfil=datos.get("foto_perfil"),
+        )
+
     def agregar_usuario_gestionado(self, usuario):
         if usuario is None:
             return False
@@ -61,10 +83,6 @@ class Administrador(Usuario):
         return True
 
     @staticmethod
-    def texto_valido(valor):
-        return valor is not None and str(valor).strip() != ""
-
-    @staticmethod
     def rol_valido(rol):
         return rol in Administrador.ROLES_VALIDOS
 
@@ -72,12 +90,87 @@ class Administrador(Usuario):
     def estado_valido(estado):
         return estado in Administrador.ESTADOS_VALIDOS
 
-    @staticmethod
-    def calcular_porcentaje(parte, total):
-        if total <= 0:
-            return 0
+    def crear_usuario(self, datos, password):
+        if datos is None:
+            return None
 
-        return round((parte / total) * 100)
+        rol = datos.get("rol")
+        estado = datos.get("estado")
+
+        if not self.rol_valido(rol):
+            return None
+
+        if not self.estado_valido(estado):
+            return None
+
+        if not self.texto_valido(datos.get("username")):
+            return None
+
+        if not self.texto_valido(datos.get("email")):
+            return None
+
+        if not self.texto_valido(datos.get("nombre")):
+            return None
+
+        if not self.texto_valido(datos.get("apellido")):
+            return None
+
+        if not self.texto_valido(datos.get("legajo")):
+            return None
+
+        if rol == Usuario.ROL_ADMIN:
+            datos_admin = dict(datos)
+            datos_admin["id_usuario"] = datos.get("id_usuario")
+            datos_admin["password"] = password
+            usuario = Administrador.crear_desde_datos(datos_admin)
+        elif rol == Usuario.ROL_CHOFER:
+            vencimiento = Chofer.convertir_vencimiento_licencia(
+                datos.get("vencimientoLicencia")
+            )
+
+            if vencimiento is None:
+                return None
+
+            datos_chofer = dict(datos)
+            datos_chofer["id_usuario"] = datos.get("id_usuario")
+            datos_chofer["password"] = password
+            datos_chofer["vencimientoLicencia"] = vencimiento
+            usuario = Chofer.crear_desde_datos(datos_chofer)
+        elif rol == Usuario.ROL_MECANICO:
+            if not self.texto_valido(datos.get("especialidad")):
+                return None
+
+            datos_mecanico = dict(datos)
+            datos_mecanico["id_usuario"] = datos.get("id_usuario")
+            datos_mecanico["password"] = password
+            usuario = Mecanico.crear_desde_datos(datos_mecanico)
+        elif rol == Usuario.ROL_OPERADOR:
+            if not self.texto_valido(datos.get("sector")):
+                return None
+
+            datos_operador = dict(datos)
+            datos_operador["id_usuario"] = datos.get("id_usuario")
+            datos_operador["password"] = password
+            usuario = OperadorLogistico.crear_desde_datos(datos_operador)
+        else:
+            return None
+
+        self.agregar_usuario_gestionado(usuario)
+        return usuario
+
+    def crear_camion(self, datos, id_camion=None):
+        if datos is None:
+            return None
+
+        camion = Camion.crear_desde_datos(
+            datos,
+            id_camion=id_camion,
+        )
+
+        if not self.registrar_camion(camion):
+            return None
+
+        return camion
 
     # activa un usuario si esta pendiente o inactivo
     def activar_usuario(self, usuario):
@@ -130,32 +223,6 @@ class Administrador(Usuario):
         usuario.nombre = nombre
         usuario.apellido = apellido
         usuario.estado = estado
-        self.agregar_usuario_gestionado(usuario)
-        return True
-
-    # registra un usuario desde el administrador
-    def registrar_usuario(self, usuario):
-        if usuario is None:
-            return False
-
-        if not self.rol_valido(usuario.rol):
-            return False
-
-        if not self.estado_valido(usuario.estado):
-            return False
-
-        if not self.texto_valido(usuario.username):
-            return False
-
-        if not self.texto_valido(usuario.email):
-            return False
-
-        if not self.texto_valido(usuario.nombre):
-            return False
-
-        if not self.texto_valido(usuario.apellido):
-            return False
-
         self.agregar_usuario_gestionado(usuario)
         return True
 
@@ -224,103 +291,3 @@ class Administrador(Usuario):
             self.agregar_reporte_falla(reporte)
 
         return estado_cambiado
-
-    def preparar_chofer_pendiente(self, datos_usuario, datos_chofer=None):
-        if datos_usuario is None:
-            return None
-
-        datos = dict(datos_usuario)
-
-        if datos_chofer:
-            datos["licencia"] = datos_chofer.get("licencia")
-            datos["legajo"] = datos_chofer.get("legajo")
-            datos["vencimientoLicencia"] = datos_chofer.get(
-                "vencimientoLicencia"
-            )
-        else:
-            datos["licencia"] = "-"
-
-        return datos
-
-    def armar_resumen_dashboard(
-        self,
-        usuarios_activos,
-        camiones_registrados,
-        camiones_disponibles,
-        reportes_abiertos,
-        reportes_resueltos,
-        total_reportes,
-        viajes_del_dia,
-        viajes_en_curso,
-        viajes_finalizados,
-        total_viajes,
-        actividad_operativa,
-        usuarios_pendientes,
-    ):
-        return {
-            "usuarios_activos": usuarios_activos,
-            "camiones_registrados": camiones_registrados,
-            "camiones_disponibles": camiones_disponibles,
-            "reportes_abiertos": reportes_abiertos,
-            "reportes_prioridad_alta": 0,
-            "viajes_del_dia": viajes_del_dia,
-            "viajes_en_curso": viajes_en_curso,
-            "estado_general": {
-                "flota_disponible": self.calcular_porcentaje(
-                    camiones_disponibles,
-                    camiones_registrados
-                ),
-                "reportes_resueltos": self.calcular_porcentaje(
-                    reportes_resueltos,
-                    total_reportes
-                ),
-                "viajes_finalizados": self.calcular_porcentaje(
-                    viajes_finalizados,
-                    total_viajes
-                ),
-            },
-            "actividad_operativa": actividad_operativa,
-            "usuarios_pendientes": usuarios_pendientes,
-        }
-
-    def armar_resumen_estadisticas(
-        self,
-        total_viajes,
-        viajes_finalizados,
-        viajes_cancelados,
-        viajes_en_curso,
-        total_reportes,
-        reportes_activos,
-        reportes_resueltos,
-    ):
-        return {
-            "total_viajes": total_viajes,
-            "viajes_finalizados": viajes_finalizados,
-            "viajes_cancelados": viajes_cancelados,
-            "viajes_en_curso": viajes_en_curso,
-            "total_reportes": total_reportes,
-            "reportes_activos": reportes_activos,
-            "reportes_resueltos": reportes_resueltos,
-        }
-
-    def armar_estadisticas(
-        self,
-        resumen,
-        choferes_mas_viajes,
-        operadores_mas_viajes,
-        choferes_mas_reportes,
-        mecanicos_mas_reparaciones,
-        camiones_mas_reportes,
-        ultimos_viajes,
-        ultimos_reportes,
-    ):
-        return {
-            "resumen": resumen,
-            "choferes_mas_viajes": choferes_mas_viajes,
-            "operadores_mas_viajes": operadores_mas_viajes,
-            "choferes_mas_reportes": choferes_mas_reportes,
-            "mecanicos_mas_reparaciones": mecanicos_mas_reparaciones,
-            "camiones_mas_reportes": camiones_mas_reportes,
-            "ultimos_viajes": ultimos_viajes,
-            "ultimos_reportes": ultimos_reportes,
-        }

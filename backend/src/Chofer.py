@@ -38,6 +38,26 @@ class Chofer(Usuario):
         self.viajes_asignados = viajes_asignados or []
         self.reportes_creados = reportes_creados or []
 
+    @classmethod
+    def crear_desde_datos(cls, datos):
+        if datos is None:
+            return None
+
+        return cls(
+            id_usuario=datos.get("id_usuario"),
+            username=datos.get("username"),
+            email=datos.get("email"),
+            password=datos.get("password"),
+            nombre=datos.get("nombre"),
+            apellido=datos.get("apellido"),
+            estado=datos.get("estado"),
+            rol=datos.get("rol"),
+            licencia=datos.get("licencia"),
+            vencimientoLicencia=datos.get("vencimientoLicencia"),
+            legajo=datos.get("legajo"),
+            foto_perfil=datos.get("foto_perfil"),
+        )
+
     def asignar_viaje(self, viaje):
         if viaje is None:
             return False
