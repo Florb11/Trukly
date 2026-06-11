@@ -33,9 +33,9 @@ class Viaje:
         estado,
         observaciones,
         recorrido,
-        OperadorLogistico_Usuario_idUsuario,
-        Chofer_Usuario_idUsuario,
-        Camion_id_camion,
+        id_operador,
+        id_chofer,
+        id_camion,
         operador=None,
         chofer=None,
         camion=None,
@@ -50,9 +50,9 @@ class Viaje:
         self.estado = estado
         self.observaciones = observaciones
         self.recorrido = recorrido
-        self.OperadorLogistico_Usuario_idUsuario = OperadorLogistico_Usuario_idUsuario
-        self.Chofer_Usuario_idUsuario = Chofer_Usuario_idUsuario
-        self.Camion_id_camion = Camion_id_camion
+        self.id_operador = id_operador
+        self.id_chofer = id_chofer
+        self.id_camion = id_camion
         self.operador = operador
         self.chofer = chofer
         self.camion = camion
@@ -80,7 +80,7 @@ class Viaje:
             return False
 
         self.operador = operador
-        self.OperadorLogistico_Usuario_idUsuario = id_operador
+        self.id_operador = id_operador
         return True
 
     def asignar_chofer(self, chofer):
@@ -90,7 +90,7 @@ class Viaje:
             return False
 
         self.chofer = chofer
-        self.Chofer_Usuario_idUsuario = id_chofer
+        self.id_chofer = id_chofer
         return True
 
     def asignar_camion(self, camion):
@@ -100,25 +100,25 @@ class Viaje:
             return False
 
         self.camion = camion
-        self.Camion_id_camion = id_camion
+        self.id_camion = id_camion
         return True
 
     def tiene_operador_asignado(self):
         return (
             self.operador is not None
-            or self.texto_valido(self.OperadorLogistico_Usuario_idUsuario)
+            or self.texto_valido(self.id_operador)
         )
 
     def tiene_chofer_asignado(self):
         return (
             self.chofer is not None
-            or self.texto_valido(self.Chofer_Usuario_idUsuario)
+            or self.texto_valido(self.id_chofer)
         )
 
     def tiene_camion_asignado(self):
         return (
             self.camion is not None
-            or self.texto_valido(self.Camion_id_camion)
+            or self.texto_valido(self.id_camion)
         )
 
     def agregar_carga(self, carga):
@@ -202,12 +202,12 @@ class Viaje:
     def pertenece_a_chofer(self, chofer):
         id_chofer = self.obtener_id_usuario(chofer) or chofer
 
-        return str(self.Chofer_Usuario_idUsuario) == str(id_chofer)
+        return str(self.id_chofer) == str(id_chofer)
 
     def pertenece_a_operador(self, operador):
         id_operador = self.obtener_id_usuario(operador) or operador
 
-        return str(self.OperadorLogistico_Usuario_idUsuario) == str(id_operador)
+        return str(self.id_operador) == str(id_operador)
 
     def puede_ser_visto_por(self, rol, id_usuario):
         if rol == Usuario.ROL_ADMIN:
@@ -254,7 +254,7 @@ class Viaje:
             "estado": self.estado,
             "observaciones": self.observaciones,
             "recorrido": self.recorrido,
-            "OperadorLogistico_Usuario_idUsuario": self.OperadorLogistico_Usuario_idUsuario,
-            "Chofer_Usuario_idUsuario": self.Chofer_Usuario_idUsuario,
-            "Camion_id_camion": self.Camion_id_camion
+            "id_operador": self.id_operador,
+            "id_chofer": self.id_chofer,
+            "id_camion": self.id_camion,
         }

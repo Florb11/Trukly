@@ -172,21 +172,14 @@ class CamionController:
         return datos_camion
 
     @staticmethod
-    def _puede_usar_estado(camion_db, nuevo_estado):
+    def _ajustar_estado_por_reportes_activos(camion_db, camion_clase):
         reportes_activos = CamionController._contar_reportes_activos(
             camion_db.id_camion
         )
 
-        if (
-            reportes_activos > 0
-            and nuevo_estado == Camion.ESTADO_DISPONIBLE
-        ):
-            return False, (
-                "No se puede marcar como disponible un camion con "
-                "reportes activos. Activarlo debe dejarlo en mantenimiento"
-            )
-
-        return True, None
+        return camion_clase.ajustar_estado_por_reportes_activos(
+            reportes_activos
+        )
 
     @staticmethod
     @admin_required
@@ -294,15 +287,10 @@ class CamionController:
             camion_db
         )
 
-        estado_permitido, mensaje_error = (
-            CamionController._puede_usar_estado(
-                camion_db,
-                camion_clase.estado
-            )
+        CamionController._ajustar_estado_por_reportes_activos(
+            camion_db,
+            camion_clase
         )
-
-        if not estado_permitido:
-            return jsonify({"mensaje": mensaje_error}), 400
 
         if not admin.modificar_camion(camion_clase):
             return jsonify({"mensaje": "Faltan datos obligatorios o hay datos invalidos"}), 400
@@ -379,15 +367,10 @@ class CamionController:
         if not admin.cambiar_estado_camion(camion_clase, nuevo_estado):
             return jsonify({"mensaje": "Estado invalido"}), 400
 
-        estado_permitido, mensaje_error = (
-            CamionController._puede_usar_estado(
-                camion_db,
-                camion_clase.estado
-            )
+        CamionController._ajustar_estado_por_reportes_activos(
+            camion_db,
+            camion_clase
         )
-
-        if not estado_permitido:
-            return jsonify({"mensaje": mensaje_error}), 400
 
         camion_db.estado = camion_clase.estado
 

@@ -18,6 +18,7 @@ from src.observer.NotificacionReporteListener import (
     NotificacionReporteListener
 )
 from services.auth_service import AuthService
+from services.notificacion_service import NotificacionService
 from utils.auth_decorators import obtener_admin_actual_desde_token
 from utils.auth_decorators import roles_required
 from utils.app_logger import get_app_logger
@@ -171,11 +172,11 @@ class ReporteController:
             fecha_hora=reporte_model.fecha_hora,
             descripcion=reporte_model.descripcion,
             estado=reporte_model.estado,
-            Camion_id_camion=reporte_model.Camion_id_camion,
-            Mecanico_Usuario_idUsuario=(
+            id_camion=reporte_model.Camion_id_camion,
+            id_mecanico=(
                 reporte_model.Mecanico_Usuario_idUsuario
             ),
-            Chofer_Usuario_idUsuario=(
+            id_chofer=(
                 reporte_model.Chofer_Usuario_idUsuario
             ),
             nota_reparacion=reporte_model.nota_reparacion,
@@ -189,7 +190,7 @@ class ReporteController:
     def actualizar_modelo_reporte(reporte_model, reporte_clase):
         reporte_model.estado = reporte_clase.estado
         reporte_model.Mecanico_Usuario_idUsuario = (
-            reporte_clase.Mecanico_Usuario_idUsuario
+            reporte_clase.id_mecanico
         )
         reporte_model.nota_reparacion = reporte_clase.nota_reparacion
         reporte_model.fecha_resolucion = reporte_clase.fecha_resolucion
@@ -201,7 +202,13 @@ class ReporteController:
             cargar_relaciones=False
         )
 
-        return reporte_clase.to_dict()
+        datos = reporte_clase.to_dict()
+
+        datos["Camion_id_camion"] = datos.pop("id_camion")
+        datos["Mecanico_Usuario_idUsuario"] = datos.pop("id_mecanico")
+        datos["Chofer_Usuario_idUsuario"] = datos.pop("id_chofer")
+
+        return datos
 
     @staticmethod
     def actualizar_modelo_camion(camion_model, camion_clase):
@@ -224,14 +231,14 @@ class ReporteController:
         if reporte_clase.estado in ReporteFalla.ESTADOS_ACTIVOS:
             return False
 
-        camion_model = CamionModel.query.get(reporte_clase.Camion_id_camion)
+        camion_model = CamionModel.query.get(reporte_clase.id_camion)
         camion = ReporteController.crear_objeto_camion(camion_model)
 
         if camion is None:
             return False
 
         reportes_activos = ReporteController.obtener_reportes_activos_camion(
-            reporte_clase.Camion_id_camion,
+            reporte_clase.id_camion,
             reporte_clase.id_reporte
         )
 
@@ -252,7 +259,7 @@ class ReporteController:
         if reporte_clase.estado not in ReporteFalla.ESTADOS_ACTIVOS:
             return False
 
-        camion_model = CamionModel.query.get(reporte_clase.Camion_id_camion)
+        camion_model = CamionModel.query.get(reporte_clase.id_camion)
         camion = ReporteController.crear_objeto_camion(camion_model)
 
         if camion is None:
@@ -271,7 +278,9 @@ class ReporteController:
     @staticmethod
     def notificar_reporte_asignado(reporte_clase, mecanico):
         event_manager = EventManager()
-        listener_notificacion = NotificacionReporteListener()
+        listener_notificacion = NotificacionReporteListener(
+            NotificacionService.agregar_a_sesion
+        )
 
         event_manager.suscribir(
             "reporte_asignado",
@@ -285,7 +294,7 @@ class ReporteController:
                 "titulo": "Nueva reparacion asignada",
                 "mensaje": (
                     f"Se te asigno el reporte #{reporte_clase.id_reporte} "
-                    f"del camion #{reporte_clase.Camion_id_camion}."
+                    f"del camion #{reporte_clase.id_camion}."
                 ),
                 "tipo": "reporte_asignado",
             }
@@ -382,9 +391,9 @@ class ReporteController:
             fecha_hora=reporte_clase.fecha_hora,
             descripcion=reporte_clase.descripcion,
             estado=reporte_clase.estado,
-            Camion_id_camion=reporte_clase.Camion_id_camion,
-            Mecanico_Usuario_idUsuario=reporte_clase.Mecanico_Usuario_idUsuario,
-            Chofer_Usuario_idUsuario=reporte_clase.Chofer_Usuario_idUsuario,
+            Camion_id_camion=reporte_clase.id_camion,
+            Mecanico_Usuario_idUsuario=reporte_clase.id_mecanico,
+            Chofer_Usuario_idUsuario=reporte_clase.id_chofer,
         )
 
         try:

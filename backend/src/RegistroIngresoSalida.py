@@ -5,14 +5,14 @@ class RegistroIngresoSalida:
         fecha_hora,
         tipo_registro,
         observacion,
-        Viaje_id_viaje,
+        id_viaje,
         viaje=None,
     ):
         self.id_registro = id_registro
         self.fecha_hora = fecha_hora
         self.tipo_registro = tipo_registro
         self.observacion = observacion
-        self.Viaje_id_viaje = Viaje_id_viaje
+        self.id_viaje = id_viaje
         self.viaje = viaje
 
     @staticmethod
@@ -33,13 +33,13 @@ class RegistroIngresoSalida:
             return False
 
         self.viaje = viaje
-        self.Viaje_id_viaje = id_viaje
+        self.id_viaje = id_viaje
         return True
 
     def tiene_viaje_asociado(self):
         return (
             self.viaje is not None
-            or self.texto_valido(self.Viaje_id_viaje)
+            or self.texto_valido(self.id_viaje)
         )
 
     def validar_datos(self):
@@ -60,5 +60,5 @@ class RegistroIngresoSalida:
             "fecha_hora": self.fecha_hora,
             "tipo_registro": self.tipo_registro,
             "observacion": self.observacion,
-            "Viaje_id_viaje": self.Viaje_id_viaje,
+            "id_viaje": self.id_viaje,
         }

@@ -13,6 +13,7 @@ from models.camion_model import CamionModel
 from src.Camion import Camion
 from src.ReporteFalla import ReporteFalla
 from services.auth_service import AuthService
+from services.notificacion_service import NotificacionService
 from utils.auth_decorators import mecanico_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
@@ -46,11 +47,11 @@ class MecanicoController:
             fecha_hora=reporte_model.fecha_hora,
             descripcion=reporte_model.descripcion,
             estado=reporte_model.estado,
-            Camion_id_camion=reporte_model.Camion_id_camion,
-            Mecanico_Usuario_idUsuario=(
+            id_camion=reporte_model.Camion_id_camion,
+            id_mecanico=(
                 reporte_model.Mecanico_Usuario_idUsuario
             ),
-            Chofer_Usuario_idUsuario=(
+            id_chofer=(
                 reporte_model.Chofer_Usuario_idUsuario
             ),
             nota_reparacion=reporte_model.nota_reparacion,
@@ -69,7 +70,13 @@ class MecanicoController:
             reporte_model
         )
 
-        return reporte_clase.to_dict()
+        datos = reporte_clase.to_dict()
+
+        datos["Camion_id_camion"] = datos.pop("id_camion")
+        datos["Mecanico_Usuario_idUsuario"] = datos.pop("id_mecanico")
+        datos["Chofer_Usuario_idUsuario"] = datos.pop("id_chofer")
+
+        return datos
 
     @staticmethod
     def crear_objeto_camion(camion_model):
@@ -202,7 +209,9 @@ class MecanicoController:
             )
 
         event_manager = EventManager()
-        listener_notificacion = NotificacionReporteListener()
+        listener_notificacion = NotificacionReporteListener(
+            NotificacionService.agregar_a_sesion
+        )
 
         event_manager.suscribir(
             "reporte_resuelto",

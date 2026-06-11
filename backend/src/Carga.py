@@ -6,7 +6,7 @@ class Carga:
         tipo,
         peso,
         estado,
-        Viaje_id_viaje,
+        id_viaje,
         viaje=None,
     ):
         self.id_carga = id_carga
@@ -14,7 +14,7 @@ class Carga:
         self.tipo = tipo
         self.peso = peso
         self.estado = estado
-        self.Viaje_id_viaje = Viaje_id_viaje
+        self.id_viaje = id_viaje
         self.viaje = viaje
 
     @staticmethod
@@ -35,13 +35,13 @@ class Carga:
             return False
 
         self.viaje = viaje
-        self.Viaje_id_viaje = id_viaje
+        self.id_viaje = id_viaje
         return True
 
     def tiene_viaje_asociado(self):
         return (
             self.viaje is not None
-            or self.texto_valido(self.Viaje_id_viaje)
+            or self.texto_valido(self.id_viaje)
         )
 
     def validar_datos(self):
@@ -69,5 +69,5 @@ class Carga:
             "tipo": self.tipo,
             "peso": self.peso,
             "estado": self.estado,
-            "Viaje_id_viaje": self.Viaje_id_viaje,
+            "id_viaje": self.id_viaje,
         }

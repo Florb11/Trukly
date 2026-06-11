@@ -253,6 +253,7 @@ class AdminUsuariosController:
                     usuario_db.estado,
                     usuario_db.rol,
                     administrador.legajo,
+                    foto_perfil=usuario_db.foto_perfil,
                 )
 
         if usuario_db.rol == Usuario.ROL_CHOFER:

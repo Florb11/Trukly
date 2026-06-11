@@ -6,7 +6,9 @@ from db_instance import db
 from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
 from models.viaje_model import ViajeModel
 from src.RegistroIngresoSalida import RegistroIngresoSalida
+from src.Usuario import Usuario
 from src.Viaje import Viaje
+from utils.auth_decorators import roles_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
 from utils.validation_composite import (
@@ -79,11 +81,11 @@ class RegistroIngresoSalidaController:
             estado=viaje_model.estado,
             observaciones=viaje_model.observaciones,
             recorrido=viaje_model.recorrido,
-            OperadorLogistico_Usuario_idUsuario=(
+            id_operador=(
                 viaje_model.OperadorLogistico_Usuario_idUsuario
             ),
-            Chofer_Usuario_idUsuario=viaje_model.Chofer_Usuario_idUsuario,
-            Camion_id_camion=viaje_model.Camion_id_camion,
+            id_chofer=viaje_model.Chofer_Usuario_idUsuario,
+            id_camion=viaje_model.Camion_id_camion,
         )
 
     @staticmethod
@@ -93,17 +95,27 @@ class RegistroIngresoSalidaController:
             fecha_hora=registro_ingreso_salida_model.fecha_hora,
             tipo_registro=registro_ingreso_salida_model.tipo_registro,
             observacion=registro_ingreso_salida_model.observacion,
-            Viaje_id_viaje=registro_ingreso_salida_model.Viaje_id_viaje,
+            id_viaje=registro_ingreso_salida_model.Viaje_id_viaje,
             viaje=viaje,
         )
 
     @staticmethod
+    @roles_required(
+        Usuario.ROL_ADMIN,
+        Usuario.ROL_OPERADOR,
+        Usuario.ROL_CHOFER,
+    )
     def listar_registros():
         registros = RegistroIngresoSalidaModel.query.all()
 
         return jsonify([registro.to_dict() for registro in registros])
 
     @staticmethod
+    @roles_required(
+        Usuario.ROL_ADMIN,
+        Usuario.ROL_OPERADOR,
+        Usuario.ROL_CHOFER,
+    )
     def obtener_registro(id_registro):
         registro = RegistroIngresoSalidaModel.query.get(id_registro)
 
@@ -113,6 +125,11 @@ class RegistroIngresoSalidaController:
         return jsonify(registro.to_dict())
 
     @staticmethod
+    @roles_required(
+        Usuario.ROL_ADMIN,
+        Usuario.ROL_OPERADOR,
+        Usuario.ROL_CHOFER,
+    )
     def crear_registro():
         datos = RegistroIngresoSalidaController._sanitizar_datos_registro(
             request.get_json(silent=True) or {}
@@ -141,7 +158,7 @@ class RegistroIngresoSalidaController:
             ),
             tipo_registro=datos["tipo_registro"],
             observacion=datos.get("observacion"),
-            Viaje_id_viaje=None,
+            id_viaje=None,
         )
 
         if not viaje.agregar_registro(registro):
@@ -154,7 +171,7 @@ class RegistroIngresoSalidaController:
             fecha_hora=registro.fecha_hora,
             tipo_registro=registro.tipo_registro,
             observacion=registro.observacion,
-            Viaje_id_viaje=registro.Viaje_id_viaje,
+            Viaje_id_viaje=registro.id_viaje,
         )
 
         try:

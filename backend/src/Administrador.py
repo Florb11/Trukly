@@ -225,19 +225,22 @@ class Administrador(Usuario):
 
         return estado_cambiado
 
-    def preparar_chofer_pendiente(self, usuario, chofer):
-        datos_usuario = usuario.to_dict()
+    def preparar_chofer_pendiente(self, datos_usuario, datos_chofer=None):
+        if datos_usuario is None:
+            return None
 
-        if chofer:
-            datos_usuario["licencia"] = chofer.licencia
-            datos_usuario["legajo"] = chofer.legajo
-            datos_usuario["vencimientoLicencia"] = str(
-                chofer.vencimientoLicencia
+        datos = dict(datos_usuario)
+
+        if datos_chofer:
+            datos["licencia"] = datos_chofer.get("licencia")
+            datos["legajo"] = datos_chofer.get("legajo")
+            datos["vencimientoLicencia"] = datos_chofer.get(
+                "vencimientoLicencia"
             )
         else:
-            datos_usuario["licencia"] = "-"
+            datos["licencia"] = "-"
 
-        return datos_usuario
+        return datos
 
     def armar_resumen_dashboard(
         self,
@@ -300,77 +303,6 @@ class Administrador(Usuario):
             "reportes_resueltos": reportes_resueltos,
         }
 
-    @staticmethod
-    def armar_ranking_viajes(filas):
-        return [
-            {
-                "id_usuario": fila.id_usuario,
-                "nombre": fila.nombre,
-                "apellido": fila.apellido,
-                "total_viajes": fila.total_viajes,
-                "viajes_finalizados": int(
-                    fila.viajes_finalizados or 0
-                ),
-                "viajes_cancelados": int(
-                    fila.viajes_cancelados or 0
-                ),
-            }
-            for fila in filas
-        ]
-
-    @staticmethod
-    def armar_ranking_reportes_chofer(filas):
-        return [
-            {
-                "id_usuario": fila.id_usuario,
-                "nombre": fila.nombre,
-                "apellido": fila.apellido,
-                "total_reportes": fila.total_reportes,
-                "reportes_resueltos": int(
-                    fila.reportes_resueltos or 0
-                ),
-            }
-            for fila in filas
-        ]
-
-    @staticmethod
-    def armar_ranking_reparaciones_mecanico(filas):
-        return [
-            {
-                "id_usuario": fila.id_usuario,
-                "nombre": fila.nombre,
-                "apellido": fila.apellido,
-                "total_asignados": fila.total_asignados,
-                "total_resueltos": int(
-                    fila.total_resueltos or 0
-                ),
-                "en_revision": int(
-                    fila.en_revision or 0
-                ),
-            }
-            for fila in filas
-        ]
-
-    @staticmethod
-    def armar_ranking_reportes_camion(filas):
-        return [
-            {
-                "id_camion": fila.id_camion,
-                "matricula": fila.matricula,
-                "marca": fila.marca,
-                "modelo": fila.modelo,
-                "total_reportes": fila.total_reportes,
-            }
-            for fila in filas
-        ]
-
-    @staticmethod
-    def convertir_modelos_a_diccionario(modelos):
-        return [
-            modelo.to_dict()
-            for modelo in modelos
-        ]
-
     def armar_estadisticas(
         self,
         resumen,
@@ -389,10 +321,6 @@ class Administrador(Usuario):
             "choferes_mas_reportes": choferes_mas_reportes,
             "mecanicos_mas_reparaciones": mecanicos_mas_reparaciones,
             "camiones_mas_reportes": camiones_mas_reportes,
-            "ultimos_viajes": self.convertir_modelos_a_diccionario(
-                ultimos_viajes
-            ),
-            "ultimos_reportes": self.convertir_modelos_a_diccionario(
-                ultimos_reportes
-            ),
+            "ultimos_viajes": ultimos_viajes,
+            "ultimos_reportes": ultimos_reportes,
         }

@@ -36,7 +36,7 @@ class NotificacionController:
     def crear_objeto_notificacion(notificacion_model, usuario=None):
         return Notificacion(
             id_notificacion=notificacion_model.id_notificacion,
-            Usuario_idUsuario=notificacion_model.Usuario_idUsuario,
+            id_usuario=notificacion_model.Usuario_idUsuario,
             titulo=notificacion_model.titulo,
             mensaje=notificacion_model.mensaje,
             leida=notificacion_model.leida,
@@ -67,6 +67,7 @@ class NotificacionController:
         )
 
         datos = notificacion.to_dict()
+        datos["Usuario_idUsuario"] = datos.pop("id_usuario")
         datos["usuario_destino"] = None
 
         if usuario_model is not None:

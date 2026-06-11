@@ -35,10 +35,21 @@ class AdminDashboardController:
 
         for usuario in usuarios_pendientes:
             chofer = ChoferModel.query.get(usuario.id_usuario)
+            datos_chofer = None
+
+            if chofer:
+                datos_chofer = {
+                    "licencia": chofer.licencia,
+                    "legajo": chofer.legajo,
+                    "vencimientoLicencia": str(
+                        chofer.vencimientoLicencia
+                    ),
+                }
+
             choferes_pendientes.append(
                 admin.preparar_chofer_pendiente(
-                    usuario,
-                    chofer
+                    usuario.to_dict(),
+                    datos_chofer
                 )
             )
 
@@ -51,7 +62,7 @@ class AdminDashboardController:
         total_reportes = ReporteModel.query.count()
 
         reportes_abiertos = ReporteModel.query.filter(
-            ReporteModel.estado != ReporteFalla.ESTADO_RESUELTO
+            ReporteModel.estado.in_(ReporteFalla.ESTADOS_ACTIVOS)
         ).count()
 
         reportes_resueltos = ReporteModel.query.filter_by(

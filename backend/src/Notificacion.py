@@ -5,7 +5,7 @@ class Notificacion:
     def __init__(
         self,
         id_notificacion,
-        Usuario_idUsuario,
+        id_usuario,
         titulo,
         mensaje,
         leida,
@@ -14,7 +14,7 @@ class Notificacion:
         usuario=None,
     ):
         self.id_notificacion = id_notificacion
-        self.Usuario_idUsuario = Usuario_idUsuario
+        self.id_usuario = id_usuario
         self.titulo = titulo
         self.mensaje = mensaje
         self.leida = leida
@@ -36,14 +36,14 @@ class Notificacion:
             return False
 
         self.usuario = usuario
-        self.Usuario_idUsuario = id_usuario
+        self.id_usuario = id_usuario
         return True
 
     def tiene_usuario_destino(self):
         return (
             self.usuario is not None
-            or self.Usuario_idUsuario is not None
-            and str(self.Usuario_idUsuario).strip() != ""
+            or self.id_usuario is not None
+            and str(self.id_usuario).strip() != ""
         )
 
     @staticmethod
@@ -77,7 +77,7 @@ class Notificacion:
         if not id_usuario:
             return False
 
-        return str(self.Usuario_idUsuario) == str(id_usuario)
+        return str(self.id_usuario) == str(id_usuario)
 
     def puede_ser_modificada_por_usuario(self, usuario):
         if usuario is None:
@@ -98,7 +98,7 @@ class Notificacion:
     def to_dict(self):
         return {
             "id_notificacion": self.id_notificacion,
-            "Usuario_idUsuario": self.Usuario_idUsuario,
+            "id_usuario": self.id_usuario,
             "titulo": self.titulo,
             "mensaje": self.mensaje,
             "leida": self.leida,

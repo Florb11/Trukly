@@ -127,6 +127,16 @@ class Camion:
 
         return self.marcar_disponible()
 
+    def ajustar_estado_por_reportes_activos(self, cantidad_reportes_activos):
+        if (
+            cantidad_reportes_activos > 0
+            and self.estado == self.ESTADO_DISPONIBLE
+        ):
+            self.estado = self.ESTADO_EN_MANTENIMIENTO
+            return True
+
+        return False
+
     def to_dict(self):
         return {
             "id_camion": self.id_camion,

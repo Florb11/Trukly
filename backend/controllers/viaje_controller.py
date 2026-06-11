@@ -222,13 +222,13 @@ class ViajeController:
             estado=viaje_model.estado,
             observaciones=viaje_model.observaciones,
             recorrido=viaje_model.recorrido,
-            OperadorLogistico_Usuario_idUsuario=(
+            id_operador=(
                 viaje_model.OperadorLogistico_Usuario_idUsuario
             ),
-            Chofer_Usuario_idUsuario=(
+            id_chofer=(
                 viaje_model.Chofer_Usuario_idUsuario
             ),
-            Camion_id_camion=viaje_model.Camion_id_camion,
+            id_camion=viaje_model.Camion_id_camion,
             operador=operador,
             chofer=chofer,
             camion=camion,
@@ -245,10 +245,10 @@ class ViajeController:
             observaciones=viaje.observaciones,
             recorrido=viaje.recorrido,
             OperadorLogistico_Usuario_idUsuario=(
-                viaje.OperadorLogistico_Usuario_idUsuario
+                viaje.id_operador
             ),
-            Chofer_Usuario_idUsuario=viaje.Chofer_Usuario_idUsuario,
-            Camion_id_camion=viaje.Camion_id_camion,
+            Chofer_Usuario_idUsuario=viaje.id_chofer,
+            Camion_id_camion=viaje.id_camion,
         )
 
     @staticmethod
@@ -261,12 +261,12 @@ class ViajeController:
         viaje_model.observaciones = viaje.observaciones
         viaje_model.recorrido = viaje.recorrido
         viaje_model.OperadorLogistico_Usuario_idUsuario = (
-            viaje.OperadorLogistico_Usuario_idUsuario
+            viaje.id_operador
         )
         viaje_model.Chofer_Usuario_idUsuario = (
-            viaje.Chofer_Usuario_idUsuario
+            viaje.id_chofer
         )
-        viaje_model.Camion_id_camion = viaje.Camion_id_camion
+        viaje_model.Camion_id_camion = viaje.id_camion
 
     @staticmethod
     def obtener_viajes_por_rol(rol, id_usuario):
@@ -407,9 +407,9 @@ class ViajeController:
             estado=datos_viaje["estado"],
             observaciones=datos_viaje["observaciones"],
             recorrido=datos_viaje["recorrido"],
-            OperadorLogistico_Usuario_idUsuario=None,
-            Chofer_Usuario_idUsuario=None,
-            Camion_id_camion=None,
+            id_operador=None,
+            id_chofer=None,
+            id_camion=None,
         )
 
         operador.gestionar_viaje(viaje)
