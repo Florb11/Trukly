@@ -17,12 +17,29 @@ from src.Usuario import Usuario
 from utils.auth_decorators import admin_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+from utils.validation_composite import (
+    CampoObligatorio,
+    ValidacionCondicional,
+    ValidacionFuncion,
+    ValidadorCompuesto,
+    ValorPermitido,
+)
 
 
 logger = get_app_logger()
 
 
 class AdminUsuariosController:
+    CAMPOS_REGISTRO_USUARIO = [
+        "username",
+        "email",
+        "password",
+        "nombre",
+        "apellido",
+        "estado",
+        "rol",
+        "legajo",
+    ]
 
     @staticmethod
     def _sanitizar_datos_usuario(datos):
@@ -43,6 +60,180 @@ class AdminUsuariosController:
             campos_email=["email"],
             campos_password=["password"],
         )
+
+    @staticmethod
+    def _crear_validador_campos_obligatorios(campos):
+        validador = ValidadorCompuesto()
+
+        for campo in campos:
+            validador.agregar(CampoObligatorio(campo))
+
+        return validador
+
+    @staticmethod
+    def _crear_validador_datos_chofer():
+        return ValidadorCompuesto(
+            [
+                CampoObligatorio("licencia"),
+                CampoObligatorio("vencimientoLicencia"),
+                ValidacionFuncion(
+                    "licencia",
+                    Chofer.validar_licencia
+                ),
+                ValidacionFuncion(
+                    "vencimientoLicencia",
+                    Chofer.validar_vencimiento_licencia
+                ),
+            ]
+        )
+
+    @staticmethod
+    def _crear_validador_datos_mecanico():
+        return ValidadorCompuesto(
+            [
+                CampoObligatorio("especialidad"),
+            ]
+        )
+
+    @staticmethod
+    def _crear_validador_datos_operador():
+        return ValidadorCompuesto(
+            [
+                CampoObligatorio("sector"),
+            ]
+        )
+
+    @staticmethod
+    def _crear_validador_registro_usuario():
+        validador = (
+            AdminUsuariosController
+            ._crear_validador_campos_obligatorios(
+                AdminUsuariosController.CAMPOS_REGISTRO_USUARIO
+            )
+        )
+
+        validador.agregar(
+            ValorPermitido(
+                "rol",
+                Usuario.ROLES_VALIDOS,
+                "Rol"
+            )
+        )
+        validador.agregar(
+            ValorPermitido(
+                "estado",
+                Usuario.ESTADOS_VALIDOS,
+                "Estado"
+            )
+        )
+        validador.agregar(
+            ValidacionFuncion(
+                "password",
+                Usuario.validar_password_registro
+            )
+        )
+        validador.agregar(
+            ValidacionCondicional(
+                lambda datos: datos.get("rol") == Usuario.ROL_CHOFER,
+                AdminUsuariosController._crear_validador_datos_chofer()
+            )
+        )
+        validador.agregar(
+            ValidacionCondicional(
+                lambda datos: datos.get("rol") == Usuario.ROL_MECANICO,
+                AdminUsuariosController._crear_validador_datos_mecanico()
+            )
+        )
+        validador.agregar(
+            ValidacionCondicional(
+                lambda datos: datos.get("rol") == Usuario.ROL_OPERADOR,
+                AdminUsuariosController._crear_validador_datos_operador()
+            )
+        )
+
+        return validador
+
+    @staticmethod
+    def _validar_datos_especificos_por_rol(rol, datos):
+        if rol == Usuario.ROL_CHOFER:
+            validador = (
+                AdminUsuariosController._crear_validador_datos_chofer()
+            )
+            datos_validos, mensaje_error = validador.validar(datos)
+
+            if datos_validos:
+                datos["vencimientoLicencia"] = (
+                    Chofer.convertir_vencimiento_licencia(
+                        datos["vencimientoLicencia"]
+                    )
+                )
+
+            return datos_validos, mensaje_error
+
+        if rol == Usuario.ROL_MECANICO:
+            validador = (
+                AdminUsuariosController._crear_validador_datos_mecanico()
+            )
+            return validador.validar(datos)
+
+        if rol == Usuario.ROL_OPERADOR:
+            validador = (
+                AdminUsuariosController._crear_validador_datos_operador()
+            )
+            return validador.validar(datos)
+
+        return True, None
+
+    @staticmethod
+    def _validar_datos_registro_usuario(datos):
+        validador = (
+            AdminUsuariosController._crear_validador_registro_usuario()
+        )
+        datos_validos, mensaje_error = validador.validar(datos)
+
+        if not datos_validos:
+            return False, mensaje_error
+
+        if datos["rol"] == Usuario.ROL_CHOFER:
+            datos["vencimientoLicencia"] = (
+                Chofer.convertir_vencimiento_licencia(
+                    datos["vencimientoLicencia"]
+                )
+            )
+
+        return True, None
+
+    @staticmethod
+    def _validar_datos_especificos_modificacion(
+        rol,
+        datos,
+        datos_actuales
+    ):
+        datos_validados = dict(datos_actuales)
+
+        for campo, valor in datos.items():
+            if campo in datos_validados:
+                datos_validados[campo] = valor
+
+        legajo_valido, mensaje_error = CampoObligatorio(
+            "legajo",
+            "El legajo es obligatorio"
+        ).validar(datos_validados)
+
+        if not legajo_valido:
+            return False, mensaje_error, None
+
+        valido, mensaje_error = (
+            AdminUsuariosController._validar_datos_especificos_por_rol(
+                rol,
+                datos_validados
+            )
+        )
+
+        if not valido:
+            return False, mensaje_error, None
+
+        return True, None, datos_validados
 
     @staticmethod
     def _crear_usuario_clase(usuario_db):
@@ -254,7 +445,7 @@ class AdminUsuariosController:
         return None
 
     @staticmethod
-    def _actualizar_datos_especificos(admin, usuario_db, datos):
+    def _actualizar_datos_especificos(usuario_db, datos):
         if usuario_db.rol == Usuario.ROL_ADMIN:
             administrador = AdministradorModel.query.get(
                 usuario_db.id_usuario
@@ -262,7 +453,7 @@ class AdminUsuariosController:
 
             if administrador:
                 datos_validos, mensaje_error, datos_validados = (
-                    admin.validar_datos_especificos_modificacion(
+                    AdminUsuariosController._validar_datos_especificos_modificacion(
                         usuario_db.rol,
                         datos,
                         {
@@ -281,7 +472,7 @@ class AdminUsuariosController:
 
             if chofer:
                 datos_validos, mensaje_error, datos_validados = (
-                    admin.validar_datos_especificos_modificacion(
+                    AdminUsuariosController._validar_datos_especificos_modificacion(
                         usuario_db.rol,
                         datos,
                         {
@@ -308,7 +499,7 @@ class AdminUsuariosController:
 
             if mecanico:
                 datos_validos, mensaje_error, datos_validados = (
-                    admin.validar_datos_especificos_modificacion(
+                    AdminUsuariosController._validar_datos_especificos_modificacion(
                         usuario_db.rol,
                         datos,
                         {
@@ -329,7 +520,7 @@ class AdminUsuariosController:
 
             if operador:
                 datos_validos, mensaje_error, datos_validados = (
-                    admin.validar_datos_especificos_modificacion(
+                    AdminUsuariosController._validar_datos_especificos_modificacion(
                         usuario_db.rol,
                         datos,
                         {
@@ -561,7 +752,6 @@ class AdminUsuariosController:
 
         datos_actualizados, mensaje_error = (
             AdminUsuariosController._actualizar_datos_especificos(
-                admin,
                 usuario_db,
                 datos
             )
@@ -608,7 +798,7 @@ class AdminUsuariosController:
             }), 400
 
         datos_validos, mensaje_error = (
-            admin.validar_datos_registro_usuario(datos)
+            AdminUsuariosController._validar_datos_registro_usuario(datos)
         )
 
         if not datos_validos:
@@ -701,4 +891,3 @@ class AdminUsuariosController:
             "mensaje": "Usuario registrado correctamente",
             "usuario": datos_usuario
         }), 201
-        

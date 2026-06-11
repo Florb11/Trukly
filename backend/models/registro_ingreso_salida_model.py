@@ -1,7 +1,7 @@
 from db_instance import db
 
 
-class RegistroModel(db.Model):
+class RegistroIngresoSalidaModel(db.Model):
     __tablename__ = "RegistroIngresoSalida"
 
     id_registro = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -9,8 +9,12 @@ class RegistroModel(db.Model):
     tipo_registro = db.Column(db.String(45), nullable=False)
     observacion = db.Column(db.String(45))
     
-    # Clave foránea
-    Viaje_id_viaje = db.Column(db.Integer, db.ForeignKey('Viaje.id_viaje'), nullable=False)
+    # Clave foranea
+    Viaje_id_viaje = db.Column(
+        db.Integer,
+        db.ForeignKey("Viaje.id_viaje"),
+        nullable=False
+    )
 
     def to_dict(self):
         return {

@@ -71,12 +71,6 @@ class Notificacion:
 
         return True
 
-    def puede_ser_modificada_por(self, id_usuario, rol):
-        if rol == Usuario.ROL_ADMIN:
-            return True
-
-        return str(self.Usuario_idUsuario) == str(id_usuario)
-
     def pertenece_a_usuario(self, usuario):
         id_usuario = self.obtener_id_usuario(usuario)
 
@@ -93,13 +87,6 @@ class Notificacion:
             return True
 
         return self.pertenece_a_usuario(usuario)
-
-    def marcar_como_leida(self, id_usuario, rol):
-        if not self.puede_ser_modificada_por(id_usuario, rol):
-            return False
-
-        self.leida = True
-        return True
 
     def marcar_como_leida_por(self, usuario):
         if not self.puede_ser_modificada_por_usuario(usuario):

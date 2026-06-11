@@ -15,6 +15,12 @@ from services.auth_service import AuthService
 from utils.auth_decorators import roles_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+from utils.validation_composite import (
+    CampoObligatorio,
+    ValidacionDatos,
+    ValidadorCompuesto,
+    ValorPermitido,
+)
 
 
 logger = get_app_logger()
@@ -29,6 +35,83 @@ class ViajeController:
     @staticmethod
     def obtener_rol_actual():
         return AuthService.obtener_rol_actual()
+
+    @staticmethod
+    def validar_fecha_salida(datos):
+        if Viaje.convertir_fecha(datos.get("fecha_salida")) is None:
+            return False, "La fecha de salida no es valida"
+
+        return True, None
+
+    @staticmethod
+    def validar_fecha_llegada(datos):
+        fecha_llegada = (
+            datos.get("fecha_llegada")
+            or datos.get("fecha_estimada_llegada")
+        )
+
+        if fecha_llegada and Viaje.convertir_fecha(fecha_llegada) is None:
+            return False, "La fecha de llegada no es valida"
+
+        return True, None
+
+    @staticmethod
+    def validar_recorrido(datos):
+        recorrido = datos.get("recorrido", 0)
+
+        if recorrido is None:
+            return False, "El recorrido no es valido"
+
+        if recorrido < 0:
+            return False, "El recorrido no puede ser negativo"
+
+        return True, None
+
+    @staticmethod
+    def crear_validador_creacion_viaje():
+        return ValidadorCompuesto(
+            [
+                CampoObligatorio("fecha_salida"),
+                CampoObligatorio("origen"),
+                CampoObligatorio("destino"),
+                ValidacionDatos(ViajeController.validar_fecha_salida),
+                ValidacionDatos(ViajeController.validar_fecha_llegada),
+                ValorPermitido(
+                    "estado",
+                    Viaje.ESTADOS_VALIDOS,
+                    "Estado"
+                ),
+                ValidacionDatos(ViajeController.validar_recorrido),
+            ]
+        )
+
+    @staticmethod
+    def crear_validador_cancelacion_viaje():
+        return ValidadorCompuesto(
+            [
+                CampoObligatorio(
+                    "motivo",
+                    "Tenes que ingresar un motivo de cancelacion"
+                ),
+            ]
+        )
+
+    @staticmethod
+    def preparar_datos_viaje(datos):
+        fecha_llegada = (
+            datos.get("fecha_llegada")
+            or datos.get("fecha_estimada_llegada")
+        )
+
+        return {
+            "fecha_salida": Viaje.convertir_fecha(datos["fecha_salida"]),
+            "fecha_llegada": Viaje.convertir_fecha(fecha_llegada),
+            "origen": datos["origen"],
+            "destino": datos["destino"],
+            "estado": datos.get("estado", Viaje.ESTADO_PENDIENTE),
+            "observaciones": datos.get("observaciones"),
+            "recorrido": datos.get("recorrido", 0),
+        }
 
     @staticmethod
     def crear_objeto_camion(camion_model):
@@ -275,15 +358,16 @@ class ViajeController:
             campos_decimales=["recorrido"],
         )
 
-        campos_obligatorios = [
-            "fecha_salida",
-            "origen",
-            "destino",
-        ]
+        datos["estado"] = str(
+            datos.get("estado") or Viaje.ESTADO_PENDIENTE
+        ).strip().lower()
+        datos["recorrido"] = datos.get("recorrido", 0)
 
-        for campo in campos_obligatorios:
-            if campo not in datos or str(datos[campo]).strip() == "":
-                return jsonify({"mensaje": f"Falta el campo {campo}"}), 400
+        validador = ViajeController.crear_validador_creacion_viaje()
+        datos_validos, mensaje_error = validador.validar(datos)
+
+        if not datos_validos:
+            return jsonify({"mensaje": mensaje_error}), 400
 
         id_operador = (
             datos.get("OperadorLogistico_Usuario_idUsuario")
@@ -312,18 +396,17 @@ class ViajeController:
         if camion is None:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
 
+        datos_viaje = ViajeController.preparar_datos_viaje(datos)
+
         viaje = Viaje(
             id_viaje=None,
-            fecha_salida=datos["fecha_salida"],
-            fecha_llegada=(
-                datos.get("fecha_llegada")
-                or datos.get("fecha_estimada_llegada")
-            ),
-            origen=datos["origen"],
-            destino=datos["destino"],
-            estado=datos.get("estado", Viaje.ESTADO_PENDIENTE),
-            observaciones=datos.get("observaciones"),
-            recorrido=datos.get("recorrido", 0),
+            fecha_salida=datos_viaje["fecha_salida"],
+            fecha_llegada=datos_viaje["fecha_llegada"],
+            origen=datos_viaje["origen"],
+            destino=datos_viaje["destino"],
+            estado=datos_viaje["estado"],
+            observaciones=datos_viaje["observaciones"],
+            recorrido=datos_viaje["recorrido"],
             OperadorLogistico_Usuario_idUsuario=None,
             Chofer_Usuario_idUsuario=None,
             Camion_id_camion=None,
@@ -338,7 +421,6 @@ class ViajeController:
                 "mensaje": "Los datos del viaje no son validos"
             }), 400
 
-        viaje.normalizar_datos()
         nuevo_viaje = ViajeController.crear_modelo_viaje(viaje)
 
         try:
@@ -383,10 +465,11 @@ class ViajeController:
         )
         motivo = datos.get("motivo")
 
-        if not motivo or motivo.strip() == "":
-            return jsonify({
-                "mensaje": "Tenes que ingresar un motivo de cancelacion"
-            }), 400
+        validador = ViajeController.crear_validador_cancelacion_viaje()
+        datos_validos, mensaje_error = validador.validar(datos)
+
+        if not datos_validos:
+            return jsonify({"mensaje": mensaje_error}), 400
 
         viaje_model = ViajeModel.query.get(id_viaje)
 

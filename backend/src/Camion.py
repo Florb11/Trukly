@@ -126,13 +126,6 @@ class Camion:
             return False
 
         return self.marcar_disponible()
-    # porcentaje d camiones disponible para el dash
-    @staticmethod
-    def calcular_porcentaje_disponible(camiones_disponibles, camiones_totales):
-        if camiones_totales == 0:
-            return 0
-
-        return round((camiones_disponibles / camiones_totales) * 100) # round redondear un numero a una cantidad especifica de decimales
 
     def to_dict(self):
         return {

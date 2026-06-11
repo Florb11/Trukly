@@ -9,6 +9,12 @@ from src.ReporteFalla import ReporteFalla
 from utils.auth_decorators import admin_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+from utils.validation_composite import (
+    CampoObligatorio,
+    ValidacionDatos,
+    ValidadorCompuesto,
+    ValorPermitido,
+)
 
 
 logger = get_app_logger()
@@ -18,7 +24,7 @@ class CamionController:
 
     @staticmethod
     def _sanitizar_datos_camion(datos):
-        return InputSanitizer.sanitizar_campos(
+        datos_limpios = InputSanitizer.sanitizar_campos(
             datos,
             campos_texto=[
                 "matricula",
@@ -30,38 +36,101 @@ class CamionController:
             campos_decimales=["capacidad_carga"],
         )
 
+        if datos_limpios.get("estado") is not None:
+            datos_limpios["estado"] = str(datos_limpios["estado"]).lower()
+
+        return datos_limpios
+
+    @staticmethod
+    def _preparar_datos_camion(datos, camion_db=None):
+        return {
+            "matricula": datos.get(
+                "matricula",
+                camion_db.matricula if camion_db else None
+            ),
+            "marca": datos.get(
+                "marca",
+                camion_db.marca if camion_db else None
+            ),
+            "modelo": datos.get(
+                "modelo",
+                camion_db.modelo if camion_db else None
+            ),
+            "capacidad_carga": datos.get(
+                "capacidad_carga",
+                camion_db.capacidad_carga if camion_db else None
+            ),
+            "estado": datos.get(
+                "estado",
+                camion_db.estado if camion_db else None
+            ),
+            "nroTanque": datos.get(
+                "nroTanque",
+                camion_db.nroTanque if camion_db else None
+            ),
+        }
+
+    @staticmethod
+    def _validar_capacidad_carga(datos):
+        capacidad_carga = datos.get("capacidad_carga")
+
+        if capacidad_carga is None:
+            return False, "La capacidad de carga es obligatoria"
+
+        if capacidad_carga <= 0:
+            return False, "La capacidad de carga debe ser mayor a 0"
+
+        return True, None
+
+    @staticmethod
+    def _validar_nro_tanque(datos):
+        nro_tanque = datos.get("nroTanque")
+
+        if nro_tanque is None:
+            return False, "El numero de tanque es obligatorio"
+
+        if nro_tanque <= 0:
+            return False, "El numero de tanque debe ser mayor a 0"
+
+        return True, None
+
+    @staticmethod
+    def _crear_validador_camion():
+        return ValidadorCompuesto(
+            [
+                CampoObligatorio("matricula"),
+                CampoObligatorio("marca"),
+                CampoObligatorio("modelo"),
+                CampoObligatorio("estado"),
+                ValorPermitido(
+                    "estado",
+                    Camion.ESTADOS_VALIDOS,
+                    "Estado"
+                ),
+                ValidacionDatos(CamionController._validar_capacidad_carga),
+                ValidacionDatos(CamionController._validar_nro_tanque),
+            ]
+        )
+
     @staticmethod
     def _crear_camion_clase(
         datos,
         id_camion=None,
         camion_db=None
     ):
+        datos_camion = CamionController._preparar_datos_camion(
+            datos,
+            camion_db
+        )
+
         return Camion(
             id_camion,
-            datos.get(
-                "matricula",
-                camion_db.matricula if camion_db else None
-            ),
-            datos.get(
-                "marca",
-                camion_db.marca if camion_db else None
-            ),
-            datos.get(
-                "modelo",
-                camion_db.modelo if camion_db else None
-            ),
-            datos.get(
-                "capacidad_carga",
-                camion_db.capacidad_carga if camion_db else None
-            ),
-            datos.get(
-                "estado",
-                camion_db.estado if camion_db else None
-            ),
-            datos.get(
-                "nroTanque",
-                camion_db.nroTanque if camion_db else None
-            ),
+            datos_camion["matricula"],
+            datos_camion["marca"],
+            datos_camion["modelo"],
+            datos_camion["capacidad_carga"],
+            datos_camion["estado"],
+            datos_camion["nroTanque"],
         )
 
     @staticmethod
@@ -152,6 +221,12 @@ class CamionController:
             request.get_json(silent=True) or {}
         )
 
+        validador = CamionController._crear_validador_camion()
+        datos_validos, mensaje_error = validador.validar(datos)
+
+        if not datos_validos:
+            return jsonify({"mensaje": mensaje_error}), 400
+
         camion_clase = CamionController._crear_camion_clase(datos)
 
         if not admin.registrar_camion(camion_clase):
@@ -203,8 +278,18 @@ class CamionController:
             request.get_json(silent=True) or {}
         )
 
-        camion_clase = CamionController._crear_camion_clase(
+        datos_camion = CamionController._preparar_datos_camion(
             datos,
+            camion_db
+        )
+        validador = CamionController._crear_validador_camion()
+        datos_validos, mensaje_error = validador.validar(datos_camion)
+
+        if not datos_validos:
+            return jsonify({"mensaje": mensaje_error}), 400
+
+        camion_clase = CamionController._crear_camion_clase(
+            datos_camion,
             camion_db.id_camion,
             camion_db
         )
@@ -264,6 +349,26 @@ class CamionController:
             campos_texto=["estado"],
         )
         nuevo_estado = datos.get("estado")
+
+        if nuevo_estado is not None:
+            nuevo_estado = str(nuevo_estado).lower()
+
+        validador = ValidadorCompuesto(
+            [
+                CampoObligatorio("estado"),
+                ValorPermitido(
+                    "estado",
+                    Camion.ESTADOS_VALIDOS,
+                    "Estado"
+                ),
+            ]
+        )
+        datos_validos, mensaje_error = validador.validar({
+            "estado": nuevo_estado
+        })
+
+        if not datos_validos:
+            return jsonify({"mensaje": mensaje_error}), 400
 
         camion_clase = CamionController._crear_camion_clase(
             {},

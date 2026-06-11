@@ -10,12 +10,22 @@ from services.auth_service import AuthService
 from utils.auth_decorators import admin_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+from utils.validation_composite import CampoObligatorio, ValidadorCompuesto
 
 
 logger = get_app_logger()
 
 
 class AdministradorController:
+
+    @staticmethod
+    def _crear_validador_administrador():
+        return ValidadorCompuesto(
+            [
+                CampoObligatorio("Usuario_idUsuario"),
+                CampoObligatorio("legajo"),
+            ]
+        )
 
     @staticmethod
     @admin_required
@@ -48,28 +58,15 @@ class AdministradorController:
             campos_enteros=["Usuario_idUsuario"],
         )
 
-        if not datos:
-            return jsonify({
-                "mensaje": "No se recibieron datos"
-            }), 400
+        validador = AdministradorController._crear_validador_administrador()
+        datos_validos, mensaje_error = validador.validar(datos)
 
-        if not datos.get("Usuario_idUsuario"):
+        if not datos_validos:
             return jsonify({
-                "mensaje": "Falta el campo Usuario_idUsuario"
-            }), 400
-
-        if not datos.get("legajo") or str(datos["legajo"]).strip() == "":
-            return jsonify({
-                "mensaje": "Falta el campo legajo"
+                "mensaje": mensaje_error
             }), 400
 
         id_usuario = datos["Usuario_idUsuario"]
-
-        if id_usuario is None:
-            return jsonify({
-                "mensaje": "Usuario_idUsuario no valido"
-            }), 400
-
         legajo = datos["legajo"]
 
         usuario = UsuarioModel.query.get(id_usuario)

@@ -22,12 +22,47 @@ from utils.auth_decorators import obtener_admin_actual_desde_token
 from utils.auth_decorators import roles_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
+from utils.validation_composite import (
+    CampoObligatorio,
+    ValidadorCompuesto,
+    ValorPermitido,
+)
 
 
 logger = get_app_logger()
 
 
 class ReporteController:
+
+    @staticmethod
+    def crear_validador_creacion_reporte():
+        return ValidadorCompuesto(
+            [
+                CampoObligatorio("descripcion"),
+                CampoObligatorio("Camion_id_camion"),
+            ]
+        )
+
+    @staticmethod
+    def crear_validador_cambio_estado():
+        return ValidadorCompuesto(
+            [
+                CampoObligatorio("estado"),
+                ValorPermitido(
+                    "estado",
+                    ReporteFalla.ESTADOS_VALIDOS,
+                    "Estado"
+                ),
+            ]
+        )
+
+    @staticmethod
+    def crear_validador_asignacion_mecanico():
+        return ValidadorCompuesto(
+            [
+                CampoObligatorio("Mecanico_Usuario_idUsuario"),
+            ]
+        )
 
     @staticmethod
     def crear_objeto_camion(camion_model):
@@ -304,6 +339,12 @@ class ReporteController:
             campos_texto=["descripcion"],
             campos_enteros=["Camion_id_camion"],
         )
+        validador = ReporteController.crear_validador_creacion_reporte()
+        datos_validos, mensaje_error = validador.validar(datos)
+
+        if not datos_validos:
+            return jsonify({"mensaje": mensaje_error}), 400
+
         id_chofer = AuthService.obtener_id_usuario_actual()
 
         camion_id = datos.get("Camion_id_camion")
@@ -379,6 +420,14 @@ class ReporteController:
             request.get_json(silent=True) or {},
             campos_texto=["estado"],
         )
+        datos["estado"] = str(datos.get("estado") or "").strip().lower()
+
+        validador = ReporteController.crear_validador_cambio_estado()
+        datos_validos, mensaje_error = validador.validar(datos)
+
+        if not datos_validos:
+            return jsonify({"mensaje": mensaje_error}), 400
+
         nuevo_estado = datos.get("estado")
 
         reporte_clase = ReporteController.crear_objeto_reporte(reporte_db)
@@ -441,6 +490,12 @@ class ReporteController:
             request.get_json(silent=True) or {},
             campos_enteros=["Mecanico_Usuario_idUsuario"],
         )
+        validador = ReporteController.crear_validador_asignacion_mecanico()
+        datos_validos, mensaje_error = validador.validar(datos)
+
+        if not datos_validos:
+            return jsonify({"mensaje": mensaje_error}), 400
+
         id_mecanico = datos.get("Mecanico_Usuario_idUsuario")
 
         mecanico = ReporteController.obtener_mecanico_clase(id_mecanico)
