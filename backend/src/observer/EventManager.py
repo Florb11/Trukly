@@ -1,6 +1,6 @@
 class EventManager:
-    #Esto es el centro del patron:
-    # guarda qué objetos estan escuchando cada evento y, cuando pasa algo, les avisa
+    # Esto es el centro del patron:
+    # guarda que objetos estan escuchando cada evento y, cuando pasa algo, les avisa
     def __init__(self):
         self.suscriptores = {}
 

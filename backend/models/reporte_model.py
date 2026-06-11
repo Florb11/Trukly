@@ -30,16 +30,18 @@ class ReporteModel(db.Model):
     )
 
     def to_dict(self):
-     return {
-        "id_reporte": self.id_reporte,
-        "fecha_hora": self.fecha_hora.strftime("%Y-%m-%d %H:%M:%S"),
-        "descripcion": self.descripcion,
-        "estado": self.estado,
-        "Camion_id_camion": self.Camion_id_camion,
-        "Mecanico_Usuario_idUsuario": self.Mecanico_Usuario_idUsuario,
-        "Chofer_Usuario_idUsuario": self.Chofer_Usuario_idUsuario,
-        "nota_reparacion": self.nota_reparacion,
-        "fecha_resolucion": self.fecha_resolucion.strftime("%Y-%m-%d %H:%M:%S")
-        if self.fecha_resolucion
-        else None,
-    }
+        return {
+            "id_reporte": self.id_reporte,
+            "fecha_hora": self.fecha_hora.strftime("%Y-%m-%d %H:%M:%S"),
+            "descripcion": self.descripcion,
+            "estado": self.estado,
+            "Camion_id_camion": self.Camion_id_camion,
+            "Mecanico_Usuario_idUsuario": self.Mecanico_Usuario_idUsuario,
+            "Chofer_Usuario_idUsuario": self.Chofer_Usuario_idUsuario,
+            "nota_reparacion": self.nota_reparacion,
+            "fecha_resolucion": (
+                self.fecha_resolucion.strftime("%Y-%m-%d %H:%M:%S")
+                if self.fecha_resolucion
+                else None
+            ),
+        }

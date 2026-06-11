@@ -9,9 +9,12 @@ class CargaModel(db.Model):
     tipo = db.Column(db.String(45), nullable=False)
     peso = db.Column(db.String(45), nullable=False)
     estado = db.Column(db.String(45), nullable=False)
-    
-#    Otra clave foranea a verificar con postman
-    Viaje_id_viaje = db.Column(db.Integer, db.ForeignKey('Viaje.id_viaje'), nullable=False)
+
+    Viaje_id_viaje = db.Column(
+        db.Integer,
+        db.ForeignKey("Viaje.id_viaje"),
+        nullable=False
+    )
 
     def to_dict(self):
         return {
@@ -20,5 +23,5 @@ class CargaModel(db.Model):
             "tipo": self.tipo,
             "peso": self.peso,
             "estado": self.estado,
-            "Viaje_id_viaje": self.Viaje_id_viaje
+            "Viaje_id_viaje": self.Viaje_id_viaje,
         }

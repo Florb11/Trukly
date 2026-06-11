@@ -31,6 +31,25 @@ class Mecanico(Usuario):
         self.especialidad = especialidad
         self.reportes_asignados = reportes_asignados or []
 
+    @classmethod
+    def crear_desde_datos(cls, datos):
+        if datos is None:
+            return None
+
+        return cls(
+            id_usuario=datos.get("id_usuario"),
+            username=datos.get("username"),
+            email=datos.get("email"),
+            password=datos.get("password"),
+            nombre=datos.get("nombre"),
+            apellido=datos.get("apellido"),
+            estado=datos.get("estado"),
+            rol=datos.get("rol"),
+            legajo=datos.get("legajo"),
+            especialidad=datos.get("especialidad"),
+            foto_perfil=datos.get("foto_perfil"),
+        )
+
     # verifica si el reporte pertenece al mecanico
     def puede_ver_reporte(self, reporte):
         if reporte is None:

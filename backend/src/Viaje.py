@@ -1,13 +1,13 @@
 from datetime import date, datetime
 
 from src.Usuario import Usuario
+from utils.domain_helpers import formatear_fecha, texto_valido
 
 
 class Viaje:
     ESTADO_PENDIENTE = "pendiente"
     ESTADO_ACEPTADO = "aceptado"
     ESTADO_EN_CURSO = "en curso"
-    ESTADO_EN_CURSO_ALTERNATIVO = "en-curso"
     ESTADO_FINALIZADO = "finalizado"
     ESTADO_CANCELADO = "cancelado"
 
@@ -20,7 +20,6 @@ class Viaje:
     ]
     ESTADOS_EN_CURSO = [
         ESTADO_EN_CURSO,
-        ESTADO_EN_CURSO_ALTERNATIVO,
     ]
 
     def __init__(
@@ -33,9 +32,9 @@ class Viaje:
         estado,
         observaciones,
         recorrido,
-        OperadorLogistico_Usuario_idUsuario,
-        Chofer_Usuario_idUsuario,
-        Camion_id_camion,
+        id_operador,
+        id_chofer,
+        id_camion,
         operador=None,
         chofer=None,
         camion=None,
@@ -50,9 +49,9 @@ class Viaje:
         self.estado = estado
         self.observaciones = observaciones
         self.recorrido = recorrido
-        self.OperadorLogistico_Usuario_idUsuario = OperadorLogistico_Usuario_idUsuario
-        self.Chofer_Usuario_idUsuario = Chofer_Usuario_idUsuario
-        self.Camion_id_camion = Camion_id_camion
+        self.id_operador = id_operador
+        self.id_chofer = id_chofer
+        self.id_camion = id_camion
         self.operador = operador
         self.chofer = chofer
         self.camion = camion
@@ -73,6 +72,49 @@ class Viaje:
 
         return getattr(camion, "id_camion", None)
 
+    @classmethod
+    def crear_desde_datos(
+        cls,
+        datos,
+        id_viaje=None,
+        operador=None,
+        chofer=None,
+        camion=None,
+    ):
+        viaje = cls(
+            id_viaje=id_viaje,
+            fecha_salida=datos.get("fecha_salida"),
+            fecha_llegada=datos.get("fecha_llegada"),
+            origen=datos.get("origen"),
+            destino=datos.get("destino"),
+            estado=datos.get("estado", cls.ESTADO_PENDIENTE),
+            observaciones=datos.get("observaciones"),
+            recorrido=datos.get("recorrido", 0),
+            id_operador=datos.get("id_operador"),
+            id_chofer=datos.get("id_chofer"),
+            id_camion=datos.get("id_camion"),
+        )
+
+        if operador is not None:
+            if viaje.tiene_operador_asignado():
+                viaje.operador = operador
+            else:
+                operador.gestionar_viaje(viaje)
+
+        if chofer is not None:
+            if viaje.tiene_chofer_asignado():
+                viaje.chofer = chofer
+            else:
+                chofer.asignar_viaje(viaje)
+
+        if camion is not None:
+            if viaje.tiene_camion_asignado():
+                viaje.camion = camion
+            else:
+                viaje.asignar_camion(camion)
+
+        return viaje
+
     def asignar_operador(self, operador):
         id_operador = self.obtener_id_usuario(operador)
 
@@ -80,7 +122,7 @@ class Viaje:
             return False
 
         self.operador = operador
-        self.OperadorLogistico_Usuario_idUsuario = id_operador
+        self.id_operador = id_operador
         return True
 
     def asignar_chofer(self, chofer):
@@ -90,7 +132,7 @@ class Viaje:
             return False
 
         self.chofer = chofer
-        self.Chofer_Usuario_idUsuario = id_chofer
+        self.id_chofer = id_chofer
         return True
 
     def asignar_camion(self, camion):
@@ -100,25 +142,25 @@ class Viaje:
             return False
 
         self.camion = camion
-        self.Camion_id_camion = id_camion
+        self.id_camion = id_camion
         return True
 
     def tiene_operador_asignado(self):
         return (
             self.operador is not None
-            or self.texto_valido(self.OperadorLogistico_Usuario_idUsuario)
+            or texto_valido(self.id_operador)
         )
 
     def tiene_chofer_asignado(self):
         return (
             self.chofer is not None
-            or self.texto_valido(self.Chofer_Usuario_idUsuario)
+            or texto_valido(self.id_chofer)
         )
 
     def tiene_camion_asignado(self):
         return (
             self.camion is not None
-            or self.texto_valido(self.Camion_id_camion)
+            or texto_valido(self.id_camion)
         )
 
     def agregar_carga(self, carga):
@@ -157,30 +199,30 @@ class Viaje:
             return None
 
     @staticmethod
-    def formatear_fecha(fecha):
-        if fecha is None:
-            return None
-        if hasattr(fecha, "isoformat"):
-            return fecha.isoformat()
-        return fecha
-
-    @staticmethod
-    def texto_valido(valor):
-        return valor is not None and str(valor).strip() != ""
-
-    @staticmethod
     def numero_no_negativo(valor):
         try:
             return float(valor) >= 0
         except (TypeError, ValueError):
             return False
 
+    @staticmethod
+    def normalizar_estado(estado):
+        if estado is None:
+            return None
+
+        estado_limpio = str(estado).strip().lower()
+
+        if estado_limpio == "en-curso":
+            return Viaje.ESTADO_EN_CURSO
+
+        return estado_limpio
+
     def validar_datos(self):
         if self.convertir_fecha(self.fecha_salida) is None:
             return False
-        if not self.texto_valido(self.origen):
+        if not texto_valido(self.origen):
             return False
-        if not self.texto_valido(self.destino):
+        if not texto_valido(self.destino):
             return False
         if not self.validar_estado():
             return False
@@ -197,17 +239,20 @@ class Viaje:
     def validar_estado(self):
         if not self.estado:
             return False
-        return str(self.estado).strip().lower() in self.ESTADOS_VALIDOS
+
+        self.estado = self.normalizar_estado(self.estado)
+
+        return self.estado in self.ESTADOS_VALIDOS
 
     def pertenece_a_chofer(self, chofer):
         id_chofer = self.obtener_id_usuario(chofer) or chofer
 
-        return str(self.Chofer_Usuario_idUsuario) == str(id_chofer)
+        return str(self.id_chofer) == str(id_chofer)
 
     def pertenece_a_operador(self, operador):
         id_operador = self.obtener_id_usuario(operador) or operador
 
-        return str(self.OperadorLogistico_Usuario_idUsuario) == str(id_operador)
+        return str(self.id_operador) == str(id_operador)
 
     def puede_ser_visto_por(self, rol, id_usuario):
         if rol == Usuario.ROL_ADMIN:
@@ -247,14 +292,14 @@ class Viaje:
     def to_dict(self):
         return {
             "id_viaje": self.id_viaje,
-            "fecha_salida": self.formatear_fecha(self.fecha_salida),
-            "fecha_llegada": self.formatear_fecha(self.fecha_llegada),
+            "fecha_salida": formatear_fecha(self.fecha_salida),
+            "fecha_llegada": formatear_fecha(self.fecha_llegada),
             "origen": self.origen,
             "destino": self.destino,
             "estado": self.estado,
             "observaciones": self.observaciones,
             "recorrido": self.recorrido,
-            "OperadorLogistico_Usuario_idUsuario": self.OperadorLogistico_Usuario_idUsuario,
-            "Chofer_Usuario_idUsuario": self.Chofer_Usuario_idUsuario,
-            "Camion_id_camion": self.Camion_id_camion
+            "id_operador": self.id_operador,
+            "id_chofer": self.id_chofer,
+            "id_camion": self.id_camion,
         }

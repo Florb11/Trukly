@@ -108,7 +108,9 @@ class ViajeController:
             "fecha_llegada": Viaje.convertir_fecha(fecha_llegada),
             "origen": datos["origen"],
             "destino": datos["destino"],
-            "estado": datos.get("estado", Viaje.ESTADO_PENDIENTE),
+            "estado": Viaje.normalizar_estado(
+                datos.get("estado", Viaje.ESTADO_PENDIENTE)
+            ),
             "observaciones": datos.get("observaciones"),
             "recorrido": datos.get("recorrido", 0),
         }
@@ -118,14 +120,16 @@ class ViajeController:
         if camion_model is None:
             return None
 
-        return Camion(
-            id_camion=camion_model.id_camion,
-            matricula=camion_model.matricula,
-            marca=camion_model.marca,
-            modelo=camion_model.modelo,
-            capacidad_carga=camion_model.capacidad_carga,
-            estado=camion_model.estado,
-            nroTanque=camion_model.nroTanque,
+        return Camion.crear_desde_datos(
+            {
+                "id_camion": camion_model.id_camion,
+                "matricula": camion_model.matricula,
+                "marca": camion_model.marca,
+                "modelo": camion_model.modelo,
+                "capacidad_carga": camion_model.capacidad_carga,
+                "estado": camion_model.estado,
+                "nroTanque": camion_model.nroTanque,
+            }
         )
 
     @staticmethod
@@ -133,19 +137,21 @@ class ViajeController:
         if usuario_model is None or chofer_model is None:
             return None
 
-        return Chofer(
-            id_usuario=usuario_model.id_usuario,
-            username=usuario_model.username,
-            email=usuario_model.email,
-            password=usuario_model.password,
-            nombre=usuario_model.nombre,
-            apellido=usuario_model.apellido,
-            estado=usuario_model.estado,
-            rol=usuario_model.rol,
-            licencia=chofer_model.licencia,
-            vencimientoLicencia=chofer_model.vencimientoLicencia,
-            legajo=chofer_model.legajo,
-            foto_perfil=usuario_model.foto_perfil,
+        return Chofer.crear_desde_datos(
+            {
+                "id_usuario": usuario_model.id_usuario,
+                "username": usuario_model.username,
+                "email": usuario_model.email,
+                "password": usuario_model.password,
+                "nombre": usuario_model.nombre,
+                "apellido": usuario_model.apellido,
+                "estado": usuario_model.estado,
+                "rol": usuario_model.rol,
+                "licencia": chofer_model.licencia,
+                "vencimientoLicencia": chofer_model.vencimientoLicencia,
+                "legajo": chofer_model.legajo,
+                "foto_perfil": usuario_model.foto_perfil,
+            }
         )
 
     @staticmethod
@@ -153,18 +159,20 @@ class ViajeController:
         if usuario_model is None or operador_model is None:
             return None
 
-        return OperadorLogistico(
-            id_usuario=usuario_model.id_usuario,
-            username=usuario_model.username,
-            email=usuario_model.email,
-            password=usuario_model.password,
-            nombre=usuario_model.nombre,
-            apellido=usuario_model.apellido,
-            estado=usuario_model.estado,
-            rol=usuario_model.rol,
-            legajo=operador_model.legajo,
-            sector=operador_model.sector,
-            foto_perfil=usuario_model.foto_perfil,
+        return OperadorLogistico.crear_desde_datos(
+            {
+                "id_usuario": usuario_model.id_usuario,
+                "username": usuario_model.username,
+                "email": usuario_model.email,
+                "password": usuario_model.password,
+                "nombre": usuario_model.nombre,
+                "apellido": usuario_model.apellido,
+                "estado": usuario_model.estado,
+                "rol": usuario_model.rol,
+                "legajo": operador_model.legajo,
+                "sector": operador_model.sector,
+                "foto_perfil": usuario_model.foto_perfil,
+            }
         )
 
     @staticmethod
@@ -213,22 +221,24 @@ class ViajeController:
                 viaje_model.Camion_id_camion
             )
 
-        return Viaje(
+        return Viaje.crear_desde_datos(
+            {
+                "fecha_salida": viaje_model.fecha_salida,
+                "fecha_llegada": viaje_model.fecha_llegada,
+                "origen": viaje_model.origen,
+                "destino": viaje_model.destino,
+                "estado": viaje_model.estado,
+                "observaciones": viaje_model.observaciones,
+                "recorrido": viaje_model.recorrido,
+                "id_operador": (
+                    viaje_model.OperadorLogistico_Usuario_idUsuario
+                ),
+                "id_chofer": (
+                    viaje_model.Chofer_Usuario_idUsuario
+                ),
+                "id_camion": viaje_model.Camion_id_camion,
+            },
             id_viaje=viaje_model.id_viaje,
-            fecha_salida=viaje_model.fecha_salida,
-            fecha_llegada=viaje_model.fecha_llegada,
-            origen=viaje_model.origen,
-            destino=viaje_model.destino,
-            estado=viaje_model.estado,
-            observaciones=viaje_model.observaciones,
-            recorrido=viaje_model.recorrido,
-            OperadorLogistico_Usuario_idUsuario=(
-                viaje_model.OperadorLogistico_Usuario_idUsuario
-            ),
-            Chofer_Usuario_idUsuario=(
-                viaje_model.Chofer_Usuario_idUsuario
-            ),
-            Camion_id_camion=viaje_model.Camion_id_camion,
             operador=operador,
             chofer=chofer,
             camion=camion,
@@ -245,10 +255,10 @@ class ViajeController:
             observaciones=viaje.observaciones,
             recorrido=viaje.recorrido,
             OperadorLogistico_Usuario_idUsuario=(
-                viaje.OperadorLogistico_Usuario_idUsuario
+                viaje.id_operador
             ),
-            Chofer_Usuario_idUsuario=viaje.Chofer_Usuario_idUsuario,
-            Camion_id_camion=viaje.Camion_id_camion,
+            Chofer_Usuario_idUsuario=viaje.id_chofer,
+            Camion_id_camion=viaje.id_camion,
         )
 
     @staticmethod
@@ -261,12 +271,12 @@ class ViajeController:
         viaje_model.observaciones = viaje.observaciones
         viaje_model.recorrido = viaje.recorrido
         viaje_model.OperadorLogistico_Usuario_idUsuario = (
-            viaje.OperadorLogistico_Usuario_idUsuario
+            viaje.id_operador
         )
         viaje_model.Chofer_Usuario_idUsuario = (
-            viaje.Chofer_Usuario_idUsuario
+            viaje.id_chofer
         )
-        viaje_model.Camion_id_camion = viaje.Camion_id_camion
+        viaje_model.Camion_id_camion = viaje.id_camion
 
     @staticmethod
     def obtener_viajes_por_rol(rol, id_usuario):
@@ -361,6 +371,7 @@ class ViajeController:
         datos["estado"] = str(
             datos.get("estado") or Viaje.ESTADO_PENDIENTE
         ).strip().lower()
+        datos["estado"] = Viaje.normalizar_estado(datos["estado"])
         datos["recorrido"] = datos.get("recorrido", 0)
 
         validador = ViajeController.crear_validador_creacion_viaje()
@@ -398,23 +409,12 @@ class ViajeController:
 
         datos_viaje = ViajeController.preparar_datos_viaje(datos)
 
-        viaje = Viaje(
-            id_viaje=None,
-            fecha_salida=datos_viaje["fecha_salida"],
-            fecha_llegada=datos_viaje["fecha_llegada"],
-            origen=datos_viaje["origen"],
-            destino=datos_viaje["destino"],
-            estado=datos_viaje["estado"],
-            observaciones=datos_viaje["observaciones"],
-            recorrido=datos_viaje["recorrido"],
-            OperadorLogistico_Usuario_idUsuario=None,
-            Chofer_Usuario_idUsuario=None,
-            Camion_id_camion=None,
+        viaje = Viaje.crear_desde_datos(
+            datos_viaje,
+            operador=operador,
+            chofer=chofer,
+            camion=camion,
         )
-
-        operador.gestionar_viaje(viaje)
-        chofer.asignar_viaje(viaje)
-        viaje.asignar_camion(camion)
 
         if not viaje.validar_datos():
             return jsonify({
@@ -499,4 +499,5 @@ class ViajeController:
             "mensaje": "Viaje cancelado correctamente",
             "viaje": viaje_model.to_dict()
         }), 200
+
 

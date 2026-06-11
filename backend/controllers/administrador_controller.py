@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import g, jsonify, request
 
 from db_instance import db
 
@@ -28,6 +28,25 @@ class AdministradorController:
         )
 
     @staticmethod
+    def _preparar_datos_administrador(usuario_db, legajo):
+        datos_admin = usuario_db.to_dict()
+        datos_admin["legajo"] = legajo
+
+        return datos_admin
+
+    @staticmethod
+    def _crear_administrador_clase(admin, usuario_db, legajo):
+        datos_admin = AdministradorController._preparar_datos_administrador(
+            usuario_db,
+            legajo
+        )
+
+        return admin.crear_usuario(
+            datos_admin,
+            usuario_db.password
+        )
+
+    @staticmethod
     @admin_required
     def listar_administradores():
         administradores = AdministradorModel.query.all()
@@ -52,6 +71,8 @@ class AdministradorController:
     @staticmethod
     @admin_required
     def crear_administrador():
+        admin = g.admin_actual
+
         datos = InputSanitizer.sanitizar_campos(
             request.get_json(silent=True) or {},
             campos_texto=["legajo"],
@@ -90,9 +111,22 @@ class AdministradorController:
                 "mensaje": "Este usuario ya tiene datos de administrador"
             }), 409
 
+        administrador_clase = (
+            AdministradorController._crear_administrador_clase(
+                admin,
+                usuario,
+                legajo
+            )
+        )
+
+        if administrador_clase is None:
+            return jsonify({
+                "mensaje": "No se pudo crear el administrador"
+            }), 400
+
         nuevo_administrador = AdministradorModel(
-            Usuario_idUsuario=id_usuario,
-            legajo=legajo
+            Usuario_idUsuario=administrador_clase.id_usuario,
+            legajo=administrador_clase.legajo
         )
 
         try:

@@ -13,6 +13,7 @@ from models.camion_model import CamionModel
 from src.Camion import Camion
 from src.ReporteFalla import ReporteFalla
 from services.auth_service import AuthService
+from services.notificacion_service import NotificacionService
 from utils.auth_decorators import mecanico_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
@@ -41,20 +42,22 @@ class MecanicoController:
 
     @staticmethod
     def crear_objeto_reporte(reporte_model):
-        return ReporteFalla(
-            id_reporte=reporte_model.id_reporte,
-            fecha_hora=reporte_model.fecha_hora,
-            descripcion=reporte_model.descripcion,
-            estado=reporte_model.estado,
-            Camion_id_camion=reporte_model.Camion_id_camion,
-            Mecanico_Usuario_idUsuario=(
-                reporte_model.Mecanico_Usuario_idUsuario
-            ),
-            Chofer_Usuario_idUsuario=(
-                reporte_model.Chofer_Usuario_idUsuario
-            ),
-            nota_reparacion=reporte_model.nota_reparacion,
-            fecha_resolucion=reporte_model.fecha_resolucion,
+        return ReporteFalla.crear_desde_datos(
+            {
+                "id_reporte": reporte_model.id_reporte,
+                "fecha_hora": reporte_model.fecha_hora,
+                "descripcion": reporte_model.descripcion,
+                "estado": reporte_model.estado,
+                "id_camion": reporte_model.Camion_id_camion,
+                "id_mecanico": (
+                    reporte_model.Mecanico_Usuario_idUsuario
+                ),
+                "id_chofer": (
+                    reporte_model.Chofer_Usuario_idUsuario
+                ),
+                "nota_reparacion": reporte_model.nota_reparacion,
+                "fecha_resolucion": reporte_model.fecha_resolucion,
+            }
         )
 
     @staticmethod
@@ -69,21 +72,35 @@ class MecanicoController:
             reporte_model
         )
 
-        return reporte_clase.to_dict()
+        return MecanicoController.preparar_respuesta_reporte_clase(
+            reporte_clase
+        )
+
+    @staticmethod
+    def preparar_respuesta_reporte_clase(reporte_clase):
+        datos = reporte_clase.to_dict()
+
+        datos["Camion_id_camion"] = datos.pop("id_camion")
+        datos["Mecanico_Usuario_idUsuario"] = datos.pop("id_mecanico")
+        datos["Chofer_Usuario_idUsuario"] = datos.pop("id_chofer")
+
+        return datos
 
     @staticmethod
     def crear_objeto_camion(camion_model):
         if camion_model is None:
             return None
 
-        return Camion(
-            id_camion=camion_model.id_camion,
-            matricula=camion_model.matricula,
-            marca=camion_model.marca,
-            modelo=camion_model.modelo,
-            capacidad_carga=camion_model.capacidad_carga,
-            estado=camion_model.estado,
-            nroTanque=camion_model.nroTanque,
+        return Camion.crear_desde_datos(
+            {
+                "id_camion": camion_model.id_camion,
+                "matricula": camion_model.matricula,
+                "marca": camion_model.marca,
+                "modelo": camion_model.modelo,
+                "capacidad_carga": camion_model.capacidad_carga,
+                "estado": camion_model.estado,
+                "nroTanque": camion_model.nroTanque,
+            }
         )
 
     @staticmethod
@@ -202,7 +219,9 @@ class MecanicoController:
             )
 
         event_manager = EventManager()
-        listener_notificacion = NotificacionReporteListener()
+        listener_notificacion = NotificacionReporteListener(
+            NotificacionService.agregar_a_sesion
+        )
 
         event_manager.suscribir(
             "reporte_resuelto",
@@ -263,9 +282,15 @@ class MecanicoController:
             reportes = ReporteModel.query.filter_by(
                 Camion_id_camion=camion.id_camion
             ).all()
+            reportes_clase = [
+                MecanicoController.crear_objeto_reporte(reporte)
+                for reporte in reportes
+            ]
 
             reportes_pendientes, reparaciones_realizadas = (
-                MecanicoController.separar_reportes_mantenimiento(reportes)
+                MecanicoController.separar_reportes_mantenimiento(
+                    reportes_clase
+                )
             )
 
             resultado.append(
@@ -313,20 +338,30 @@ class MecanicoController:
             .order_by(ReporteModel.fecha_hora.desc())
             .all()
         )
+        reportes_clase = [
+            MecanicoController.crear_objeto_reporte(reporte)
+            for reporte in reportes
+        ]
 
         reportes_pendientes, reparaciones_realizadas = (
-            MecanicoController.separar_reportes_mantenimiento(reportes)
+            MecanicoController.separar_reportes_mantenimiento(
+                reportes_clase
+            )
         )
 
         return jsonify(
             {
                 "camion": camion.to_dict(),
                 "reportes_pendientes": [
-                    MecanicoController.preparar_respuesta_reporte(reporte)
+                    MecanicoController.preparar_respuesta_reporte_clase(
+                        reporte
+                    )
                     for reporte in reportes_pendientes
                 ],
                 "reparaciones_realizadas": [
-                    MecanicoController.preparar_respuesta_reporte(reporte)
+                    MecanicoController.preparar_respuesta_reporte_clase(
+                        reporte
+                    )
                     for reporte in reparaciones_realizadas
                 ],
             }

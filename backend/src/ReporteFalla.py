@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from utils.domain_helpers import formatear_fecha, texto_valido
+
 
 class ReporteFalla:
     ESTADO_PENDIENTE = "pendiente"
@@ -24,9 +26,9 @@ class ReporteFalla:
         fecha_hora,
         descripcion,
         estado,
-        Camion_id_camion,
-        Mecanico_Usuario_idUsuario,
-        Chofer_Usuario_idUsuario,
+        id_camion,
+        id_mecanico,
+        id_chofer,
         nota_reparacion=None,
         fecha_resolucion=None,
         camion=None,
@@ -37,15 +39,50 @@ class ReporteFalla:
         self.fecha_hora = fecha_hora
         self.descripcion = descripcion
         self.estado = estado
-        self.Camion_id_camion = Camion_id_camion
-        self.Mecanico_Usuario_idUsuario = Mecanico_Usuario_idUsuario
-        self.Chofer_Usuario_idUsuario = Chofer_Usuario_idUsuario
+        self.id_camion = id_camion
+        self.id_mecanico = id_mecanico
+        self.id_chofer = id_chofer
         self.nota_reparacion = nota_reparacion
         self.fecha_resolucion = fecha_resolucion
         self.camion = camion
         self.mecanico = mecanico
         self.chofer = chofer
         self.sincronizar_estado_por_asignacion()
+
+    @classmethod
+    def crear_desde_datos(
+        cls,
+        datos,
+        camion=None,
+        mecanico=None,
+        chofer=None,
+    ):
+        if datos is None:
+            return None
+
+        reporte = cls(
+            id_reporte=datos.get("id_reporte"),
+            fecha_hora=datos.get("fecha_hora") or datetime.now(),
+            descripcion=datos.get("descripcion"),
+            estado=datos.get("estado") or cls.ESTADO_PENDIENTE,
+            id_camion=datos.get("id_camion"),
+            id_mecanico=datos.get("id_mecanico"),
+            id_chofer=datos.get("id_chofer"),
+            nota_reparacion=datos.get("nota_reparacion"),
+            fecha_resolucion=datos.get("fecha_resolucion"),
+        )
+
+        if camion is not None:
+            reporte.asociar_camion(camion)
+
+        if chofer is not None:
+            reporte.asociar_chofer(chofer)
+
+        if mecanico is not None:
+            reporte.mecanico = mecanico
+            reporte.id_mecanico = cls.obtener_id_usuario(mecanico)
+
+        return reporte
 
     @staticmethod
     def obtener_id_usuario(usuario):
@@ -68,7 +105,7 @@ class ReporteFalla:
             return False
 
         self.camion = camion
-        self.Camion_id_camion = id_camion
+        self.id_camion = id_camion
         return True
 
     def asociar_chofer(self, chofer):
@@ -78,54 +115,41 @@ class ReporteFalla:
             return False
 
         self.chofer = chofer
-        self.Chofer_Usuario_idUsuario = id_chofer
+        self.id_chofer = id_chofer
         return True
 
     def tiene_camion_asociado(self):
         return (
             self.camion is not None
-            or self.Camion_id_camion is not None
-            and str(self.Camion_id_camion).strip() != ""
+            or texto_valido(self.id_camion)
         )
 
     def tiene_chofer_asociado(self):
         return (
             self.chofer is not None
-            or self.Chofer_Usuario_idUsuario is not None
-            and str(self.Chofer_Usuario_idUsuario).strip() != ""
+            or texto_valido(self.id_chofer)
         )
 
     def tiene_mecanico_asignado(self):
         return (
             self.mecanico is not None
-            or self.Mecanico_Usuario_idUsuario is not None
-            and str(self.Mecanico_Usuario_idUsuario).strip() != ""
+            or texto_valido(self.id_mecanico)
         )
 
     def pertenece_a_chofer(self, chofer):
         id_chofer = self.obtener_id_usuario(chofer) or chofer
 
-        return str(self.Chofer_Usuario_idUsuario) == str(id_chofer)
+        return str(self.id_chofer) == str(id_chofer)
 
     def pertenece_a_mecanico(self, mecanico):
         id_mecanico = self.obtener_id_usuario(mecanico) or mecanico
 
-        return str(self.Mecanico_Usuario_idUsuario) == str(id_mecanico)
+        return str(self.id_mecanico) == str(id_mecanico)
 
     def pertenece_a_camion(self, camion):
         id_camion = self.obtener_id_camion(camion) or camion
 
-        return str(self.Camion_id_camion) == str(id_camion)
-
-    @staticmethod
-    def formatear_fecha(fecha):
-        if fecha is None:
-            return None
-
-        if hasattr(fecha, "strftime"):
-            return fecha.strftime("%Y-%m-%d %H:%M:%S")
-
-        return fecha
+        return str(self.id_camion) == str(id_camion)
 
     # valida que el reporte tenga los datos principales
     def validar_datos(self):
@@ -181,7 +205,7 @@ class ReporteFalla:
         if self.obtener_id_usuario(mecanico):
             self.mecanico = mecanico
 
-        self.Mecanico_Usuario_idUsuario = id_mecanico
+        self.id_mecanico = id_mecanico
         self.estado = self.ESTADO_EN_REVISION
         return True
 
@@ -190,7 +214,7 @@ class ReporteFalla:
         id_mecanico = self.obtener_id_usuario(mecanico) or mecanico
 
         return (
-            str(self.Mecanico_Usuario_idUsuario) == str(id_mecanico)
+            str(self.id_mecanico) == str(id_mecanico)
             and self.estado != self.ESTADO_RESUELTO
             and nota_reparacion is not None
             and nota_reparacion.strip() != ""
@@ -213,12 +237,18 @@ class ReporteFalla:
     def to_dict(self):
         return {
             "id_reporte": self.id_reporte,
-            "fecha_hora": self.formatear_fecha(self.fecha_hora),
+            "fecha_hora": formatear_fecha(
+                self.fecha_hora,
+                incluir_hora=True
+            ),
             "descripcion": self.descripcion,
             "estado": self.estado,
-            "Camion_id_camion": self.Camion_id_camion,
-            "Mecanico_Usuario_idUsuario": self.Mecanico_Usuario_idUsuario,
-            "Chofer_Usuario_idUsuario": self.Chofer_Usuario_idUsuario,
+            "id_camion": self.id_camion,
+            "id_mecanico": self.id_mecanico,
+            "id_chofer": self.id_chofer,
             "nota_reparacion": self.nota_reparacion,
-            "fecha_resolucion": self.formatear_fecha(self.fecha_resolucion),
+            "fecha_resolucion": formatear_fecha(
+                self.fecha_resolucion,
+                incluir_hora=True
+            ),
         }

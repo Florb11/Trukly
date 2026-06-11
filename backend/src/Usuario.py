@@ -1,6 +1,8 @@
 import os
 import uuid
 
+from utils.domain_helpers import texto_valido
+
 
 class Usuario:
     ROL_ADMIN = "admin"
@@ -54,6 +56,23 @@ class Usuario:
         self.estado = estado
         self.rol = rol
         self.foto_perfil = foto_perfil
+
+    @classmethod
+    def crear_desde_datos(cls, datos):
+        if datos is None:
+            return None
+
+        return cls(
+            id_usuario=datos.get("id_usuario"),
+            username=datos.get("username"),
+            email=datos.get("email"),
+            password=datos.get("password"),
+            nombre=datos.get("nombre"),
+            apellido=datos.get("apellido"),
+            estado=datos.get("estado"),
+            rol=datos.get("rol"),
+            foto_perfil=datos.get("foto_perfil"),
+        )
 
     # verifica si la contrasena ingresada coincide con la contrasena guardada
     def verificar_password(self, password_ingresada, bcrypt):
@@ -132,6 +151,10 @@ class Usuario:
         return True
 
     @staticmethod
+    def texto_valido(valor):
+        return texto_valido(valor)
+
+    @staticmethod
     def obtener_extension_foto(nombre_archivo):
         if not nombre_archivo or "." not in nombre_archivo:
             return None
@@ -193,3 +216,4 @@ class Usuario:
             )
 
         return True, None
+    

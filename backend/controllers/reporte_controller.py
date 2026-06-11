@@ -18,6 +18,7 @@ from src.observer.NotificacionReporteListener import (
     NotificacionReporteListener
 )
 from services.auth_service import AuthService
+from services.notificacion_service import NotificacionService
 from utils.auth_decorators import obtener_admin_actual_desde_token
 from utils.auth_decorators import roles_required
 from utils.app_logger import get_app_logger
@@ -69,14 +70,16 @@ class ReporteController:
         if camion_model is None:
             return None
 
-        return Camion(
-            id_camion=camion_model.id_camion,
-            matricula=camion_model.matricula,
-            marca=camion_model.marca,
-            modelo=camion_model.modelo,
-            capacidad_carga=camion_model.capacidad_carga,
-            estado=camion_model.estado,
-            nroTanque=camion_model.nroTanque,
+        return Camion.crear_desde_datos(
+            {
+                "id_camion": camion_model.id_camion,
+                "matricula": camion_model.matricula,
+                "marca": camion_model.marca,
+                "modelo": camion_model.modelo,
+                "capacidad_carga": camion_model.capacidad_carga,
+                "estado": camion_model.estado,
+                "nroTanque": camion_model.nroTanque,
+            }
         )
 
     @staticmethod
@@ -84,19 +87,21 @@ class ReporteController:
         if usuario_model is None or chofer_model is None:
             return None
 
-        return Chofer(
-            id_usuario=usuario_model.id_usuario,
-            username=usuario_model.username,
-            email=usuario_model.email,
-            password=usuario_model.password,
-            nombre=usuario_model.nombre,
-            apellido=usuario_model.apellido,
-            estado=usuario_model.estado,
-            rol=usuario_model.rol,
-            licencia=chofer_model.licencia,
-            vencimientoLicencia=chofer_model.vencimientoLicencia,
-            legajo=chofer_model.legajo,
-            foto_perfil=usuario_model.foto_perfil,
+        return Chofer.crear_desde_datos(
+            {
+                "id_usuario": usuario_model.id_usuario,
+                "username": usuario_model.username,
+                "email": usuario_model.email,
+                "password": usuario_model.password,
+                "nombre": usuario_model.nombre,
+                "apellido": usuario_model.apellido,
+                "estado": usuario_model.estado,
+                "rol": usuario_model.rol,
+                "licencia": chofer_model.licencia,
+                "vencimientoLicencia": chofer_model.vencimientoLicencia,
+                "legajo": chofer_model.legajo,
+                "foto_perfil": usuario_model.foto_perfil,
+            }
         )
 
     @staticmethod
@@ -104,18 +109,20 @@ class ReporteController:
         if usuario_model is None or mecanico_model is None:
             return None
 
-        return Mecanico(
-            id_usuario=usuario_model.id_usuario,
-            username=usuario_model.username,
-            email=usuario_model.email,
-            password=usuario_model.password,
-            nombre=usuario_model.nombre,
-            apellido=usuario_model.apellido,
-            estado=usuario_model.estado,
-            rol=usuario_model.rol,
-            legajo=mecanico_model.legajo,
-            especialidad=mecanico_model.especialidad,
-            foto_perfil=usuario_model.foto_perfil,
+        return Mecanico.crear_desde_datos(
+            {
+                "id_usuario": usuario_model.id_usuario,
+                "username": usuario_model.username,
+                "email": usuario_model.email,
+                "password": usuario_model.password,
+                "nombre": usuario_model.nombre,
+                "apellido": usuario_model.apellido,
+                "estado": usuario_model.estado,
+                "rol": usuario_model.rol,
+                "legajo": mecanico_model.legajo,
+                "especialidad": mecanico_model.especialidad,
+                "foto_perfil": usuario_model.foto_perfil,
+            }
         )
 
     @staticmethod
@@ -166,20 +173,22 @@ class ReporteController:
                     reporte_model.Mecanico_Usuario_idUsuario
                 )
 
-        return ReporteFalla(
-            id_reporte=reporte_model.id_reporte,
-            fecha_hora=reporte_model.fecha_hora,
-            descripcion=reporte_model.descripcion,
-            estado=reporte_model.estado,
-            Camion_id_camion=reporte_model.Camion_id_camion,
-            Mecanico_Usuario_idUsuario=(
-                reporte_model.Mecanico_Usuario_idUsuario
-            ),
-            Chofer_Usuario_idUsuario=(
-                reporte_model.Chofer_Usuario_idUsuario
-            ),
-            nota_reparacion=reporte_model.nota_reparacion,
-            fecha_resolucion=reporte_model.fecha_resolucion,
+        return ReporteFalla.crear_desde_datos(
+            {
+                "id_reporte": reporte_model.id_reporte,
+                "fecha_hora": reporte_model.fecha_hora,
+                "descripcion": reporte_model.descripcion,
+                "estado": reporte_model.estado,
+                "id_camion": reporte_model.Camion_id_camion,
+                "id_mecanico": (
+                    reporte_model.Mecanico_Usuario_idUsuario
+                ),
+                "id_chofer": (
+                    reporte_model.Chofer_Usuario_idUsuario
+                ),
+                "nota_reparacion": reporte_model.nota_reparacion,
+                "fecha_resolucion": reporte_model.fecha_resolucion,
+            },
             camion=camion,
             mecanico=mecanico,
             chofer=chofer,
@@ -189,7 +198,7 @@ class ReporteController:
     def actualizar_modelo_reporte(reporte_model, reporte_clase):
         reporte_model.estado = reporte_clase.estado
         reporte_model.Mecanico_Usuario_idUsuario = (
-            reporte_clase.Mecanico_Usuario_idUsuario
+            reporte_clase.id_mecanico
         )
         reporte_model.nota_reparacion = reporte_clase.nota_reparacion
         reporte_model.fecha_resolucion = reporte_clase.fecha_resolucion
@@ -201,7 +210,13 @@ class ReporteController:
             cargar_relaciones=False
         )
 
-        return reporte_clase.to_dict()
+        datos = reporte_clase.to_dict()
+
+        datos["Camion_id_camion"] = datos.pop("id_camion")
+        datos["Mecanico_Usuario_idUsuario"] = datos.pop("id_mecanico")
+        datos["Chofer_Usuario_idUsuario"] = datos.pop("id_chofer")
+
+        return datos
 
     @staticmethod
     def actualizar_modelo_camion(camion_model, camion_clase):
@@ -224,14 +239,14 @@ class ReporteController:
         if reporte_clase.estado in ReporteFalla.ESTADOS_ACTIVOS:
             return False
 
-        camion_model = CamionModel.query.get(reporte_clase.Camion_id_camion)
+        camion_model = CamionModel.query.get(reporte_clase.id_camion)
         camion = ReporteController.crear_objeto_camion(camion_model)
 
         if camion is None:
             return False
 
         reportes_activos = ReporteController.obtener_reportes_activos_camion(
-            reporte_clase.Camion_id_camion,
+            reporte_clase.id_camion,
             reporte_clase.id_reporte
         )
 
@@ -252,7 +267,7 @@ class ReporteController:
         if reporte_clase.estado not in ReporteFalla.ESTADOS_ACTIVOS:
             return False
 
-        camion_model = CamionModel.query.get(reporte_clase.Camion_id_camion)
+        camion_model = CamionModel.query.get(reporte_clase.id_camion)
         camion = ReporteController.crear_objeto_camion(camion_model)
 
         if camion is None:
@@ -271,7 +286,9 @@ class ReporteController:
     @staticmethod
     def notificar_reporte_asignado(reporte_clase, mecanico):
         event_manager = EventManager()
-        listener_notificacion = NotificacionReporteListener()
+        listener_notificacion = NotificacionReporteListener(
+            NotificacionService.agregar_a_sesion
+        )
 
         event_manager.suscribir(
             "reporte_asignado",
@@ -285,7 +302,7 @@ class ReporteController:
                 "titulo": "Nueva reparacion asignada",
                 "mensaje": (
                     f"Se te asigno el reporte #{reporte_clase.id_reporte} "
-                    f"del camion #{reporte_clase.Camion_id_camion}."
+                    f"del camion #{reporte_clase.id_camion}."
                 ),
                 "tipo": "reporte_asignado",
             }
@@ -359,18 +376,15 @@ class ReporteController:
         if chofer is None:
             return jsonify({"mensaje": "Chofer no encontrado"}), 404
 
-        reporte_clase = ReporteFalla(
-            None,
-            datetime.now(),
-            descripcion,
-            ReporteFalla.ESTADO_PENDIENTE,
-            None,
-            None,
-            None,
+        reporte_clase = ReporteFalla.crear_desde_datos(
+            {
+                "fecha_hora": datetime.now(),
+                "descripcion": descripcion,
+                "estado": ReporteFalla.ESTADO_PENDIENTE,
+            },
+            camion=camion,
+            chofer=chofer,
         )
-
-        camion.registrar_reporte(reporte_clase)
-        chofer.registrar_reporte(reporte_clase)
 
         if not reporte_clase.validar_datos():
             return jsonify({"mensaje": "Faltan datos obligatorios"}), 400
@@ -382,9 +396,9 @@ class ReporteController:
             fecha_hora=reporte_clase.fecha_hora,
             descripcion=reporte_clase.descripcion,
             estado=reporte_clase.estado,
-            Camion_id_camion=reporte_clase.Camion_id_camion,
-            Mecanico_Usuario_idUsuario=reporte_clase.Mecanico_Usuario_idUsuario,
-            Chofer_Usuario_idUsuario=reporte_clase.Chofer_Usuario_idUsuario,
+            Camion_id_camion=reporte_clase.id_camion,
+            Mecanico_Usuario_idUsuario=reporte_clase.id_mecanico,
+            Chofer_Usuario_idUsuario=reporte_clase.id_chofer,
         )
 
         try:

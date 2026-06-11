@@ -113,27 +113,6 @@ class CamionController:
         )
 
     @staticmethod
-    def _crear_camion_clase(
-        datos,
-        id_camion=None,
-        camion_db=None
-    ):
-        datos_camion = CamionController._preparar_datos_camion(
-            datos,
-            camion_db
-        )
-
-        return Camion(
-            id_camion,
-            datos_camion["matricula"],
-            datos_camion["marca"],
-            datos_camion["modelo"],
-            datos_camion["capacidad_carga"],
-            datos_camion["estado"],
-            datos_camion["nroTanque"],
-        )
-
-    @staticmethod
     def _aplicar_datos_camion(camion_db, camion_clase):
         camion_db.matricula = camion_clase.matricula
         camion_db.marca = camion_clase.marca
@@ -143,27 +122,27 @@ class CamionController:
         camion_db.nroTanque = camion_clase.nroTanque
 
     @staticmethod
-    def _contar_reportes_activos(id_camion):
+    def _obtener_reportes_activos(id_camion):
         return (
             ReporteModel.query
             .filter(
                 ReporteModel.Camion_id_camion == id_camion,
                 ReporteModel.estado.in_(ReporteFalla.ESTADOS_ACTIVOS),
             )
-            .count()
+            .all()
         )
 
     @staticmethod
     def _preparar_respuesta_camion(camion_db):
         datos_camion = camion_db.to_dict()
-        reportes_activos = CamionController._contar_reportes_activos(
+        reportes_activos = CamionController._obtener_reportes_activos(
             camion_db.id_camion
         )
 
-        datos_camion["reportes_activos"] = reportes_activos
+        datos_camion["reportes_activos"] = len(reportes_activos)
 
         if (
-            reportes_activos > 0
+            len(reportes_activos) > 0
             and camion_db.estado == Camion.ESTADO_DISPONIBLE
         ):
             datos_camion["estado"] = Camion.ESTADO_EN_MANTENIMIENTO
@@ -172,21 +151,14 @@ class CamionController:
         return datos_camion
 
     @staticmethod
-    def _puede_usar_estado(camion_db, nuevo_estado):
-        reportes_activos = CamionController._contar_reportes_activos(
+    def _ajustar_estado_por_reportes_activos(camion_db, camion_clase):
+        reportes_activos = CamionController._obtener_reportes_activos(
             camion_db.id_camion
         )
 
-        if (
-            reportes_activos > 0
-            and nuevo_estado == Camion.ESTADO_DISPONIBLE
-        ):
-            return False, (
-                "No se puede marcar como disponible un camion con "
-                "reportes activos. Activarlo debe dejarlo en mantenimiento"
-            )
-
-        return True, None
+        return camion_clase.ajustar_estado_por_reportes_activos(
+            reportes_activos
+        )
 
     @staticmethod
     @admin_required
@@ -227,9 +199,9 @@ class CamionController:
         if not datos_validos:
             return jsonify({"mensaje": mensaje_error}), 400
 
-        camion_clase = CamionController._crear_camion_clase(datos)
+        camion_clase = admin.crear_camion(datos)
 
-        if not admin.registrar_camion(camion_clase):
+        if camion_clase is None:
             return jsonify({"mensaje": "Faltan datos obligatorios o hay datos invalidos"}), 400
 
         camion_existente = CamionModel.query.filter_by(
@@ -288,24 +260,18 @@ class CamionController:
         if not datos_validos:
             return jsonify({"mensaje": mensaje_error}), 400
 
-        camion_clase = CamionController._crear_camion_clase(
+        camion_clase = admin.crear_camion(
             datos_camion,
-            camion_db.id_camion,
-            camion_db
+            camion_db.id_camion
         )
 
-        estado_permitido, mensaje_error = (
-            CamionController._puede_usar_estado(
-                camion_db,
-                camion_clase.estado
-            )
-        )
-
-        if not estado_permitido:
-            return jsonify({"mensaje": mensaje_error}), 400
-
-        if not admin.modificar_camion(camion_clase):
+        if camion_clase is None:
             return jsonify({"mensaje": "Faltan datos obligatorios o hay datos invalidos"}), 400
+
+        CamionController._ajustar_estado_por_reportes_activos(
+            camion_db,
+            camion_clase
+        )
 
         camion_existente = CamionModel.query.filter_by(
             matricula=camion_clase.matricula
@@ -370,24 +336,24 @@ class CamionController:
         if not datos_validos:
             return jsonify({"mensaje": mensaje_error}), 400
 
-        camion_clase = CamionController._crear_camion_clase(
-            {},
-            camion_db.id_camion,
-            camion_db
+        camion_clase = admin.crear_camion(
+            CamionController._preparar_datos_camion(
+                {},
+                camion_db
+            ),
+            camion_db.id_camion
         )
+
+        if camion_clase is None:
+            return jsonify({"mensaje": "Faltan datos obligatorios o hay datos invalidos"}), 400
 
         if not admin.cambiar_estado_camion(camion_clase, nuevo_estado):
             return jsonify({"mensaje": "Estado invalido"}), 400
 
-        estado_permitido, mensaje_error = (
-            CamionController._puede_usar_estado(
-                camion_db,
-                camion_clase.estado
-            )
+        CamionController._ajustar_estado_por_reportes_activos(
+            camion_db,
+            camion_clase
         )
-
-        if not estado_permitido:
-            return jsonify({"mensaje": mensaje_error}), 400
 
         camion_db.estado = camion_clase.estado
 
