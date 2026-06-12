@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import "./OperadorViajePage.css";
 import {
   FaRoute,
   FaPlus,
@@ -10,7 +11,7 @@ import {
   FaCalendarAlt,
   FaTachometerAlt,
 } from "react-icons/fa";
-import "./OperadorViajePage.css";
+import DetalleViajeModal from "../components/DetalleViajeModal";
 
 const viajesHardcoded = [
   {
@@ -343,7 +344,15 @@ function OperadorViajesPage() {
           </div>
         )}
       </article>
+    {viajeDetalle && (
+        <DetalleViajeModal 
+          viaje={viajeDetalle} /* <--- ACÁ ESTÁ EL CAMBIO */
+          onClose={cerrarDetalle} 
+        />
+      )}
+
     </section>
+  
   );
 }
 
