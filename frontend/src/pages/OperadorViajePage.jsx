@@ -346,7 +346,7 @@ function OperadorViajesPage() {
       </article>
     {viajeDetalle && (
         <DetalleViajeModal 
-          viaje={viajeDetalle} /* <--- ACÁ ESTÁ EL CAMBIO */
+          viaje={viajeDetalle}
           onClose={cerrarDetalle} 
         />
       )}
