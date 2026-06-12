@@ -1,321 +1,350 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
-  FaMapMarkerAlt,
+  FaRoute,
+  FaPlus,
+  FaEye,
+  FaSearch,
   FaTruck,
   FaUser,
+  FaMapMarkerAlt,
   FaCalendarAlt,
-  FaBoxOpen,
-  FaCheckCircle,
+  FaTachometerAlt,
 } from "react-icons/fa";
 import "./OperadorViajePage.css";
-import { fetchConToken } from "../utils/fetchConToken";
 
-const estadosIniciales = {
+const viajesHardcoded = [
+  {
+    id_viaje: 1,
+    origen: "Buenos Aires",
+    destino: "Rosario",
+    fecha_salida: "2026-06-01",
+    fecha_llegada: "2026-06-02",
+    recorrido: 300,
+    estado: "finalizado",
+    chofer: "Carlos Méndez",
+    camion: "ABC 123",
+    observaciones: "Entrega sin inconvenientes.",
+  },
+  {
+    id_viaje: 2,
+    origen: "Córdoba",
+    destino: "Mendoza",
+    fecha_salida: "2026-06-05",
+    fecha_llegada: "2026-06-06",
+    recorrido: 720,
+    estado: "en-curso",
+    chofer: "Laura Gómez",
+    camion: "DEF 456",
+    observaciones: "",
+  },
+  {
+    id_viaje: 3,
+    origen: "Rosario",
+    destino: "Santa Fe",
+    fecha_salida: "2026-06-08",
+    fecha_llegada: "2026-06-08",
+    recorrido: 170,
+    estado: "pendiente",
+    chofer: "Martín Torres",
+    camion: "GHI 789",
+    observaciones: "Esperando confirmación del chofer.",
+  },
+  {
+    id_viaje: 4,
+    origen: "Buenos Aires",
+    destino: "La Plata",
+    fecha_salida: "2026-06-10",
+    fecha_llegada: "2026-06-10",
+    recorrido: 60,
+    estado: "aceptado",
+    chofer: "Sofía Ruiz",
+    camion: "JKL 012",
+    observaciones: "",
+  },
+  {
+    id_viaje: 5,
+    origen: "Tucumán",
+    destino: "Salta",
+    fecha_salida: "2026-06-03",
+    fecha_llegada: "2026-06-04",
+    recorrido: 310,
+    estado: "cancelado",
+    chofer: "Diego Herrera",
+    camion: "MNO 345",
+    observaciones: "Falla mecánica en ruta.",
+  },
+  {
+    id_viaje: 6,
+    origen: "Mar del Plata",
+    destino: "Buenos Aires",
+    fecha_salida: "2026-06-11",
+    fecha_llegada: "2026-06-11",
+    recorrido: 400,
+    estado: "pendiente",
+    chofer: "Pablo Acosta",
+    camion: "PQR 678",
+    observaciones: "",
+  },
+];
+
+const ESTADO_OPCIONES = [
+  "todos",
+  "pendiente",
+  "aceptado",
+  "en-curso",
+  "finalizado",
+  "cancelado",
+];
+
+const estadoLabel = (estado) => estado.replace("-", " ");
+
+function formatearFecha(fecha) {
+  if (!fecha) return "-";
+  const [y, m, d] = fecha.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+const camposVaciosCrear = {
   origen: "",
   destino: "",
-  id_chofer: "",
-  id_camion: "",
   fecha_salida: "",
-  fecha_estimada_llegada: "",
-  carga: "",
-  peso_kg: "",
+  fecha_llegada: "",
+  recorrido: "",
+  chofer: "",
+  camion: "",
   observaciones: "",
 };
 
-function OperadorViajePage({ title = "Crear nuevo viaje" }) {
-  const [form, setForm] = useState(estadosIniciales);
-  const [enviando, setEnviando] = useState(false);
-  const [exito, setExito] = useState(false);
-  const [error, setError] = useState("");
+function OperadorViajesPage() {
+  const [viajes, setViajes] = useState(viajesHardcoded);
+  const [busqueda, setBusqueda] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("todos");
 
-  const handleChange = (e) => {
+  const [viajeDetalle, setViajeDetalle] = useState(null);
+  const [modalCrear, setModalCrear] = useState(false);
+  const [form, setForm] = useState(camposVaciosCrear);
+  const [errorForm, setErrorForm] = useState("");
+  const [mensajeOk, setMensajeOk] = useState("");
+
+  const viajesFiltrados = useMemo(() => {
+    return viajes.filter((v) => {
+      const textoMatch =
+        busqueda === "" ||
+        v.origen.toLowerCase().includes(busqueda.toLowerCase()) ||
+        v.destino.toLowerCase().includes(busqueda.toLowerCase()) ||
+        v.chofer.toLowerCase().includes(busqueda.toLowerCase()) ||
+        v.camion.toLowerCase().includes(busqueda.toLowerCase());
+
+      const estadoMatch = filtroEstado === "todos" || v.estado === filtroEstado;
+
+      return textoMatch && estadoMatch;
+    });
+  }, [viajes, busqueda, filtroEstado]);
+
+  const stats = useMemo(
+    () => ({
+      total: viajes.length,
+      activos: viajes.filter(
+        (v) => v.estado === "en-curso" || v.estado === "aceptado",
+      ).length,
+      pendientes: viajes.filter((v) => v.estado === "pendiente").length,
+      cancelados: viajes.filter((v) => v.estado === "cancelado").length,
+    }),
+    [viajes],
+  );
+
+  const abrirDetalle = (viaje) => {
+    setViajeDetalle(viaje);
+  };
+
+  const cerrarDetalle = () => setViajeDetalle(null);
+
+  const abrirCrear = () => {
+    setForm(camposVaciosCrear);
+    setErrorForm("");
+    setModalCrear(true);
+  };
+
+  const cerrarCrear = () => {
+    setModalCrear(false);
+    setErrorForm("");
+  };
+
+  const handleFormChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setExito(false);
-
-    if (
-      !form.origen ||
-      !form.destino ||
-      !form.id_chofer ||
-      !form.id_camion ||
-      !form.fecha_salida
-    ) {
-      setError("Completá todos los campos obligatorios.");
-      return;
-    }
-
-    try {
-      setEnviando(true);
-
-      const resultado = await fetchConToken(
-        "http://localhost:5000/api/operador/viajes",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        },
-      );
-
-      if (!resultado) return;
-
-      const { respuesta, data } = resultado;
-
-      if (!respuesta.ok) {
-        throw new Error(data.mensaje || data.msg || "Error al crear el viaje");
+  const crearViaje = () => {
+    const requeridos = [
+      "origen",
+      "destino",
+      "fecha_salida",
+      "fecha_llegada",
+      "chofer",
+      "camion",
+    ];
+    for (const campo of requeridos) {
+      if (!form[campo].trim()) {
+        setErrorForm("Completá todos los campos obligatorios.");
+        return;
       }
-
-      setExito(true);
-      setForm(estadosIniciales);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setEnviando(false);
     }
+
+    const nuevoViaje = {
+      ...form,
+      id_viaje:
+        viajes.length > 0 ? Math.max(...viajes.map((v) => v.id_viaje)) + 1 : 1,
+      estado: "pendiente",
+      recorrido: form.recorrido || 0,
+    };
+
+    setViajes((prev) => [nuevoViaje, ...prev]);
+    setMensajeOk("Viaje creado correctamente.");
+    cerrarCrear();
+
+    setTimeout(() => setMensajeOk(""), 3500);
   };
 
   return (
-    <section className="crear-viaje-page">
-      <div className="crear-viaje-page__header">
+    <section className="op-viajes-page">
+      <div className="op-viajes-header">
         <div>
           <span>Operador logístico</span>
-          <h1>{title}</h1>
-          <p>Completá los datos para registrar un nuevo viaje en el sistema.</p>
+          <h1>Viajes</h1>
+          <p>
+            Gestioná los viajes asignados, revisá el estado de cada operación y
+            registrá nuevos recorridos.
+          </p>
+        </div>
+        <div className="op-viajes-header__right">
+          <div className="op-viajes-header__icon">
+            <FaRoute />
+          </div>
+          <button
+            type="button"
+            className="op-viajes-btn-crear"
+            onClick={abrirCrear}
+          >
+            <FaPlus />
+            Nuevo viaje
+          </button>
         </div>
       </div>
 
-      <div className="crear-viaje__layout">
-        <form className="crear-viaje__form" onSubmit={handleSubmit} noValidate>
-          <fieldset className="crear-viaje__fieldset">
-            <legend>
-              <FaMapMarkerAlt /> Ruta
-            </legend>
-
-            <div className="crear-viaje__row">
-              <div className="crear-viaje__field">
-                <label htmlFor="origen">Origen *</label>
-                <input
-                  id="origen"
-                  name="origen"
-                  type="text"
-                  placeholder="Ciudad de origen"
-                  value={form.origen}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="crear-viaje__field">
-                <label htmlFor="destino">Destino *</label>
-                <input
-                  id="destino"
-                  name="destino"
-                  type="text"
-                  placeholder="Ciudad de destino"
-                  value={form.destino}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-          </fieldset>
-
-          <fieldset className="crear-viaje__fieldset">
-            <legend>
-              <FaUser /> Asignación
-            </legend>
-
-            <div className="crear-viaje__row">
-              <div className="crear-viaje__field">
-                <label htmlFor="id_chofer">ID Chofer *</label>
-                <input
-                  id="id_chofer"
-                  name="id_chofer"
-                  type="text"
-                  placeholder="ej: 42"
-                  value={form.id_chofer}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="crear-viaje__field">
-                <label htmlFor="id_camion">
-                  <FaTruck style={{ marginRight: 6 }} />
-                  ID Camión *
-                </label>
-                <input
-                  id="id_camion"
-                  name="id_camion"
-                  type="text"
-                  placeholder="ej: 7"
-                  value={form.id_camion}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-          </fieldset>
-
-          <fieldset className="crear-viaje__fieldset">
-            <legend>
-              <FaCalendarAlt /> Fechas
-            </legend>
-
-            <div className="crear-viaje__row">
-              <div className="crear-viaje__field">
-                <label htmlFor="fecha_salida">Fecha de salida *</label>
-                <input
-                  id="fecha_salida"
-                  name="fecha_salida"
-                  type="datetime-local"
-                  value={form.fecha_salida}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="crear-viaje__field">
-                <label htmlFor="fecha_estimada_llegada">Llegada estimada</label>
-                <input
-                  id="fecha_estimada_llegada"
-                  name="fecha_estimada_llegada"
-                  type="datetime-local"
-                  value={form.fecha_estimada_llegada}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-          </fieldset>
-
-          <fieldset className="crear-viaje__fieldset">
-            <legend>
-              <FaBoxOpen /> Carga
-            </legend>
-
-            <div className="crear-viaje__row">
-              <div className="crear-viaje__field">
-                <label htmlFor="carga">Descripción de carga</label>
-                <input
-                  id="carga"
-                  name="carga"
-                  type="text"
-                  placeholder="ej: Electrodomésticos"
-                  value={form.carga}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="crear-viaje__field crear-viaje__field--sm">
-                <label htmlFor="peso_kg">Peso (kg)</label>
-                <input
-                  id="peso_kg"
-                  name="peso_kg"
-                  type="number"
-                  min="0"
-                  placeholder="ej: 8500"
-                  value={form.peso_kg}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div className="crear-viaje__field">
-              <label htmlFor="observaciones">Observaciones</label>
-              <textarea
-                id="observaciones"
-                name="observaciones"
-                rows={3}
-                placeholder="Instrucciones especiales, temperatura requerida, etc."
-                value={form.observaciones}
-                onChange={handleChange}
-              />
-            </div>
-          </fieldset>
-
-          {error && (
-            <p className="admin-message admin-message--error">{error}</p>
-          )}
-
-          {exito && (
-            <p className="crear-viaje__exito">
-              <FaCheckCircle /> Viaje creado correctamente.
-            </p>
-          )}
-
-          <div className="crear-viaje__actions">
-            <button
-              type="button"
-              className="crear-viaje__btn crear-viaje__btn--secondary"
-              onClick={() => {
-                setForm(estadosIniciales);
-                setError("");
-                setExito(false);
-              }}
-            >
-              Limpiar
-            </button>
-
-            <button
-              type="submit"
-              className="crear-viaje__btn crear-viaje__btn--primary"
-              disabled={enviando}
-            >
-              {enviando ? "Creando viaje..." : "Crear viaje"}
-            </button>
-          </div>
-        </form>
-
-        <aside className="crear-viaje__sidebar">
-          <div className="crear-viaje__info-card">
-            <h3>Checklist previo</h3>
-            <ul>
-              <li>
-                <span className="crear-viaje__bullet crear-viaje__bullet--ok" />
-                Chofer habilitado y con licencia vigente
-              </li>
-              <li>
-                <span className="crear-viaje__bullet crear-viaje__bullet--ok" />
-                Camión con VTV al día
-              </li>
-              <li>
-                <span className="crear-viaje__bullet crear-viaje__bullet--warn" />
-                Carga correctamente declarada
-              </li>
-              <li>
-                <span className="crear-viaje__bullet crear-viaje__bullet--ok" />
-                Ruta sin alertas activas
-              </li>
-            </ul>
-          </div>
-
-          <div className="crear-viaje__info-card">
-            <h3>Estados del viaje</h3>
-            <div className="crear-viaje__estados">
-              {[
-                { key: "pendiente", label: "Pendiente" },
-                { key: "aceptado", label: "Aceptado" },
-                { key: "en-curso", label: "En curso" },
-                { key: "finalizado", label: "Finalizado" },
-                { key: "cancelado", label: "Cancelado" },
-              ].map((e) => (
-                <span
-                  key={e.key}
-                  className={`chofer-badge chofer-badge--${e.key}`}
-                >
-                  {e.label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </aside>
+      <div className="op-viajes-stats">
+        <article className="op-viajes-stat op-viajes-stat--info">
+          <span>Total</span>
+          <strong>{stats.total}</strong>
+        </article>
+        <article className="op-viajes-stat op-viajes-stat--active">
+          <span>En curso / aceptados</span>
+          <strong>{stats.activos}</strong>
+        </article>
+        <article className="op-viajes-stat op-viajes-stat--pending">
+          <span>Pendientes</span>
+          <strong>{stats.pendientes}</strong>
+        </article>
+        <article className="op-viajes-stat op-viajes-stat--cancelled">
+          <span>Cancelados</span>
+          <strong>{stats.cancelados}</strong>
+        </article>
       </div>
+
+      {mensajeOk && (
+        <p className="admin-message admin-message--ok">{mensajeOk}</p>
+      )}
+
+      <article className="operator-table-card">
+        <div className="operator-table-card__header">
+          <h2>Listado de viajes</h2>
+          <span>
+            {viajesFiltrados.length} resultado
+            {viajesFiltrados.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+        <div className="op-viajes-filtros">
+          <div className="op-viajes-search">
+            <FaSearch className="op-viajes-search__icon" />
+            <input
+              type="text"
+              placeholder="Buscar por origen, destino, chofer o camión..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+          </div>
+
+          <div className="op-viajes-estado-tabs">
+            {ESTADO_OPCIONES.map((estado) => (
+              <button
+                key={estado}
+                type="button"
+                className={`op-viajes-tab ${filtroEstado === estado ? "op-viajes-tab--active" : ""}`}
+                onClick={() => setFiltroEstado(estado)}
+              >
+                {estado === "todos" ? "Todos" : estadoLabel(estado)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {viajesFiltrados.length === 0 ? (
+          <p className="admin-message">
+            No se encontraron viajes con ese criterio.
+          </p>
+        ) : (
+          <div className="operator-table-wrap">
+            <table className="operator-table op-viajes-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Origen</th>
+                  <th>Destino</th>
+                  <th>Salida</th>
+                  <th>Llegada</th>
+                  <th>Recorrido</th>
+                  <th>Chofer</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {viajesFiltrados.map((viaje) => (
+                  <tr key={viaje.id_viaje}>
+                    <td className="operator-table__id">#{viaje.id_viaje}</td>
+                    <td>{viaje.origen}</td>
+                    <td>{viaje.destino}</td>
+                    <td>{formatearFecha(viaje.fecha_salida)}</td>
+                    <td>{formatearFecha(viaje.fecha_llegada)}</td>
+                    <td>{viaje.recorrido} km</td>
+                    <td>{viaje.chofer}</td>
+                    <td>
+                      <span
+                        className={`chofer-badge chofer-badge--${viaje.estado}`}
+                      >
+                        {estadoLabel(viaje.estado)}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="op-viajes-btn-ver"
+                        onClick={() => abrirDetalle(viaje)}
+                      >
+                        <FaEye />
+                        Ver
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </article>
     </section>
   );
 }
 
-export default OperadorViajePage;
+export default OperadorViajesPage;

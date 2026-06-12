@@ -135,9 +135,7 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
           <span>Operador logístico</span>
           <h1>{title}</h1>
         </div>
-        <a href="/dashboardOperator/crear-viaje" className="operator-page__cta">
-          + Nuevo viaje
-        </a>
+      
       </div>
 
       <div className="operator-page__grid">
