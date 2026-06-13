@@ -25,6 +25,7 @@ class Notificacion:
 
     @classmethod
     def crear_desde_datos(cls, datos, usuario=None):
+        # crea una notificacion desde un diccionario
         if datos is None:
             return None
 
@@ -45,15 +46,17 @@ class Notificacion:
 
     @staticmethod
     def obtener_id_usuario(usuario):
+        # obtiene el id del usuario recibido
         if usuario is None:
             return None
 
         return getattr(usuario, "id_usuario", None)
 
     def asignar_usuario(self, usuario):
+        # asigna el usuario destino de la notificacion
         id_usuario = self.obtener_id_usuario(usuario)
 
-        if not id_usuario:
+        if id_usuario is None:
             return False
 
         self.usuario = usuario
@@ -61,19 +64,21 @@ class Notificacion:
         return True
 
     def tiene_usuario_destino(self):
+        # valida que exista un usuario destino
         return (
             self.usuario is not None
-            or texto_valido(self.id_usuario)
+            or self.id_usuario is not None
         )
 
     def validar_datos(self):
+        # valida datos minimos de la notificacion
         if not self.tiene_usuario_destino():
             return False
 
-        if not self.titulo or self.titulo.strip() == "":
+        if not texto_valido(self.titulo):
             return False
 
-        if not self.mensaje or self.mensaje.strip() == "":
+        if not texto_valido(self.mensaje):
             return False
 
         if self.fecha_hora is None:
@@ -82,23 +87,33 @@ class Notificacion:
         return True
 
     def pertenece_a_usuario(self, usuario):
+        # valida si la notificacion pertenece al usuario
         id_usuario = self.obtener_id_usuario(usuario)
 
-        if not id_usuario:
+        if id_usuario is None:
             return False
 
         return str(self.id_usuario) == str(id_usuario)
 
-    def puede_ser_modificada_por_usuario(self, usuario):
+    def usuario_es_admin(self, usuario):
+        # valida si el usuario tiene rol admin
         if usuario is None:
             return False
 
-        if getattr(usuario, "rol", None) == Usuario.ROL_ADMIN:
+        return getattr(usuario, "rol", None) == Usuario.ROL_ADMIN
+
+    def puede_ser_modificada_por_usuario(self, usuario):
+        # valida permisos para modificar la notificacion
+        if usuario is None:
+            return False
+
+        if self.usuario_es_admin(usuario):
             return True
 
         return self.pertenece_a_usuario(usuario)
 
     def marcar_como_leida_por(self, usuario):
+        # marca como leida si el usuario tiene permiso
         if not self.puede_ser_modificada_por_usuario(usuario):
             return False
 
@@ -106,6 +121,7 @@ class Notificacion:
         return True
 
     def to_dict(self):
+        # convierte la notificacion a diccionario
         return {
             "id_notificacion": self.id_notificacion,
             "id_usuario": self.id_usuario,

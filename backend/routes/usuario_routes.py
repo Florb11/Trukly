@@ -1,5 +1,7 @@
 from flask import Blueprint
+
 from controllers.usuario_controller import UsuarioController
+
 
 usuario_routes = Blueprint("usuario_routes", __name__)
 
@@ -12,8 +14,3 @@ def ruta_listar_usuarios():
 @usuario_routes.route("/api/usuarios/<int:id_usuario>", methods=["GET"])
 def ruta_obtener_usuario(id_usuario):
     return UsuarioController.obtener_usuario(id_usuario)
-
-
-@usuario_routes.route("/api/usuarios", methods=["POST"])
-def ruta_crear_usuario():
-    return UsuarioController.crear_usuario()

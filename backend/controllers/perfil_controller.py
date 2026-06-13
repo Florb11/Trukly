@@ -17,7 +17,6 @@ from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
 from utils.validation_composite import (
     CampoObligatorio,
-    ValidacionDatos,
     ValidadorCompuesto,
 )
 
@@ -38,20 +37,12 @@ class PerfilController:
 
     @staticmethod
     def _obtener_usuario_actual():
+        # obtiene el usuario logueado desde g
         return g.usuario_actual
 
     @staticmethod
-    def _crear_validador_modificacion_perfil():
-        return ValidadorCompuesto(
-            [
-                ValidacionDatos(
-                    PerfilController._validar_datos_modificacion_perfil
-                ),
-            ]
-        )
-
-    @staticmethod
     def _crear_validador_cambio_password():
+        # valida que vengan los campos de contrasena
         return ValidadorCompuesto(
             [
                 CampoObligatorio(
@@ -70,23 +61,8 @@ class PerfilController:
         )
 
     @staticmethod
-    def _validar_datos_modificacion_perfil(datos):
-        if not datos:
-            return False, "No se recibieron datos"
-
-        campos_permitidos = ["nombre", "apellido", "email"]
-
-        for campo in campos_permitidos:
-            if campo not in datos:
-                continue
-
-            if datos[campo] is None or str(datos[campo]).strip() == "":
-                return False, f"El campo {campo} no puede estar vacio"
-
-        return True, None
-
-    @staticmethod
     def _crear_usuario_clase(usuario_db):
+        # convierte UsuarioModel a Usuario de dominio
         datos_usuario = usuario_db.to_dict()
         datos_usuario["password"] = usuario_db.password
 
@@ -94,6 +70,7 @@ class PerfilController:
 
     @staticmethod
     def _agregar_datos_por_rol(datos_usuario, usuario_db):
+        # agrega datos especificos segun el rol
         if usuario_db.rol == Usuario.ROL_ADMIN:
             administrador = AdministradorModel.query.get(
                 usuario_db.id_usuario
@@ -135,7 +112,18 @@ class PerfilController:
         return datos_usuario
 
     @staticmethod
+    def _preparar_respuesta_perfil(usuario_db):
+        # arma la respuesta del perfil
+        datos_usuario = usuario_db.to_dict()
+
+        return PerfilController._agregar_datos_por_rol(
+            datos_usuario,
+            usuario_db
+        )
+
+    @staticmethod
     def _obtener_tamanio_archivo(archivo):
+        # calcula el tamanio del archivo
         archivo.seek(0, os.SEEK_END)
         tamanio = archivo.tell()
         archivo.seek(0)
@@ -144,6 +132,7 @@ class PerfilController:
 
     @staticmethod
     def _eliminar_foto_anterior(ruta_foto):
+        # elimina la foto anterior si existe
         nombre_anterior = Usuario.obtener_nombre_archivo_foto(
             ruta_foto
         )
@@ -162,12 +151,10 @@ class PerfilController:
     @staticmethod
     @usuario_required
     def obtener_perfil():
+        # obtiene el perfil del usuario logueado
         usuario_db = PerfilController._obtener_usuario_actual()
 
-        datos_usuario = usuario_db.to_dict()
-
-        datos_usuario = PerfilController._agregar_datos_por_rol(
-            datos_usuario,
+        datos_usuario = PerfilController._preparar_respuesta_perfil(
             usuario_db
         )
 
@@ -178,6 +165,7 @@ class PerfilController:
     @staticmethod
     @usuario_required
     def modificar_perfil():
+        # modifica nombre, apellido y email del usuario logueado
         usuario_db = PerfilController._obtener_usuario_actual()
 
         datos = InputSanitizer.sanitizar_campos(
@@ -186,13 +174,20 @@ class PerfilController:
             campos_email=["email"],
         )
 
-        validador = PerfilController._crear_validador_modificacion_perfil()
-        datos_validos, mensaje_error = validador.validar(datos)
-
-        if not datos_validos:
+        if not datos:
             return jsonify({
-                "mensaje": mensaje_error
+                "mensaje": "No se recibieron datos"
             }), 400
+
+        nuevo_nombre = datos.get(
+            "nombre",
+            usuario_db.nombre
+        )
+
+        nuevo_apellido = datos.get(
+            "apellido",
+            usuario_db.apellido
+        )
 
         nuevo_email = datos.get(
             "email",
@@ -217,8 +212,8 @@ class PerfilController:
 
         datos_modificados, mensaje_error = (
             usuario_clase.modificar_datos_personales(
-                datos.get("nombre", usuario_db.nombre),
-                datos.get("apellido", usuario_db.apellido),
+                nuevo_nombre,
+                nuevo_apellido,
                 nuevo_email
             )
         )
@@ -242,10 +237,7 @@ class PerfilController:
                 "mensaje": "No se pudo actualizar el perfil"
             }), 500
 
-        datos_usuario = usuario_db.to_dict()
-
-        datos_usuario = PerfilController._agregar_datos_por_rol(
-            datos_usuario,
+        datos_usuario = PerfilController._preparar_respuesta_perfil(
             usuario_db
         )
 
@@ -257,6 +249,7 @@ class PerfilController:
     @staticmethod
     @usuario_required
     def cambiar_password():
+        # cambia la contrasena del usuario logueado
         usuario_db = PerfilController._obtener_usuario_actual()
 
         datos = InputSanitizer.sanitizar_campos(
@@ -315,6 +308,7 @@ class PerfilController:
     @staticmethod
     @usuario_required
     def subir_foto():
+        # sube una foto de perfil
         usuario_db = PerfilController._obtener_usuario_actual()
 
         if "foto" not in request.files:

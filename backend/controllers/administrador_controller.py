@@ -16,10 +16,16 @@ from utils.validation_composite import CampoObligatorio, ValidadorCompuesto
 logger = get_app_logger()
 
 
+#AdministradorController no crea un Usuario nuevo.
+#Solo crea los datos especificos de administrador para un usuario que ya existe.
+#Por eso reconstruye el objeto de dominio con admin.reconstruir_usuario()
+#y despues persiste AdministradorModel.
+
 class AdministradorController:
 
     @staticmethod
     def _crear_validador_administrador():
+        # valida campos obligatorios para crear datos de admin
         return ValidadorCompuesto(
             [
                 CampoObligatorio("Usuario_idUsuario"),
@@ -29,6 +35,7 @@ class AdministradorController:
 
     @staticmethod
     def _preparar_datos_administrador(usuario_db, legajo):
+        # arma datos de dominio desde UsuarioModel
         datos_admin = usuario_db.to_dict()
         datos_admin["legajo"] = legajo
 
@@ -36,12 +43,13 @@ class AdministradorController:
 
     @staticmethod
     def _crear_administrador_clase(admin, usuario_db, legajo):
+        # reconstruye un administrador desde un usuario existente
         datos_admin = AdministradorController._preparar_datos_administrador(
             usuario_db,
             legajo
         )
 
-        return admin.crear_usuario(
+        return admin.reconstruir_usuario(
             datos_admin,
             usuario_db.password
         )
@@ -49,6 +57,7 @@ class AdministradorController:
     @staticmethod
     @admin_required
     def listar_administradores():
+        # lista los datos especificos de administradores
         administradores = AdministradorModel.query.all()
 
         return jsonify([
@@ -59,6 +68,7 @@ class AdministradorController:
     @staticmethod
     @admin_required
     def obtener_administrador(id_usuario):
+        # obtiene datos especificos de un administrador
         administrador = AdministradorModel.query.get(id_usuario)
 
         if administrador is None:
@@ -71,6 +81,7 @@ class AdministradorController:
     @staticmethod
     @admin_required
     def crear_administrador():
+        # crea datos especificos de administrador para un usuario existente
         admin = g.admin_actual
 
         datos = InputSanitizer.sanitizar_campos(
@@ -147,5 +158,5 @@ class AdministradorController:
 
     @staticmethod
     def obtener_admin_actual():
+        # obtiene el admin logueado desde el token
         return AuthService.obtener_admin_actual_desde_token()
-        
