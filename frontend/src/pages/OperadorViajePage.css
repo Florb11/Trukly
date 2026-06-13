@@ -251,3 +251,36 @@
   background: #e8f0f5;
 }
  
+.op-viajes-btn-editar {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #e8f4fd;
+  color: #1683bd;
+  transition: background 0.15s;
+}
+
+.op-viajes-btn-editar:hover {
+  background: #1683bd;
+  color: #fff;
+}
+
+.op-viajes-btn-cancelar {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #fee2e2;
+  color: #dc2626;
+  transition: background 0.15s;
+}
+
+.op-viajes-btn-cancelar:hover {
+  background: #dc2626;
+  color: #fff;
+}
