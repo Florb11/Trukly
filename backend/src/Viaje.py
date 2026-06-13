@@ -398,6 +398,12 @@ class Viaje:
 
     def puede_cancelarse(self):
         return self.estado in [self.ESTADO_PENDIENTE, self.ESTADO_ACEPTADO]
+    
+    def puede_editarse(self):
+        return self.estado not in [
+        self.ESTADO_CANCELADO,
+        self.ESTADO_FINALIZADO,
+    ]
 
     def iniciar(self):
         if not self.puede_iniciarse():

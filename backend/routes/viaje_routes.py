@@ -35,3 +35,4 @@ def ruta_obtener_viaje_admin(id_viaje):
 @viaje_routes.route("/api/admin/viajes/<int:id_viaje>/cancelar", methods=["PUT"])
 def ruta_cancelar_viaje_admin(id_viaje):
     return ViajeController.cancelar_viaje_admin(id_viaje)
+

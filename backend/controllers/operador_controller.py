@@ -138,3 +138,60 @@ class OperadorController:
             db.session.rollback()
             logger.exception(f"Error al cancelar viaje {id_viaje}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
+        
+    @staticmethod
+    @operador_required
+    def editar_viaje(id_viaje):
+        operador = g.operador_actual
+
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=["origen", "destino", "observaciones"],
+            campos_enteros=["Chofer_Usuario_idUsuario", "Camion_id_camion"],
+            campos_decimales=["recorrido"],
+        )
+
+        viaje_model = ViajeModel.query.get(id_viaje)
+        if viaje_model is None:
+            return jsonify({"mensaje": "Viaje no encontrado"}), 404
+
+        if viaje_model.OperadorLogistico_Usuario_idUsuario != operador.id_usuario:
+            return jsonify({"mensaje": "No tenés permiso para editar este viaje"}), 403
+
+        viaje = Viaje.crear_desde_datos(viaje_model.to_dict())
+        if not viaje.puede_editarse():
+            return jsonify({"mensaje": "No se puede editar un viaje cancelado o finalizado"}), 400
+
+        id_chofer = datos.get("Chofer_Usuario_idUsuario")
+        id_camion = datos.get("Camion_id_camion")
+
+        if id_chofer and not ChoferModel.query.get(id_chofer):
+            return jsonify({"mensaje": "El chofer no existe"}), 400
+
+        if id_camion and not CamionModel.query.get(id_camion):
+            return jsonify({"mensaje": "El camión no existe"}), 400
+
+        if id_chofer:
+            viaje_model.Chofer_Usuario_idUsuario = id_chofer
+        if id_camion:
+            viaje_model.Camion_id_camion = id_camion
+        if datos.get("origen"):
+            viaje_model.origen = datos["origen"]
+        if datos.get("destino"):
+            viaje_model.destino = datos["destino"]
+        if datos.get("fecha_salida"):
+            viaje_model.fecha_salida = datos["fecha_salida"]
+        if datos.get("fecha_llegada"):
+            viaje_model.fecha_llegada = datos["fecha_llegada"]
+        if datos.get("recorrido") is not None:
+            viaje_model.recorrido = datos["recorrido"]
+        if datos.get("observaciones") is not None:
+            viaje_model.observaciones = datos["observaciones"]
+
+        try:
+            db.session.commit()
+            return jsonify({"mensaje": "Viaje actualizado correctamente", "viaje": viaje_model.to_dict()}), 200
+        except Exception:
+            db.session.rollback()
+            logger.exception(f"Error al editar viaje {id_viaje}")
+            return jsonify({"mensaje": "Error interno del servidor"}), 500

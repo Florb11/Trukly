@@ -1,0 +1,170 @@
+.editar-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(17, 24, 39, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.editar-modal {
+  width: min(620px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #dceaf3;
+  border-top: 4px solid #1683bd;
+  border-radius: 14px;
+  box-shadow: 0 8px 40px rgba(11, 45, 77, 0.18);
+  color: #0b2d4d;
+}
+
+.editar-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid #f0f5f9;
+  background: #f7fafc;
+  border-radius: 10px 10px 0 0;
+}
+
+.editar-modal__kicker {
+  margin: 0 0 3px;
+  color: #1683bd;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.editar-modal__header h2 {
+  margin: 0;
+  color: #0b2d4d;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.editar-modal__close {
+  border: none;
+  background: #e8f4fd;
+  color: #527086;
+  font-size: 20px;
+  cursor: pointer;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.editar-modal__close:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.editar-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 24px;
+}
+
+.editar-modal__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.editar-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editar-modal__field label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #374151;
+}
+
+.editar-modal__field input,
+.editar-modal__field textarea {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #dceaf3;
+  font-size: 14px;
+  color: #0b2d4d;
+  background: #f7fafc;
+  transition: border 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.editar-modal__field input:focus,
+.editar-modal__field textarea:focus {
+  outline: none;
+  border-color: #1683bd;
+  background: #fff;
+}
+
+.editar-modal__error {
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 600;
+  background: #fee2e2;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin: 0;
+}
+
+.editar-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px 22px;
+  border-top: 1px solid #f0f5f9;
+}
+
+.editar-modal__btn {
+  border: none;
+  border-radius: 9px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.editar-modal__btn--cancelar {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.editar-modal__btn--cancelar:hover {
+  background: #e5e7eb;
+}
+
+.editar-modal__btn--guardar {
+  background: #1683bd;
+  color: #fff;
+}
+
+.editar-modal__btn--guardar:hover {
+  background: #1270a0;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 520px) {
+  .editar-modal__row {
+    grid-template-columns: 1fr;
+  }
+}
