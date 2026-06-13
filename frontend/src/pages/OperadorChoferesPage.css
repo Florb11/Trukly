@@ -1,0 +1,118 @@
+.op-choferes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+.op-choferes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.op-choferes-header span {
+  color: #1683bd;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.op-choferes-header h1 {
+  margin: 4px 0 6px;
+  color: #0b2d4d;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.op-choferes-header p {
+  margin: 0;
+  color: #527086;
+  font-size: 14px;
+}
+
+.op-choferes-filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.op-choferes-search {
+  position: relative;
+  max-width: 400px;
+}
+
+.op-choferes-search__icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #527086;
+  font-size: 14px;
+}
+
+.op-choferes-search input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  border-radius: 9px;
+  border: 1.5px solid #dceaf3;
+  font-size: 14px;
+  color: #0b2d4d;
+  background: #f7fafc;
+  box-sizing: border-box;
+  transition: border 0.15s;
+}
+
+.op-choferes-search input:focus {
+  outline: none;
+  border-color: #1683bd;
+  background: #fff;
+}
+
+.op-choferes-estado-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.op-choferes-tab {
+  border: none;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #f0f5f9;
+  color: #527086;
+  transition: background 0.15s, color 0.15s;
+}
+
+.op-choferes-tab--active {
+  background: #1683bd;
+  color: #fff;
+}
+
+.chofer-estado-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.chofer-estado-badge--activo {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.chofer-estado-badge--inactivo {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.chofer-estado-badge--pendiente {
+  background: #fef9c3;
+  color: #ca8a04;
+}
