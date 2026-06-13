@@ -30,6 +30,7 @@ import NotificacionesPage from "./pages/NotificacionesPage";
 import MecanicoMantenimientoPage from "./pages/MecanicoMantenimientoPage";
 import ChoferReportesPage from "./pages/ChoferReportesPage";
 import OperadorCamionesPage from "./pages/OperadorCamionesPage";
+import OperadorChoferesPage from "./pages/OperadorChoferesPage";
 
 import "./App.css";
 import "./styles/dashboard-unified.css";
@@ -207,7 +208,10 @@ function AppContent() {
                   path="/dashboardOperator/notificaciones"
                   element={<NotificacionesPage />}
                 />
-             
+                <Route
+                  path="/dashboardOperator/choferes"
+                  element={<OperadorChoferesPage />}
+                />
 
                 {/* MECÁNICO */}
                 <Route
