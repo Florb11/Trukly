@@ -12,6 +12,7 @@ import {
   FaTachometerAlt,
 } from "react-icons/fa";
 import DetalleViajeModal from "../components/DetalleViajeModal";
+import CrearViajeModal from "../components/CrearViajeModal";
 
 const viajesHardcoded = [
   {
@@ -219,9 +220,6 @@ function OperadorViajesPage() {
           </p>
         </div>
         <div className="op-viajes-header__right">
-          <div className="op-viajes-header__icon">
-            <FaRoute />
-          </div>
           <button
             type="button"
             className="op-viajes-btn-crear"
@@ -344,15 +342,22 @@ function OperadorViajesPage() {
           </div>
         )}
       </article>
-    {viajeDetalle && (
-        <DetalleViajeModal 
-          viaje={viajeDetalle}
-          onClose={cerrarDetalle} 
+      {modalCrear && (
+        <CrearViajeModal
+          form={form}
+          error={errorForm}
+          onChange={handleFormChange}
+          onSubmit={(e) => {
+            e.preventDefault();
+            crearViaje();
+          }}
+          onClose={cerrarCrear}
         />
       )}
-
+      {viajeDetalle && (
+        <DetalleViajeModal viaje={viajeDetalle} onClose={cerrarDetalle} />
+      )}
     </section>
-  
   );
 }
 

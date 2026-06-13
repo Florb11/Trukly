@@ -1,4 +1,4 @@
-.detalle-modal-backdrop {
+.viaje-modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 80;
@@ -10,7 +10,7 @@
   padding: 20px;
 }
 
-.detalle-modal {
+.viaje-modal {
   width: min(640px, 100%);
   max-height: 90vh;
   overflow-y: auto;
@@ -22,7 +22,7 @@
   color: #0b2d4d;
 }
 
-.detalle-modal-header {
+.viaje-modal__header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -33,27 +33,28 @@
   border-radius: 10px 10px 0 0;
 }
 
-.detalle-modal-kicker {
-  margin: 0 0 3px;
+.viaje-modal__header span {
+  display: block;
   color: #1683bd;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  margin-bottom: 3px;
 }
 
-.detalle-modal-header h2 {
+.viaje-modal__header h2 {
   margin: 0;
   color: #0b2d4d;
   font-size: 20px;
   font-weight: 700;
 }
 
-.detalle-modal-close {
+.viaje-modal__header button {
   border: none;
   background: #e8f4fd;
   color: #527086;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
   border-radius: 8px;
@@ -66,114 +67,131 @@
   transition: background 0.15s, color 0.15s;
 }
 
-.detalle-modal-close:hover {
+.viaje-modal__header button:hover {
   background: #fee2e2;
   color: #dc2626;
 }
 
-.detalle-modal-body {
+.viaje-modal__form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 20px 24px;
+  gap: 16px;
+  padding: 24px;
 }
 
-.detalle-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.detalle-section h3 {
-  margin: 0;
-  color: #527086;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #f0f5f9;
-}
-
-.detalle-grid {
+.viaje-modal__row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 16px;
 }
 
-.detalle-grid div {
-  padding: 12px 14px;
-  border-radius: 10px;
-  background: #f7fafc;
-  border: 1.5px solid #dceaf3;
+.viaje-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.detalle-grid span {
-  display: block;
+.viaje-modal__field label {
   color: #374151;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 4px;
 }
 
-.detalle-grid p {
-  margin: 0;
+.viaje-modal__field input,
+.viaje-modal__field textarea {
+  width: 100%;
+  border: 1.5px solid #dceaf3;
+  background: #ffffff;
   color: #0b2d4d;
+  border-radius: 10px;
+  padding: 10px 13px;
   font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+
+.viaje-modal__field input:focus,
+.viaje-modal__field textarea:focus {
+  border-color: #1683bd;
+  box-shadow: 0 0 0 3px rgba(22, 131, 189, 0.12);
+}
+
+.viaje-modal__field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.viaje-modal__error {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fef2f2;
+  border-left: 4px solid #dc2626;
+  color: #991b1b;
+  font-size: 13px;
   font-weight: 600;
 }
 
-.detalle-empty {
-  margin: 0;
-  padding: 12px 14px;
-  border-radius: 10px;
-  background: #f7fafc;
-  border: 1.5px solid #dceaf3;
-  color: #527086;
-  font-size: 14px;
-}
-
-.detalle-modal-footer {
+.viaje-modal__actions {
   display: flex;
   justify-content: flex-end;
-  padding: 16px 24px 22px;
-  border-top: 1px solid #f0f5f9;
+  gap: 10px;
+  padding-top: 4px;
 }
 
-.detalle-btn-cerrar {
+.viaje-modal__btn {
   border: none;
   border-radius: 9px;
   padding: 10px 22px;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  background: #f3f4f6;
-  color: #374151;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
-  transition: background 0.15s, transform 0.1s;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
 }
 
-.detalle-btn-cerrar:hover {
-  background: #e5e7eb;
+.viaje-modal__btn:hover {
   transform: translateY(-1px);
 }
 
-.detalle-btn-cerrar:active {
+.viaje-modal__btn:active {
   transform: translateY(0);
 }
 
+.viaje-modal__btn--cancelar {
+  background: #f3f4f6;
+  color: #374151;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+}
+
+.viaje-modal__btn--cancelar:hover {
+  background: #e5e7eb;
+}
+
+.viaje-modal__btn--guardar {
+  background: #1683bd;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(22, 131, 189, 0.35);
+}
+
+.viaje-modal__btn--guardar:hover {
+  background: #1272a5;
+  box-shadow: 0 4px 14px rgba(22, 131, 189, 0.4);
+}
+
 @media (max-width: 520px) {
-  .detalle-grid {
+  .viaje-modal__row {
     grid-template-columns: 1fr;
   }
 
-  .detalle-modal-footer {
-    padding: 16px 24px;
+  .viaje-modal__actions {
+    flex-direction: column-reverse;
   }
 
-  .detalle-btn-cerrar {
+  .viaje-modal__btn {
     width: 100%;
     text-align: center;
   }
