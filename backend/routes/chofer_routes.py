@@ -14,3 +14,7 @@ def ruta_obtener_chofer(id_usuario):
 @chofer_routes.route("/api/choferes", methods=["POST"]) 
 def ruta_crear_chofer():
     return ChoferController.crear_chofer()
+
+@chofer_routes.route("/api/choferes/mis-reportes", methods=["GET"])
+def ruta_listar_reportes_propios():
+    return ChoferController.listar_reportes_propios()

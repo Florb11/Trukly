@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import NuevoReporteModal from "../components/NuevoReporteModal";
 import DetalleReporteModal from "../components/DetalleReporteModal";
 import "./ChoferReportesPage.css";
-import {fetchConToken}  from "../utils/fetchConToken";
+import { fetchConToken } from "../utils/fetchConToken";
 
 // 1. Sacamos el MOCK y dejamos el estado inicial limpio (sin la gravedad)
 const FORM_NUEVO_INICIAL = {
@@ -29,14 +29,14 @@ function ChoferReportesPage() {
   const cargarReportes = async () => {
     try {
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/reportes",
+        "http://localhost:5000/api/choferes/mis-reportes",
         { method: "GET" },
       );
       if (!resultado) return;
       const { respuesta, data } = resultado;
       if (!respuesta.ok)
         throw new Error(data.mensaje || "Error al obtener los reportes");
-      setReportes(data.reportes || []);
+      setReportes(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error cargando reportes:", error);
     }
@@ -93,10 +93,9 @@ function ChoferReportesPage() {
           }),
         },
       );
-        const { respuesta, data } = resultado;
-        if (!respuesta.ok)
-          throw new Error(data.mensaje || "Error al crear el reporte");
-  
+      const { respuesta, data } = resultado;
+      if (!respuesta.ok)
+        throw new Error(data.mensaje || "Error al crear el reporte");
 
       setMensajeReportes("Reporte creado correctamente.");
       cerrarNuevoReporte();
