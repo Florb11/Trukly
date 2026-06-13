@@ -1,75 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NuevoReporteModal from "../components/NuevoReporteModal";
 import DetalleReporteModal from "../components/DetalleReporteModal";
 import "./ChoferReportesPage.css";
+import {fetchConToken}  from "../utils/fetchConToken";
 
-const REPORTES_MOCK = [
-  {
-    id_reporte: 1,
-    fecha_hora: "2025-06-01 08:30:00",
-    descripcion:
-      "Falla en el sistema de frenos delanteros, se siente vibración al frenar.",
-    estado: "pendiente",
-    nota_reparacion: null,
-    fecha_resolucion: null,
-    Camion_id_camion: 3,
-    Mecanico_Usuario_idUsuario: null,
-    Chofer_Usuario_idUsuario: 7,
-  },
-  {
-    id_reporte: 2,
-    fecha_hora: "2025-05-20 14:15:00",
-    descripcion: "Luz de tablero indica baja presión de aceite.",
-    estado: "en_reparacion",
-    nota_reparacion:
-      "Se revisó el nivel de aceite, se detectó pérdida en junta.",
-    fecha_resolucion: null,
-    Camion_id_camion: 3,
-    Mecanico_Usuario_idUsuario: 2,
-    Chofer_Usuario_idUsuario: 7,
-  },
-  {
-    id_reporte: 3,
-    fecha_hora: "2025-04-10 09:00:00",
-    descripcion: "Neumático trasero derecho con desgaste irregular.",
-    estado: "resuelto",
-    nota_reparacion: "Se reemplazó el neumático y se realizó alineación.",
-    fecha_resolucion: "2025-04-12 11:00:00",
-    Camion_id_camion: 3,
-    Mecanico_Usuario_idUsuario: 2,
-    Chofer_Usuario_idUsuario: 7,
-  },
-  {
-    id_reporte: 4,
-    fecha_hora: "2025-03-05 07:45:00",
-    descripcion: "El sistema de climatización no enfría correctamente.",
-    estado: "resuelto",
-    nota_reparacion: "Se recargó el gas refrigerante y se limpió el filtro.",
-    fecha_resolucion: "2025-03-07 16:30:00",
-    Camion_id_camion: 3,
-    Mecanico_Usuario_idUsuario: 5,
-    Chofer_Usuario_idUsuario: 7,
-  },
-];
-
+// 1. Sacamos el MOCK y dejamos el estado inicial limpio (sin la gravedad)
 const FORM_NUEVO_INICIAL = {
   descripcion: "",
-  Camion_id_camion: "",
+  id_camion: "",
 };
 
 function ChoferReportesPage() {
-  const [reportes, setReportes] = useState(REPORTES_MOCK);
-
+  // 2. Inicializamos con un array vacío [] para evitar que el .filter() rompa la pantalla
+  const [reportes, setReportes] = useState([]);
   const [reporteDetalle, setReporteDetalle] = useState(null);
-
   const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false);
   const [formNuevo, setFormNuevo] = useState(FORM_NUEVO_INICIAL);
   const [errorNuevo, setErrorNuevo] = useState("");
   const [mensajeReportes, setMensajeReportes] = useState("");
-
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todos");
 
+  // 3. Agregamos useEffect para cargar los reportes al entrar a la página
+  useEffect(() => {
+    cargarReportes();
+  }, []);
+
+  const cargarReportes = async () => {
+    try {
+      const resultado = await fetchConToken(
+        "http://localhost:5000/api/reportes",
+        { method: "GET" },
+      );
+      if (!resultado) return;
+      const { respuesta, data } = resultado;
+      if (!respuesta.ok)
+        throw new Error(data.mensaje || "Error al obtener los reportes");
+      setReportes(data.reportes || []);
+    } catch (error) {
+      console.error("Error cargando reportes:", error);
+    }
+  };
 
   const abrirDetalle = (reporte) => {
     setReporteDetalle(reporte);
@@ -80,7 +51,6 @@ function ChoferReportesPage() {
     setReporteDetalle(null);
   };
 
- 
   const abrirNuevoReporte = () => {
     setMostrarModalNuevo(true);
     setErrorNuevo("");
@@ -97,7 +67,7 @@ function ChoferReportesPage() {
     setFormNuevo({ ...formNuevo, [e.target.name]: e.target.value });
   };
 
-  const guardarNuevoReporte = (e) => {
+  const guardarNuevoReporte = async (e) => {
     e.preventDefault();
 
     if (!formNuevo.descripcion.trim()) {
@@ -105,28 +75,38 @@ function ChoferReportesPage() {
       return;
     }
 
-    if (!formNuevo.Camion_id_camion) {
+    if (!formNuevo.id_camion) {
       setErrorNuevo("Debés indicar el ID del camión.");
       return;
     }
 
-    const nuevoReporte = {
-      id_reporte: reportes.length + 1,
-      fecha_hora: new Date().toISOString().replace("T", " ").slice(0, 19),
-      descripcion: formNuevo.descripcion.trim(),
-      estado: "pendiente",
-      nota_reparacion: null,
-      fecha_resolucion: null,
-      Camion_id_camion: Number(formNuevo.Camion_id_camion),
-      Mecanico_Usuario_idUsuario: null,
-      Chofer_Usuario_idUsuario: 7,
-    };
+    try {
+      const token = localStorage.getItem("token");
 
-    setReportes((prev) => [nuevoReporte, ...prev]);
-    setMensajeReportes("Reporte creado correctamente.");
-    cerrarNuevoReporte();
+      const resultado = await fetchConToken(
+        "http://localhost:5000/api/reportes",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            descripcion: formNuevo.descripcion.trim(),
+            Camion_id_camion: Number(formNuevo.id_camion),
+          }),
+        },
+      );
+        const { respuesta, data } = resultado;
+        if (!respuesta.ok)
+          throw new Error(data.mensaje || "Error al crear el reporte");
+  
+
+      setMensajeReportes("Reporte creado correctamente.");
+      cerrarNuevoReporte();
+
+      // 4. Volvemos a pedir los datos al backend para que el nuevo reporte aparezca en la lista
+      cargarReportes();
+    } catch (error) {
+      setErrorNuevo(error.message);
+    }
   };
-
 
   const reportesFiltrados = reportes.filter((r) => {
     const texto = busqueda.toLowerCase();
@@ -141,7 +121,6 @@ function ChoferReportesPage() {
 
     return coincideTexto && coincideEstado;
   });
-
 
   const getBadgeClass = (estado) => {
     if (estado === "resuelto") return "estado-badge estado-badge--resuelto";
@@ -181,7 +160,7 @@ function ChoferReportesPage() {
           className="btn-nuevo-reporte"
           onClick={abrirNuevoReporte}
         >
-           Nuevo reporte
+          Nuevo reporte
         </button>
       </div>
 
@@ -234,7 +213,6 @@ function ChoferReportesPage() {
           </p>
         ) : (
           <>
-        
             <div className="reportes-table-wrap">
               <table className="reportes-table">
                 <thead>
@@ -272,7 +250,6 @@ function ChoferReportesPage() {
               </table>
             </div>
 
-          
             <div className="reportes-cards-mobile">
               {reportesFiltrados.map((reporte) => (
                 <div key={reporte.id_reporte} className="reporte-card-mobile">

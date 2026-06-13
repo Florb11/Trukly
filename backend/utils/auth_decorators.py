@@ -132,29 +132,32 @@ def usuario_required(funcion):
 
         # Ejecuta la funcion original protegida
         return funcion(*args, **kwargs)
-
+       
     return wrapper
 
-    def obtener_chofer_actual_desde_token():
+
+def obtener_chofer_actual_desde_token():
 
         return AuthService.obtener_chofer_actual_desde_token()
     
-    def chofer_required(funcion):
+def chofer_required(funcion):
 
         @wraps(funcion)
         @jwt_required()
         def wrapper(*args, **kwargs):
   
-          chofer = obtener_chofer_actual_desde_token()
+           chofer = obtener_chofer_actual_desde_token()
 
-          if chofer is None:
+           if chofer is None:
             return (
                 jsonify({"mensaje": "No tenés permiso para realizar esta acción"}),
                 403,
             )
     
-        g.chofer_actual = chofer
+           g.chofer_actual = chofer
 
-        return funcion(*args, **kwargs)
+           return funcion(*args, **kwargs)
 
-    return wrapper
+        return wrapper
+
+      

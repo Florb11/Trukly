@@ -23,16 +23,19 @@ function NuevoReporteModal({
         </div>
 
         <form className="reporte-modal__form" onSubmit={onSubmit}>
+          
+   
           <div className="reporte-modal__field">
-            <label htmlFor="Camion_id_camion">ID del camión</label>
+            <label htmlFor="id_camion">ID del camión</label>
             <input
               type="number"
-              id="Camion_id_camion"
-              name="Camion_id_camion"
-              value={formNuevo.Camion_id_camion}
+              id="id_camion"
+              name="id_camion"
+              value={formNuevo.id_camion || ""}
               onChange={onChange}
               placeholder="Ej: 3"
               min="1"
+              required
             />
           </div>
 
@@ -41,10 +44,11 @@ function NuevoReporteModal({
             <textarea
               id="descripcion"
               name="descripcion"
-              value={formNuevo.descripcion}
+              value={formNuevo.descripcion || ""}
               onChange={onChange}
               placeholder="Describí la falla con el mayor detalle posible..."
               rows={4}
+              required
             />
           </div>
 
