@@ -4,6 +4,9 @@ from models.administrador_model import AdministradorModel
 from models.mecanico_model import MecanicoModel
 from models.usuario_model import UsuarioModel
 
+from models.chofer_model import ChoferModel
+from src.Chofer import Chofer
+
 from src.Administrador import Administrador
 from src.Mecanico import Mecanico
 from src.Usuario import Usuario
@@ -72,6 +75,40 @@ class AuthService:
                 "estado": usuario.estado,
                 "rol": usuario.rol,
                 "legajo": administrador.legajo,
+                "foto_perfil": usuario.foto_perfil,
+            }
+        )
+    @staticmethod
+    def obtener_chofer_actual_desde_token():
+        usuario = AuthService.obtener_usuario_model_actual()
+
+        if usuario is None:
+            return None
+
+        if (
+            AuthService.obtener_rol_actual() != Usuario.ROL_CHOFER
+            or usuario.rol != Usuario.ROL_CHOFER
+        ):
+            return None
+
+        chofer = ChoferModel.query.get(usuario.id_usuario)
+
+        if chofer is None:
+            return None
+
+        return Chofer.crear_desde_datos(
+            {
+                "id_usuario": usuario.id_usuario,
+                "username": usuario.username,
+                "email": usuario.email,
+                "password": usuario.password,
+                "nombre": usuario.nombre,
+                "apellido": usuario.apellido,
+                "estado": usuario.estado,
+                "rol": usuario.rol,
+                "legajo": chofer.legajo,
+                "licencia": chofer.licencia,
+                "vencimientoLicencia": chofer.vencimientoLicencia,
                 "foto_perfil": usuario.foto_perfil,
             }
         )

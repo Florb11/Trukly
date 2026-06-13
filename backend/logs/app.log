@@ -11,3 +11,34 @@
 2026-06-10 23:17:04,118 - WARNING - trukly - Login fallido: contrasena incorrecta para Mecanico1
 2026-06-11 03:28:48,340 - WARNING - trukly - Login fallido: usuario inexistente admin
 2026-06-11 03:28:51,775 - WARNING - trukly - Login fallido: usuario inexistente admin
+2026-06-13 17:59:15,549 - WARNING - trukly - Login fallido: contrasena incorrecta para chofer
+2026-06-13 18:12:11,220 - ERROR - trukly - Error al listar reportes del chofer 4
+Traceback (most recent call last):
+  File "C:\Users\juand\OneDrive\Documentos\GitHub\Trukly\backend\controllers\chofer_controller.py", line 90, in listar_reportes_propios
+    reportes = chofer.obtener_mis_reportes(ReporteModel.query)
+TypeError: Chofer.obtener_mis_reportes() missing 1 required positional argument: 'reporte_model_query'
+2026-06-13 18:12:11,533 - ERROR - trukly - Error al listar reportes del chofer 4
+Traceback (most recent call last):
+  File "C:\Users\juand\OneDrive\Documentos\GitHub\Trukly\backend\controllers\chofer_controller.py", line 90, in listar_reportes_propios
+    reportes = chofer.obtener_mis_reportes(ReporteModel.query)
+TypeError: Chofer.obtener_mis_reportes() missing 1 required positional argument: 'reporte_model_query'
+2026-06-13 18:13:24,079 - ERROR - trukly - Error al listar reportes del chofer 4
+Traceback (most recent call last):
+  File "C:\Users\juand\OneDrive\Documentos\GitHub\Trukly\backend\controllers\chofer_controller.py", line 90, in listar_reportes_propios
+    reportes = chofer.obtener_mis_reportes(ReporteModel.query)
+TypeError: Chofer.obtener_mis_reportes() missing 1 required positional argument: 'reporte_model_query'
+2026-06-13 18:13:24,388 - ERROR - trukly - Error al listar reportes del chofer 4
+Traceback (most recent call last):
+  File "C:\Users\juand\OneDrive\Documentos\GitHub\Trukly\backend\controllers\chofer_controller.py", line 90, in listar_reportes_propios
+    reportes = chofer.obtener_mis_reportes(ReporteModel.query)
+TypeError: Chofer.obtener_mis_reportes() missing 1 required positional argument: 'reporte_model_query'
+2026-06-13 18:13:53,443 - ERROR - trukly - Error al listar reportes del chofer 4
+Traceback (most recent call last):
+  File "C:\Users\juand\OneDrive\Documentos\GitHub\Trukly\backend\controllers\chofer_controller.py", line 90, in listar_reportes_propios
+    reportes = chofer.obtener_mis_reportes(ReporteModel.query)
+TypeError: Chofer.obtener_mis_reportes() missing 1 required positional argument: 'reporte_model_query'
+2026-06-13 18:14:59,416 - ERROR - trukly - Error al listar reportes del chofer 4
+Traceback (most recent call last):
+  File "C:\Users\juand\OneDrive\Documentos\GitHub\Trukly\backend\controllers\chofer_controller.py", line 90, in listar_reportes_propios
+    reportes = chofer.obtener_mis_reportes(ReporteModel.query)
+TypeError: Chofer.obtener_mis_reportes() missing 1 required positional argument: 'reporte_model_query'
