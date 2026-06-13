@@ -10,6 +10,8 @@ from src.Chofer import Chofer
 from src.Administrador import Administrador
 from src.Mecanico import Mecanico
 from src.Usuario import Usuario
+from models.operador_model import OperadorModel
+from src.OperadorLogistico import OperadorLogistico
 
 
 class AuthService:
@@ -143,6 +145,41 @@ class AuthService:
                 "rol": usuario.rol,
                 "legajo": mecanico.legajo,
                 "especialidad": mecanico.especialidad,
+                "foto_perfil": usuario.foto_perfil,
+            }
+        )
+    
+
+    @staticmethod
+    def obtener_operador_actual_desde_token():
+        usuario = AuthService.obtener_usuario_model_actual()
+
+        if usuario is None:
+            return None
+
+        if (
+            AuthService.obtener_rol_actual() != Usuario.ROL_OPERADOR
+            or usuario.rol != Usuario.ROL_OPERADOR
+        ):
+            return None
+
+        operador = OperadorModel.query.get(usuario.id_usuario)
+
+        if operador is None:
+            return None
+
+        return OperadorLogistico.crear_desde_datos(
+            {
+                "id_usuario": usuario.id_usuario,
+                "username": usuario.username,
+                "email": usuario.email,
+                "password": usuario.password,
+                "nombre": usuario.nombre,
+                "apellido": usuario.apellido,
+                "estado": usuario.estado,
+                "rol": usuario.rol,
+                "legajo": operador.legajo,
+                "sector": operador.sector,
                 "foto_perfil": usuario.foto_perfil,
             }
         )

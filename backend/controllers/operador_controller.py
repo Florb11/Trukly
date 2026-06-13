@@ -1,50 +1,140 @@
-from flask import jsonify, request
+from flask import g, jsonify, request
 from db_instance import db
+from utils.app_logger import get_app_logger
 
 from models.operador_model import OperadorModel
+from models.viaje_model import ViajeModel
+from models.chofer_model import ChoferModel
+from models.camion_model import CamionModel
 from utils.input_sanitizer import InputSanitizer
+from utils.auth_decorators import operador_required
+
+from src.OperadorLogistico import OperadorLogistico
+from src.Viaje import Viaje
+
+logger = get_app_logger()
 
 
-def listar_operadores():
+class OperadorController:
 
-    operadores = OperadorModel.query.all()
+    @staticmethod
+    def listar_operadores():
+        operadores = OperadorModel.query.all()
+        return jsonify([operador.to_dict() for operador in operadores])
 
-    return jsonify([operador.to_dict() for operador in operadores])
+    @staticmethod
+    def obtener_operador(id_usuario):
+        operador = OperadorModel.query.get(id_usuario)
+        if operador is None:
+            return jsonify({"mensaje": "Operador no encontrado"}), 404
+        return jsonify(operador.to_dict())
 
+    @staticmethod
+    def crear_operador():
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=["Legajo", "Sector"],
+            campos_enteros=["Usuario_idUsuario"],
+        )
+        nuevo_operador = OperadorModel(
+            Usuario_idUsuario=datos["Usuario_idUsuario"],
+            legajo=datos["Legajo"],
+            sector=datos["Sector"],
+        )
+        db.session.add(nuevo_operador)
+        db.session.commit()
+        return jsonify({"mensaje": "Operador creado correctamente", "operador": nuevo_operador.to_dict()}), 201
 
-def obtener_operador(id_usuario):
+    @staticmethod
+    @operador_required
+    def listar_viajes():
+        operador = g.operador_actual
+        try:
+            viajes = ViajeModel.query.filter_by(
+                OperadorLogistico_Usuario_idUsuario=operador.id_usuario
+            ).all()
+            return jsonify([v.to_dict() for v in viajes]), 200
+        except Exception:
+            logger.exception(f"Error al listar viajes del operador {operador.id_usuario}")
+            return jsonify({"mensaje": "Error interno del servidor"}), 500
 
-    operador = OperadorModel.query.get(id_usuario)
+    @staticmethod
+    @operador_required
+    def crear_viaje():
+        operador = g.operador_actual
 
-    if operador is None:
-        return jsonify({"mensaje": "Operador no encontrado"}), 404
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=["origen", "destino", "observaciones"],
+            campos_enteros=["Chofer_Usuario_idUsuario", "Camion_id_camion"],
+            campos_decimales=["recorrido"],
+        )
 
-    return jsonify(operador.to_dict())
+        origen = datos.get("origen")
+        destino = datos.get("destino")
+        fecha_salida = datos.get("fecha_salida")
+        fecha_llegada = datos.get("fecha_llegada")
+        id_chofer = datos.get("Chofer_Usuario_idUsuario")
+        id_camion = datos.get("Camion_id_camion")
 
+        if not origen or not destino or not fecha_salida or not id_chofer or not id_camion:
+            return jsonify({"mensaje": "Faltan campos obligatorios"}), 400
 
-def crear_operador():
+        valido, error = Viaje.validar_datos_viaje(datos)
+        if not valido:
+            return jsonify({"mensaje": error}), 400
 
-    datos = InputSanitizer.sanitizar_campos(
-        request.get_json(silent=True) or {},
-        campos_texto=[
-            "Legajo",
-            "Sector",
-        ],
-        campos_enteros=["Usuario_idUsuario"],
-    )
+        try:
+            nuevo_viaje = ViajeModel(
+                OperadorLogistico_Usuario_idUsuario=operador.id_usuario,
+                Chofer_Usuario_idUsuario=id_chofer,
+                Camion_id_camion=id_camion,
+                fecha_salida=fecha_salida,
+                fecha_llegada=fecha_llegada,
+                origen=origen,
+                destino=destino,
+                estado=Viaje.ESTADO_PENDIENTE,
+                observaciones=datos.get("observaciones"),
+                recorrido=datos.get("recorrido", 0),
+            )
+            db.session.add(nuevo_viaje)
+            db.session.commit()
+            return jsonify({"mensaje": "Viaje creado correctamente", "viaje": nuevo_viaje.to_dict()}), 201
 
-    nuevo_operador = OperadorModel(
-        Usuario_idUsuario=datos["Usuario_idUsuario"],
-        legajo=datos["Legajo"],
-        sector=datos["Sector"],
-    )
+        except Exception:
+            db.session.rollback()
+            logger.exception(f"Error al crear viaje por operador {operador.id_usuario}")
+            return jsonify({"mensaje": "Error interno del servidor"}), 500
 
-    db.session.add(nuevo_operador)
-    db.session.commit()
+    @staticmethod
+    @operador_required
+    def cancelar_viaje(id_viaje):
+        operador = g.operador_actual
 
-    return jsonify(
-        {
-            "mensaje": "Operador creado correctamente",
-            "operador": nuevo_operador.to_dict(),
-        }
-    )
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=["motivo"],
+        )
+        motivo = datos.get("motivo")
+        if not motivo:
+            return jsonify({"mensaje": "El motivo es obligatorio"}), 400
+
+        viaje_model = ViajeModel.query.get(id_viaje)
+        if viaje_model is None:
+            return jsonify({"mensaje": "Viaje no encontrado"}), 404
+
+        viaje = Viaje.crear_desde_datos(viaje_model.to_dict())
+
+        if not operador.cancelar_viaje(viaje, motivo):
+            return jsonify({"mensaje": "El viaje no puede cancelarse en su estado actual"}), 400
+
+        try:
+            viaje_model.estado = viaje.estado
+            viaje_model.observaciones = viaje.observaciones
+            db.session.commit()
+            return jsonify({"mensaje": "Viaje cancelado correctamente"}), 200
+
+        except Exception:
+            db.session.rollback()
+            logger.exception(f"Error al cancelar viaje {id_viaje}")
+            return jsonify({"mensaje": "Error interno del servidor"}), 500
