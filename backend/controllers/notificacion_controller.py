@@ -17,6 +17,7 @@ class NotificacionController:
 
     @staticmethod
     def crear_objeto_usuario(usuario_model):
+        # convierte UsuarioModel a Usuario de dominio
         if usuario_model is None:
             return None
 
@@ -27,6 +28,10 @@ class NotificacionController:
 
     @staticmethod
     def crear_objeto_notificacion(notificacion_model, usuario=None):
+        # convierte NotificacionModel a Notificacion de dominio
+        if notificacion_model is None:
+            return None
+
         return Notificacion.crear_desde_datos(
             {
                 "id_notificacion": notificacion_model.id_notificacion,
@@ -45,13 +50,16 @@ class NotificacionController:
         notificacion_model,
         notificacion_clase
     ):
+        # copia cambios del dominio al modelo
         notificacion_model.leida = notificacion_clase.leida
 
     @staticmethod
     def convertir_notificacion(notificacion_model):
+        # arma la respuesta de una notificacion
         usuario_model = UsuarioModel.query.get(
             notificacion_model.Usuario_idUsuario
         )
+
         usuario = NotificacionController.crear_objeto_usuario(usuario_model)
 
         notificacion = (
@@ -79,6 +87,7 @@ class NotificacionController:
     @staticmethod
     @usuario_required
     def listar_mis_notificaciones():
+        # lista notificaciones del usuario logueado
         usuario_actual = g.usuario_actual
         id_usuario = usuario_actual.id_usuario
         rol = usuario_actual.rol
@@ -88,9 +97,12 @@ class NotificacionController:
                 NotificacionModel.fecha_hora.desc()
             ).all()
         else:
-            notificaciones = NotificacionModel.query.filter_by(
-                Usuario_idUsuario=id_usuario
-            ).order_by(NotificacionModel.fecha_hora.desc()).all()
+            notificaciones = (
+                NotificacionModel.query
+                .filter_by(Usuario_idUsuario=id_usuario)
+                .order_by(NotificacionModel.fecha_hora.desc())
+                .all()
+            )
 
         return jsonify({
             "notificaciones": [
@@ -102,6 +114,7 @@ class NotificacionController:
     @staticmethod
     @usuario_required
     def marcar_como_leida(id_notificacion):
+        # marca una notificacion como leida
         usuario_actual = NotificacionController.crear_objeto_usuario(
             g.usuario_actual
         )
@@ -120,6 +133,12 @@ class NotificacionController:
             )
         )
 
+        if notificacion is None:
+            return jsonify({
+                "mensaje": "No se pudo leer la notificacion"
+            }), 400
+
+        # la regla de permiso esta en Notificacion
         if not notificacion.marcar_como_leida_por(usuario_actual):
             return jsonify({
                 "mensaje": "No tenes permisos para modificar esta notificacion"

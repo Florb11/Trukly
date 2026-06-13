@@ -1,10 +1,5 @@
 from flask import g, jsonify, request
 
-from src.observer.EventManager import EventManager
-from src.observer.NotificacionReporteListener import (
-    NotificacionReporteListener
-)
-
 from db_instance import db
 
 from models.reporte_model import ReporteModel
@@ -12,7 +7,11 @@ from models.camion_model import CamionModel
 
 from src.Camion import Camion
 from src.ReporteFalla import ReporteFalla
-from services.auth_service import AuthService
+from src.observer.EventManager import EventManager
+from src.observer.NotificacionReporteListener import (
+    NotificacionReporteListener
+)
+
 from services.notificacion_service import NotificacionService
 from utils.auth_decorators import mecanico_required
 from utils.app_logger import get_app_logger
@@ -27,6 +26,7 @@ class MecanicoController:
 
     @staticmethod
     def crear_validador_resolucion_reporte():
+        # valida que venga la nota
         return ValidadorCompuesto(
             [
                 CampoObligatorio(
@@ -37,11 +37,11 @@ class MecanicoController:
         )
 
     @staticmethod
-    def obtener_mecanico_actual():
-        return AuthService.obtener_mecanico_actual_desde_token()
-
-    @staticmethod
     def crear_objeto_reporte(reporte_model):
+        # convierte ReporteModel a ReporteFalla
+        if reporte_model is None:
+            return None
+
         return ReporteFalla.crear_desde_datos(
             {
                 "id_reporte": reporte_model.id_reporte,
@@ -62,12 +62,14 @@ class MecanicoController:
 
     @staticmethod
     def actualizar_modelo_reporte(reporte_model, reporte_clase):
+        # copia cambios del dominio al modelo
         reporte_model.estado = reporte_clase.estado
         reporte_model.nota_reparacion = reporte_clase.nota_reparacion
         reporte_model.fecha_resolucion = reporte_clase.fecha_resolucion
 
     @staticmethod
     def preparar_respuesta_reporte(reporte_model):
+        # arma respuesta desde el modelo
         reporte_clase = MecanicoController.crear_objeto_reporte(
             reporte_model
         )
@@ -78,6 +80,7 @@ class MecanicoController:
 
     @staticmethod
     def preparar_respuesta_reporte_clase(reporte_clase):
+        # adapta nombres para el frontend
         datos = reporte_clase.to_dict()
 
         datos["Camion_id_camion"] = datos.pop("id_camion")
@@ -88,6 +91,7 @@ class MecanicoController:
 
     @staticmethod
     def crear_objeto_camion(camion_model):
+        # convierte CamionModel a Camion
         if camion_model is None:
             return None
 
@@ -105,10 +109,12 @@ class MecanicoController:
 
     @staticmethod
     def actualizar_modelo_camion(camion_model, camion_clase):
+        # copia el estado del dominio al modelo
         camion_model.estado = camion_clase.estado
 
     @staticmethod
     def obtener_reportes_activos_camion(id_camion, id_reporte_resuelto):
+        # busca reportes activos del camion
         return (
             ReporteModel.query
             .filter(
@@ -121,20 +127,48 @@ class MecanicoController:
 
     @staticmethod
     def separar_reportes_mantenimiento(reportes):
+        # separa reportes activos y reparaciones resueltas
         reportes_pendientes = []
         reparaciones_realizadas = []
 
         for reporte in reportes:
-            if reporte.estado == ReporteFalla.ESTADO_RESUELTO:
-                reparaciones_realizadas.append(reporte)
-            else:
+            if reporte.estado in ReporteFalla.ESTADOS_ACTIVOS:
                 reportes_pendientes.append(reporte)
+            elif reporte.estado == ReporteFalla.ESTADO_RESUELTO:
+                reparaciones_realizadas.append(reporte)
 
         return reportes_pendientes, reparaciones_realizadas
 
     @staticmethod
+    def notificar_reporte_resuelto(reporte_model, nota_reparacion):
+        # notifica al chofer que su reporte fue resuelto
+        event_manager = EventManager()
+        listener_notificacion = NotificacionReporteListener(
+            NotificacionService.agregar_a_sesion
+        )
+
+        event_manager.suscribir(
+            "reporte_resuelto",
+            listener_notificacion
+        )
+
+        event_manager.notificar(
+            "reporte_resuelto",
+            {
+                "id_usuario": reporte_model.Chofer_Usuario_idUsuario,
+                "titulo": "Reporte resuelto",
+                "mensaje": (
+                    f"El reporte #{reporte_model.id_reporte} fue resuelto. "
+                    f"Nota: {nota_reparacion}"
+                ),
+                "tipo": "reporte_resuelto",
+            }
+        )
+
+    @staticmethod
     @mecanico_required
     def listar_reportes_asignados():
+        # lista los reportes del mecanico logueado
         mecanico = g.mecanico_actual
 
         reportes = ReporteModel.query.filter_by(
@@ -153,12 +187,14 @@ class MecanicoController:
     @staticmethod
     @mecanico_required
     def resolver_reporte(id_reporte):
+        # resuelve un reporte asignado al mecanico
         mecanico = g.mecanico_actual
 
         datos = InputSanitizer.sanitizar_campos(
             request.get_json(silent=True) or {},
             campos_texto=["nota_reparacion"],
         )
+
         validador = MecanicoController.crear_validador_resolucion_reporte()
         datos_validos, mensaje_error = validador.validar(datos)
 
@@ -178,6 +214,7 @@ class MecanicoController:
 
         reporte = MecanicoController.crear_objeto_reporte(reporte_model)
 
+        # la regla real esta en Mecanico y ReporteFalla
         pudo_resolver = mecanico.resolver_reporte(
             reporte,
             nota_reparacion
@@ -200,6 +237,7 @@ class MecanicoController:
 
         camion_model = CamionModel.query.get(reporte_model.Camion_id_camion)
         camion = MecanicoController.crear_objeto_camion(camion_model)
+
         reportes_activos = (
             MecanicoController.obtener_reportes_activos_camion(
                 reporte_model.Camion_id_camion,
@@ -207,6 +245,7 @@ class MecanicoController:
             )
         )
 
+        # el mecanico delega en camion si se puede liberar
         camion_liberado = mecanico.liberar_camion_si_corresponde(
             camion,
             reportes_activos
@@ -218,27 +257,9 @@ class MecanicoController:
                 camion
             )
 
-        event_manager = EventManager()
-        listener_notificacion = NotificacionReporteListener(
-            NotificacionService.agregar_a_sesion
-        )
-
-        event_manager.suscribir(
-            "reporte_resuelto",
-            listener_notificacion
-        )
-
-        event_manager.notificar(
-            "reporte_resuelto",
-            {
-                "id_usuario": reporte_model.Chofer_Usuario_idUsuario,
-                "titulo": "Reporte resuelto",
-                "mensaje": (
-                    f"El reporte #{reporte_model.id_reporte} fue resuelto. "
-                    f"Nota: {nota_reparacion}"
-                ),
-                "tipo": "reporte_resuelto",
-            }
+        MecanicoController.notificar_reporte_resuelto(
+            reporte_model,
+            nota_reparacion
         )
 
         try:
@@ -266,6 +287,7 @@ class MecanicoController:
     @staticmethod
     @mecanico_required
     def listar_camiones_mantenimiento():
+        # lista camiones con resumen de mantenimiento
         mecanico = g.mecanico_actual
 
         if not mecanico.esta_activo():
@@ -282,6 +304,7 @@ class MecanicoController:
             reportes = ReporteModel.query.filter_by(
                 Camion_id_camion=camion.id_camion
             ).all()
+
             reportes_clase = [
                 MecanicoController.crear_objeto_reporte(reporte)
                 for reporte in reportes
@@ -314,6 +337,7 @@ class MecanicoController:
     @staticmethod
     @mecanico_required
     def obtener_mantenimiento_camion(id_camion):
+        # muestra detalle de mantenimiento de un camion
         mecanico = g.mecanico_actual
 
         if not mecanico.esta_activo():
@@ -338,6 +362,7 @@ class MecanicoController:
             .order_by(ReporteModel.fecha_hora.desc())
             .all()
         )
+
         reportes_clase = [
             MecanicoController.crear_objeto_reporte(reporte)
             for reporte in reportes

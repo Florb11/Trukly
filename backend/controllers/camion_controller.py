@@ -11,9 +11,7 @@ from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
 from utils.validation_composite import (
     CampoObligatorio,
-    ValidacionDatos,
     ValidadorCompuesto,
-    ValorPermitido,
 )
 
 
@@ -24,6 +22,7 @@ class CamionController:
 
     @staticmethod
     def _sanitizar_datos_camion(datos):
+        # limpia los datos que vienen del request
         datos_limpios = InputSanitizer.sanitizar_campos(
             datos,
             campos_texto=[
@@ -37,12 +36,15 @@ class CamionController:
         )
 
         if datos_limpios.get("estado") is not None:
-            datos_limpios["estado"] = str(datos_limpios["estado"]).lower()
+            datos_limpios["estado"] = str(
+                datos_limpios["estado"]
+            ).lower()
 
         return datos_limpios
 
     @staticmethod
     def _preparar_datos_camion(datos, camion_db=None):
+        # arma los datos completos para crear o modificar
         return {
             "matricula": datos.get(
                 "matricula",
@@ -71,49 +73,33 @@ class CamionController:
         }
 
     @staticmethod
-    def _validar_capacidad_carga(datos):
-        capacidad_carga = datos.get("capacidad_carga")
-
-        if capacidad_carga is None:
-            return False, "La capacidad de carga es obligatoria"
-
-        if capacidad_carga <= 0:
-            return False, "La capacidad de carga debe ser mayor a 0"
-
-        return True, None
-
-    @staticmethod
-    def _validar_nro_tanque(datos):
-        nro_tanque = datos.get("nroTanque")
-
-        if nro_tanque is None:
-            return False, "El numero de tanque es obligatorio"
-
-        if nro_tanque <= 0:
-            return False, "El numero de tanque debe ser mayor a 0"
-
-        return True, None
-
-    @staticmethod
     def _crear_validador_camion():
+        # valida que los campos existan en el request preparado
         return ValidadorCompuesto(
             [
                 CampoObligatorio("matricula"),
                 CampoObligatorio("marca"),
                 CampoObligatorio("modelo"),
+                CampoObligatorio("capacidad_carga"),
                 CampoObligatorio("estado"),
-                ValorPermitido(
-                    "estado",
-                    Camion.ESTADOS_VALIDOS,
-                    "Estado"
-                ),
-                ValidacionDatos(CamionController._validar_capacidad_carga),
-                ValidacionDatos(CamionController._validar_nro_tanque),
+                CampoObligatorio("nroTanque"),
             ]
         )
 
     @staticmethod
+    def _validar_datos_basicos(datos):
+        # valida campos obligatorios
+        validador = CamionController._crear_validador_camion()
+        return validador.validar(datos)
+
+    @staticmethod
+    def _validar_datos_dominio(admin, datos):
+        # delega las reglas de camion a la clase
+        return admin.validar_datos_camion(datos)
+
+    @staticmethod
     def _aplicar_datos_camion(camion_db, camion_clase):
+        # copia el objeto al modelo de BD
         camion_db.matricula = camion_clase.matricula
         camion_db.marca = camion_clase.marca
         camion_db.modelo = camion_clase.modelo
@@ -123,6 +109,7 @@ class CamionController:
 
     @staticmethod
     def _obtener_reportes_activos(id_camion):
+        # busca reportes activos asociados al camion
         return (
             ReporteModel.query
             .filter(
@@ -134,7 +121,9 @@ class CamionController:
 
     @staticmethod
     def _preparar_respuesta_camion(camion_db):
+        # arma la respuesta que se devuelve al front
         datos_camion = camion_db.to_dict()
+
         reportes_activos = CamionController._obtener_reportes_activos(
             camion_db.id_camion
         )
@@ -152,6 +141,7 @@ class CamionController:
 
     @staticmethod
     def _ajustar_estado_por_reportes_activos(camion_db, camion_clase):
+        # ajusta el estado del objeto segun sus reportes
         reportes_activos = CamionController._obtener_reportes_activos(
             camion_db.id_camion
         )
@@ -163,6 +153,7 @@ class CamionController:
     @staticmethod
     @admin_required
     def listar_camiones():
+        # lista todos los camiones
         camiones = CamionModel.query.all()
 
         return jsonify({
@@ -175,6 +166,7 @@ class CamionController:
     @staticmethod
     @admin_required
     def obtener_camion(id_camion):
+        # obtiene un camion por id
         camion = CamionModel.query.get(id_camion)
 
         if camion is None:
@@ -187,30 +179,49 @@ class CamionController:
     @staticmethod
     @admin_required
     def crear_camion():
+        # recibe el request
         admin = g.admin_actual
 
         datos = CamionController._sanitizar_datos_camion(
             request.get_json(silent=True) or {}
         )
 
-        validador = CamionController._crear_validador_camion()
-        datos_validos, mensaje_error = validador.validar(datos)
+        # valida campos obligatorios
+        datos_validos, mensaje_error = CamionController._validar_datos_basicos(
+            datos
+        )
 
         if not datos_validos:
             return jsonify({"mensaje": mensaje_error}), 400
 
+        # valida reglas de negocio en el dominio
+        datos_validos, mensaje_error = CamionController._validar_datos_dominio(
+            admin,
+            datos
+        )
+
+        if not datos_validos:
+            return jsonify({"mensaje": mensaje_error}), 400
+
+        # el admin crea el objeto de dominio
         camion_clase = admin.crear_camion(datos)
 
         if camion_clase is None:
-            return jsonify({"mensaje": "Faltan datos obligatorios o hay datos invalidos"}), 400
+            return jsonify({
+                "mensaje": "Faltan datos obligatorios o hay datos invalidos"
+            }), 400
 
+        # valida unicidad en BD
         camion_existente = CamionModel.query.filter_by(
             matricula=camion_clase.matricula
         ).first()
 
         if camion_existente:
-            return jsonify({"mensaje": "Ya existe un camion con esa matricula"}), 400
+            return jsonify({
+                "mensaje": "Ya existe un camion con esa matricula"
+            }), 400
 
+        # convierte el objeto ( clase) a modelo
         nuevo_camion = CamionModel(
             matricula=camion_clase.matricula,
             marca=camion_clase.marca,
@@ -239,6 +250,7 @@ class CamionController:
     @staticmethod
     @admin_required
     def modificar_camion(id_camion):
+        # recibe el request
         admin = g.admin_actual
 
         camion_db = CamionModel.query.get(id_camion)
@@ -250,36 +262,57 @@ class CamionController:
             request.get_json(silent=True) or {}
         )
 
+        # completa datos faltantes con los datos actuales
         datos_camion = CamionController._preparar_datos_camion(
             datos,
             camion_db
         )
-        validador = CamionController._crear_validador_camion()
-        datos_validos, mensaje_error = validador.validar(datos_camion)
+
+        # valida campos obligatorios
+        datos_validos, mensaje_error = CamionController._validar_datos_basicos(
+            datos_camion
+        )
 
         if not datos_validos:
             return jsonify({"mensaje": mensaje_error}), 400
 
-        camion_clase = admin.crear_camion(
+        # valida reglas de negocio en el dominio
+        datos_validos, mensaje_error = CamionController._validar_datos_dominio(
+            admin,
+            datos_camion
+        )
+
+        if not datos_validos:
+            return jsonify({"mensaje": mensaje_error}), 400
+
+        # el admin prepara el objeto modificado
+        camion_clase = admin.preparar_modificacion_camion(
             datos_camion,
             camion_db.id_camion
         )
 
         if camion_clase is None:
-            return jsonify({"mensaje": "Faltan datos obligatorios o hay datos invalidos"}), 400
+            return jsonify({
+                "mensaje": "Faltan datos obligatorios o hay datos invalidos"
+            }), 400
 
+        # aplica reglas por reportes activos
         CamionController._ajustar_estado_por_reportes_activos(
             camion_db,
             camion_clase
         )
 
+        # valida que la matricula no este repetida
         camion_existente = CamionModel.query.filter_by(
             matricula=camion_clase.matricula
         ).first()
 
         if camion_existente and camion_existente.id_camion != id_camion:
-            return jsonify({"mensaje": "Ya existe otro camion con esa matricula"}), 400
+            return jsonify({
+                "mensaje": "Ya existe otro camion con esa matricula"
+            }), 400
 
+        # aplica los cambios al modelo
         CamionController._aplicar_datos_camion(
             camion_db,
             camion_clase
@@ -303,6 +336,7 @@ class CamionController:
     @staticmethod
     @admin_required
     def cambiar_estado_camion(id_camion):
+        # recibe el request
         admin = g.admin_actual
 
         camion_db = CamionModel.query.get(id_camion)
@@ -314,29 +348,18 @@ class CamionController:
             request.get_json(silent=True) or {},
             campos_texto=["estado"],
         )
+
         nuevo_estado = datos.get("estado")
 
         if nuevo_estado is not None:
             nuevo_estado = str(nuevo_estado).lower()
 
-        validador = ValidadorCompuesto(
-            [
-                CampoObligatorio("estado"),
-                ValorPermitido(
-                    "estado",
-                    Camion.ESTADOS_VALIDOS,
-                    "Estado"
-                ),
-            ]
-        )
-        datos_validos, mensaje_error = validador.validar({
-            "estado": nuevo_estado
-        })
+        # el controller solo valida que el campo venga
+        if nuevo_estado is None or str(nuevo_estado).strip() == "":
+            return jsonify({"mensaje": "El estado es obligatorio"}), 400
 
-        if not datos_validos:
-            return jsonify({"mensaje": mensaje_error}), 400
-
-        camion_clase = admin.crear_camion(
+        # reconstruye el objeto desde la BD
+        camion_clase = admin.preparar_modificacion_camion(
             CamionController._preparar_datos_camion(
                 {},
                 camion_db
@@ -345,16 +368,21 @@ class CamionController:
         )
 
         if camion_clase is None:
-            return jsonify({"mensaje": "Faltan datos obligatorios o hay datos invalidos"}), 400
+            return jsonify({
+                "mensaje": "Faltan datos obligatorios o hay datos invalidos"
+            }), 400
 
+        # el admin intenta cambiar el estado en el objeto
         if not admin.cambiar_estado_camion(camion_clase, nuevo_estado):
             return jsonify({"mensaje": "Estado invalido"}), 400
 
+        # aplica reglas por reportes activos
         CamionController._ajustar_estado_por_reportes_activos(
             camion_db,
             camion_clase
         )
 
+        # persiste el nuevo estado
         camion_db.estado = camion_clase.estado
 
         try:

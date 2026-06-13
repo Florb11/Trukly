@@ -45,6 +45,7 @@ class Administrador(Usuario):
 
     @classmethod
     def crear_desde_datos(cls, datos):
+        # crea un administrador desde un diccionario
         if datos is None:
             return None
 
@@ -62,6 +63,7 @@ class Administrador(Usuario):
         )
 
     def agregar_usuario_gestionado(self, usuario):
+        # guarda el usuario en la lista del admin
         if usuario is None:
             return False
 
@@ -69,6 +71,7 @@ class Administrador(Usuario):
         return True
 
     def agregar_camion_gestionado(self, camion):
+        # guarda el camion en la lista del admin
         if camion is None:
             return False
 
@@ -76,6 +79,7 @@ class Administrador(Usuario):
         return True
 
     def agregar_reporte_falla(self, reporte):
+        # guarda el reporte en la lista del admin
         if reporte is None:
             return False
 
@@ -84,13 +88,16 @@ class Administrador(Usuario):
 
     @staticmethod
     def rol_valido(rol):
+        # valida que el rol exista
         return rol in Administrador.ROLES_VALIDOS
 
     @staticmethod
     def estado_valido(estado):
+        # valida que el estado exista
         return estado in Administrador.ESTADOS_VALIDOS
 
-    def crear_usuario(self, datos, password):
+    def _construir_usuario_por_rol(self, datos, password):
+        # arma un usuario de dominio segun su rol
         if datos is None:
             return None
 
@@ -122,8 +129,10 @@ class Administrador(Usuario):
             datos_admin = dict(datos)
             datos_admin["id_usuario"] = datos.get("id_usuario")
             datos_admin["password"] = password
-            usuario = Administrador.crear_desde_datos(datos_admin)
-        elif rol == Usuario.ROL_CHOFER:
+
+            return Administrador.crear_desde_datos(datos_admin)
+
+        if rol == Usuario.ROL_CHOFER:
             vencimiento = Chofer.convertir_vencimiento_licencia(
                 datos.get("vencimientoLicencia")
             )
@@ -135,45 +144,56 @@ class Administrador(Usuario):
             datos_chofer["id_usuario"] = datos.get("id_usuario")
             datos_chofer["password"] = password
             datos_chofer["vencimientoLicencia"] = vencimiento
-            usuario = Chofer.crear_desde_datos(datos_chofer)
-        elif rol == Usuario.ROL_MECANICO:
+
+            return Chofer.crear_desde_datos(datos_chofer)
+
+        if rol == Usuario.ROL_MECANICO:
             if not self.texto_valido(datos.get("especialidad")):
                 return None
 
             datos_mecanico = dict(datos)
             datos_mecanico["id_usuario"] = datos.get("id_usuario")
             datos_mecanico["password"] = password
-            usuario = Mecanico.crear_desde_datos(datos_mecanico)
-        elif rol == Usuario.ROL_OPERADOR:
+
+            return Mecanico.crear_desde_datos(datos_mecanico)
+
+        if rol == Usuario.ROL_OPERADOR:
             if not self.texto_valido(datos.get("sector")):
                 return None
 
             datos_operador = dict(datos)
             datos_operador["id_usuario"] = datos.get("id_usuario")
             datos_operador["password"] = password
-            usuario = OperadorLogistico.crear_desde_datos(datos_operador)
-        else:
+
+            return OperadorLogistico.crear_desde_datos(datos_operador)
+
+        return None
+
+    def crear_usuario(self, datos, password):
+        # crea y registra un usuario nuevo
+        usuario = self._construir_usuario_por_rol(
+            datos,
+            password
+        )
+
+        if usuario is None:
             return None
 
         self.agregar_usuario_gestionado(usuario)
         return usuario
 
-    def crear_camion(self, datos, id_camion=None):
-        if datos is None:
-            return None
-
-        camion = Camion.crear_desde_datos(
+    def reconstruir_usuario(self, datos, password):
+        # reconstruye un usuario existente sin registrarlo como nuevo
+        return self._construir_usuario_por_rol(
             datos,
-            id_camion=id_camion,
+            password
         )
 
-        if not self.registrar_camion(camion):
-            return None
-
-        return camion
-
-    # activa un usuario si esta pendiente o inactivo
     def activar_usuario(self, usuario):
+        # activa un usuario pendiente o inactivo
+        if usuario is None:
+            return False
+
         if usuario.estado not in [
             Usuario.ESTADO_PENDIENTE,
             Usuario.ESTADO_INACTIVO,
@@ -184,9 +204,11 @@ class Administrador(Usuario):
         self.agregar_usuario_gestionado(usuario)
         return True
 
-    # desactiva un usuario pasandolo a inactivo
-    # no eliminamos usuarios, los desactivamos
     def desactivar_usuario(self, usuario):
+        # desactiva un usuario sin eliminarlo
+        if usuario is None:
+            return False
+
         if usuario.id_usuario == self.id_usuario:
             return False
 
@@ -197,9 +219,16 @@ class Administrador(Usuario):
         self.agregar_usuario_gestionado(usuario)
         return True
 
-    # modifica los datos generales de un usuario
-    # no modificamos el rol desde aca
-    def modificar_usuario(self, usuario, username, email, nombre, apellido, estado):
+    def modificar_usuario(
+        self,
+        usuario,
+        username,
+        email,
+        nombre,
+        apellido,
+        estado
+    ):
+        # modifica datos generales de un usuario
         if usuario is None:
             return False
 
@@ -223,23 +252,31 @@ class Administrador(Usuario):
         usuario.nombre = nombre
         usuario.apellido = apellido
         usuario.estado = estado
+
         self.agregar_usuario_gestionado(usuario)
         return True
 
-    # uso el diccionario del padre y agrego el legajo del admin
-    def to_dict(self):
-        datos_usuario = super().to_dict()
+    def validar_datos_camion(self, datos_camion):
+        # delega la validacion al dominio camion
+        return Camion.validar_datos_camion(datos_camion)
 
-        datos_usuario.update(
-            {
-                "legajo": self.legajo,
-            }
+    def crear_camion(self, datos, id_camion=None):
+        # crea un camion desde el administrador
+        if datos is None:
+            return None
+
+        camion = Camion.crear_desde_datos(
+            datos,
+            id_camion=id_camion,
         )
 
-        return datos_usuario
+        if not self.registrar_camion(camion):
+            return None
 
-    # registra un camion desde el administrador
+        return camion
+
     def registrar_camion(self, camion):
+        # registra un camion si sus datos son validos
         if camion is None:
             return False
 
@@ -252,8 +289,29 @@ class Administrador(Usuario):
         self.agregar_camion_gestionado(camion)
         return True
 
-    # modifica los datos de un camion
+    def preparar_modificacion_camion(self, datos_camion, id_camion):
+        # prepara un camion existente con datos nuevos
+        if datos_camion is None:
+            return None
+
+        if id_camion is None:
+            return None
+
+        camion = Camion.crear_desde_datos(
+            datos_camion,
+            id_camion=id_camion,
+        )
+
+        if camion is None:
+            return None
+
+        if not self.modificar_camion(camion):
+            return None
+
+        return camion
+
     def modificar_camion(self, camion):
+        # modifica un camion desde el dominio
         if camion is None:
             return False
 
@@ -266,8 +324,8 @@ class Administrador(Usuario):
         self.agregar_camion_gestionado(camion)
         return True
 
-    # cambia el estado de un camion
     def cambiar_estado_camion(self, camion, nuevo_estado):
+        # cambia el estado de un camion
         if camion is None:
             return False
 
@@ -279,6 +337,7 @@ class Administrador(Usuario):
         return estado_cambiado
 
     def cambiar_estado_reporte(self, reporte, nuevo_estado):
+        # cambia el estado de un reporte
         if reporte is None:
             return False
 
@@ -291,3 +350,15 @@ class Administrador(Usuario):
             self.agregar_reporte_falla(reporte)
 
         return estado_cambiado
+
+    def to_dict(self):
+        # convierte el administrador a diccionario
+        datos_usuario = super().to_dict()
+
+        datos_usuario.update(
+            {
+                "legajo": self.legajo,
+            }
+        )
+
+        return datos_usuario

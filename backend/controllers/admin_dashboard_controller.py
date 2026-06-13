@@ -14,11 +14,16 @@ from src.Viaje import Viaje
 from src.ReporteFalla import ReporteFalla
 from utils.auth_decorators import admin_required
 
+#AdminDashboardController no necesita crear objetos de dominio porque no ejecuta una accion de negocio.
+#Solo consulta datos para mostrar resumenes.
+#Usa constantes de Usuario, Camion, Viaje y ReporteFalla para no repetir strings sueltos.
+#La logica se separa en metodos privados para que el endpoint principal quede mas legible.
 
 class AdminDashboardController:
 
     @staticmethod
     def _calcular_porcentaje(parte, total):
+        # calcula porcentaje evitando division por cero
         if total <= 0:
             return 0
 
@@ -26,6 +31,7 @@ class AdminDashboardController:
 
     @staticmethod
     def _preparar_chofer_pendiente(datos_usuario, datos_chofer=None):
+        # arma los datos de un chofer pendiente
         if datos_usuario is None:
             return None
 
@@ -39,63 +45,14 @@ class AdminDashboardController:
             )
         else:
             datos["licencia"] = "-"
+            datos["legajo"] = "-"
+            datos["vencimientoLicencia"] = None
 
         return datos
 
     @staticmethod
-    def _armar_resumen_dashboard(
-        usuarios_activos,
-        camiones_registrados,
-        camiones_disponibles,
-        reportes_abiertos,
-        reportes_resueltos,
-        total_reportes,
-        viajes_del_dia,
-        viajes_en_curso,
-        viajes_finalizados,
-        total_viajes,
-        actividad_operativa,
-        usuarios_pendientes,
-    ):
-        return {
-            "usuarios_activos": usuarios_activos,
-            "camiones_registrados": camiones_registrados,
-            "camiones_disponibles": camiones_disponibles,
-            "reportes_abiertos": reportes_abiertos,
-            "reportes_prioridad_alta": 0,
-            "viajes_del_dia": viajes_del_dia,
-            "viajes_en_curso": viajes_en_curso,
-            "estado_general": {
-                "flota_disponible": (
-                    AdminDashboardController._calcular_porcentaje(
-                        camiones_disponibles,
-                        camiones_registrados
-                    )
-                ),
-                "reportes_resueltos": (
-                    AdminDashboardController._calcular_porcentaje(
-                        reportes_resueltos,
-                        total_reportes
-                    )
-                ),
-                "viajes_finalizados": (
-                    AdminDashboardController._calcular_porcentaje(
-                        viajes_finalizados,
-                        total_viajes
-                    )
-                ),
-            },
-            "actividad_operativa": actividad_operativa,
-            "usuarios_pendientes": usuarios_pendientes,
-        }
-
-    @staticmethod
-    @admin_required
-    def obtener_resumen_dashboard():
-        usuarios_activos = UsuarioModel.query.filter_by(
-            estado=Usuario.ESTADO_ACTIVO
-        ).count()
-
+    def _obtener_choferes_pendientes():
+        # obtiene choferes pendientes para mostrar en el dashboard
         usuarios_pendientes = UsuarioModel.query.filter_by(
             estado=Usuario.ESTADO_PENDIENTE,
             rol=Usuario.ROL_CHOFER
@@ -123,6 +80,107 @@ class AdminDashboardController:
                 )
             )
 
+        return choferes_pendientes
+
+    @staticmethod
+    def _obtener_actividad_operativa(hoy):
+        # obtiene cantidad de viajes de los ultimos 7 dias
+        actividad_operativa = []
+
+        for i in range(6, -1, -1):
+            dia = hoy - timedelta(days=i)
+
+            cantidad_viajes = ViajeModel.query.filter(
+                ViajeModel.fecha_salida == dia
+            ).count()
+
+            actividad_operativa.append(cantidad_viajes)
+
+        return actividad_operativa
+
+    @staticmethod
+    def _armar_estado_general(
+        camiones_disponibles,
+        camiones_registrados,
+        reportes_resueltos,
+        total_reportes,
+        viajes_finalizados,
+        total_viajes,
+    ):
+        # arma porcentajes generales del dashboard
+        return {
+            "flota_disponible": (
+                AdminDashboardController._calcular_porcentaje(
+                    camiones_disponibles,
+                    camiones_registrados
+                )
+            ),
+            "reportes_resueltos": (
+                AdminDashboardController._calcular_porcentaje(
+                    reportes_resueltos,
+                    total_reportes
+                )
+            ),
+            "viajes_finalizados": (
+                AdminDashboardController._calcular_porcentaje(
+                    viajes_finalizados,
+                    total_viajes
+                )
+            ),
+        }
+
+    @staticmethod
+    def _armar_resumen_dashboard(
+        usuarios_activos,
+        camiones_registrados,
+        camiones_disponibles,
+        reportes_abiertos,
+        reportes_resueltos,
+        total_reportes,
+        viajes_del_dia,
+        viajes_en_curso,
+        viajes_finalizados,
+        total_viajes,
+        actividad_operativa,
+        usuarios_pendientes,
+    ):
+        # arma el diccionario final del dashboard
+        return {
+            "usuarios_activos": usuarios_activos,
+            "camiones_registrados": camiones_registrados,
+            "camiones_disponibles": camiones_disponibles,
+            "reportes_abiertos": reportes_abiertos,
+            "reportes_prioridad_alta": 0,
+            "viajes_del_dia": viajes_del_dia,
+            "viajes_en_curso": viajes_en_curso,
+            "estado_general": (
+                AdminDashboardController._armar_estado_general(
+                    camiones_disponibles=camiones_disponibles,
+                    camiones_registrados=camiones_registrados,
+                    reportes_resueltos=reportes_resueltos,
+                    total_reportes=total_reportes,
+                    viajes_finalizados=viajes_finalizados,
+                    total_viajes=total_viajes,
+                )
+            ),
+            "actividad_operativa": actividad_operativa,
+            "usuarios_pendientes": usuarios_pendientes,
+        }
+
+    @staticmethod
+    @admin_required
+    def obtener_resumen_dashboard():
+        # obtiene datos generales del dashboard admin
+        hoy = date.today()
+
+        usuarios_activos = UsuarioModel.query.filter_by(
+            estado=Usuario.ESTADO_ACTIVO
+        ).count()
+
+        choferes_pendientes = (
+            AdminDashboardController._obtener_choferes_pendientes()
+        )
+
         camiones_registrados = CamionModel.query.count()
 
         camiones_disponibles = CamionModel.query.filter_by(
@@ -138,8 +196,6 @@ class AdminDashboardController:
         reportes_resueltos = ReporteModel.query.filter_by(
             estado=ReporteFalla.ESTADO_RESUELTO
         ).count()
-
-        hoy = date.today()
 
         viajes_del_dia = ViajeModel.query.filter(
             ViajeModel.fecha_salida == hoy
@@ -157,16 +213,9 @@ class AdminDashboardController:
             estado=Viaje.ESTADO_FINALIZADO
         ).count()
 
-        actividad_operativa = []
-
-        for i in range(6, -1, -1):
-            dia = hoy - timedelta(days=i)
-
-            cantidad_viajes = ViajeModel.query.filter(
-                ViajeModel.fecha_salida == dia
-            ).count()
-
-            actividad_operativa.append(cantidad_viajes)
+        actividad_operativa = (
+            AdminDashboardController._obtener_actividad_operativa(hoy)
+        )
 
         resumen = AdminDashboardController._armar_resumen_dashboard(
             usuarios_activos=usuarios_activos,

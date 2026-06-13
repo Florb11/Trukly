@@ -40,7 +40,8 @@ class AdminUsuariosController:
 
     @staticmethod
     def _sanitizar_datos_usuario(datos):
-        return InputSanitizer.sanitizar_campos(
+        # limpia los datos que vienen del request
+        datos_limpios = InputSanitizer.sanitizar_campos(
             datos,
             campos_texto=[
                 "username",
@@ -57,6 +58,18 @@ class AdminUsuariosController:
             campos_email=["email"],
             campos_password=["password"],
         )
+
+        if datos_limpios.get("estado") is not None:
+            datos_limpios["estado"] = str(
+                datos_limpios["estado"]
+            ).strip().lower()
+
+        if datos_limpios.get("rol") is not None:
+            datos_limpios["rol"] = str(
+                datos_limpios["rol"]
+            ).strip().lower()
+
+        return datos_limpios
 
     @staticmethod
     def _crear_validador_campos_obligatorios(campos):
@@ -116,6 +129,7 @@ class AdminUsuariosController:
                 "Rol"
             )
         )
+
         validador.agregar(
             ValorPermitido(
                 "estado",
@@ -123,24 +137,28 @@ class AdminUsuariosController:
                 "Estado"
             )
         )
+
         validador.agregar(
             ValidacionFuncion(
                 "password",
                 Usuario.validar_password_registro
             )
         )
+
         validador.agregar(
             ValidacionCondicional(
                 lambda datos: datos.get("rol") == Usuario.ROL_CHOFER,
                 AdminUsuariosController._crear_validador_datos_chofer()
             )
         )
+
         validador.agregar(
             ValidacionCondicional(
                 lambda datos: datos.get("rol") == Usuario.ROL_MECANICO,
                 AdminUsuariosController._crear_validador_datos_mecanico()
             )
         )
+
         validador.agregar(
             ValidacionCondicional(
                 lambda datos: datos.get("rol") == Usuario.ROL_OPERADOR,
@@ -287,6 +305,7 @@ class AdminUsuariosController:
 
     @staticmethod
     def _crear_usuario_clase(admin, usuario_db):
+        # reconstruye un usuario existente desde la BD
         datos_usuario = AdminUsuariosController._preparar_datos_usuario_clase(
             usuario_db
         )
@@ -294,7 +313,7 @@ class AdminUsuariosController:
         if datos_usuario is None:
             return AdminUsuariosController._crear_usuario_base(usuario_db)
 
-        usuario_clase = admin.crear_usuario(
+        usuario_clase = admin.reconstruir_usuario(
             datos_usuario,
             usuario_db.password
         )
@@ -438,7 +457,8 @@ class AdminUsuariosController:
 
             if administrador:
                 datos_validos, mensaje_error, datos_validados = (
-                    AdminUsuariosController._validar_datos_especificos_modificacion(
+                    AdminUsuariosController
+                    ._validar_datos_especificos_modificacion(
                         usuario_db.rol,
                         datos,
                         {
@@ -457,7 +477,8 @@ class AdminUsuariosController:
 
             if chofer:
                 datos_validos, mensaje_error, datos_validados = (
-                    AdminUsuariosController._validar_datos_especificos_modificacion(
+                    AdminUsuariosController
+                    ._validar_datos_especificos_modificacion(
                         usuario_db.rol,
                         datos,
                         {
@@ -484,7 +505,8 @@ class AdminUsuariosController:
 
             if mecanico:
                 datos_validos, mensaje_error, datos_validados = (
-                    AdminUsuariosController._validar_datos_especificos_modificacion(
+                    AdminUsuariosController
+                    ._validar_datos_especificos_modificacion(
                         usuario_db.rol,
                         datos,
                         {
@@ -505,7 +527,8 @@ class AdminUsuariosController:
 
             if operador:
                 datos_validos, mensaje_error, datos_validados = (
-                    AdminUsuariosController._validar_datos_especificos_modificacion(
+                    AdminUsuariosController
+                    ._validar_datos_especificos_modificacion(
                         usuario_db.rol,
                         datos,
                         {

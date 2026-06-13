@@ -20,6 +20,7 @@ class Usuario:
         ROL_MECANICO,
         ROL_OPERADOR,
     ]
+
     ESTADOS_VALIDOS = [
         ESTADO_PENDIENTE,
         ESTADO_ACTIVO,
@@ -30,7 +31,7 @@ class Usuario:
         "png",
         "jpg",
         "jpeg",
-        "webp"
+        "webp",
     }
 
     TAMANIO_MAXIMO_FOTO_BYTES = 3 * 1024 * 1024
@@ -59,6 +60,7 @@ class Usuario:
 
     @classmethod
     def crear_desde_datos(cls, datos):
+        # crea un usuario desde un diccionario
         if datos is None:
             return None
 
@@ -74,26 +76,32 @@ class Usuario:
             foto_perfil=datos.get("foto_perfil"),
         )
 
-    # verifica si la contrasena ingresada coincide con la contrasena guardada
     def verificar_password(self, password_ingresada, bcrypt):
+        # verifica si la contrasena ingresada coincide
+        if not self.password:
+            return False
+
+        if not password_ingresada:
+            return False
+
         return bcrypt.check_password_hash(
             self.password,
             password_ingresada
         )
 
-    # verifica si la cuenta del usuario esta activa
     def esta_activo(self):
+        # indica si el usuario puede iniciar sesion
         return self.estado == self.ESTADO_ACTIVO
 
-    # modifica los datos personales del usuario
     def modificar_datos_personales(self, nombre, apellido, email):
-        if not nombre or nombre.strip() == "":
+        # modifica datos personales del usuario
+        if not self.texto_valido(nombre):
             return False, "El nombre es obligatorio"
 
-        if not apellido or apellido.strip() == "":
+        if not self.texto_valido(apellido):
             return False, "El apellido es obligatorio"
 
-        if not email or email.strip() == "":
+        if not self.texto_valido(email):
             return False, "El email es obligatorio"
 
         self.nombre = nombre.strip()
@@ -102,7 +110,6 @@ class Usuario:
 
         return True, None
 
-    # valida los datos necesarios para cambiar la contrasena
     def puede_cambiar_password(
         self,
         password_actual,
@@ -110,6 +117,7 @@ class Usuario:
         confirmar_password,
         bcrypt
     ):
+        # valida si puede cambiar la contrasena
         if not password_actual:
             return False, "La contrasena actual es obligatoria"
 
@@ -134,8 +142,12 @@ class Usuario:
 
         return True, None
 
-    # devuelve los datos publicos del usuario
+    def cerrar_sesion(self):
+        # representa el cierre de sesion a nivel dominio
+        return True
+
     def to_dict(self):
+        # convierte el usuario a diccionario
         return {
             "id_usuario": self.id_usuario,
             "username": self.username,
@@ -147,22 +159,35 @@ class Usuario:
             "foto_perfil": self.foto_perfil,
         }
 
-    def cerrar_sesion(self):
-        return True
-
     @staticmethod
     def texto_valido(valor):
+        # valida texto no vacio
         return texto_valido(valor)
 
     @staticmethod
+    def rol_valido(rol):
+        # valida que el rol exista
+        return rol in Usuario.ROLES_VALIDOS
+
+    @staticmethod
+    def estado_valido(estado):
+        # valida que el estado exista
+        return estado in Usuario.ESTADOS_VALIDOS
+
+    @staticmethod
     def obtener_extension_foto(nombre_archivo):
-        if not nombre_archivo or "." not in nombre_archivo:
+        # obtiene la extension de una imagen
+        if not nombre_archivo:
+            return None
+
+        if "." not in nombre_archivo:
             return None
 
         return nombre_archivo.rsplit(".", 1)[1].lower()
 
     @staticmethod
     def validar_foto_perfil(nombre_archivo, tamanio):
+        # valida formato y tamanio de foto
         if not nombre_archivo:
             return False, "No se selecciono ninguna imagen"
 
@@ -178,22 +203,25 @@ class Usuario:
 
     @staticmethod
     def generar_nombre_foto_perfil(nombre_archivo):
+        # genera un nombre unico para la foto
         extension = Usuario.obtener_extension_foto(nombre_archivo)
+
+        if extension is None:
+            return None
 
         return f"{uuid.uuid4().hex}.{extension}"
 
     @staticmethod
     def obtener_nombre_archivo_foto(ruta_foto):
+        # obtiene el nombre del archivo desde una ruta
         if not ruta_foto:
             return None
 
         return os.path.basename(ruta_foto)
 
-    # Usamos staticmethod porque la validacion pertenece a la clase
-    # pero no necesita que exista un objeto de la clase creado
-    # Antes de crear el objeto, validamos si los datos sirven para construirlo
     @staticmethod
     def validar_password_registro(password):
+        # valida la contrasena al registrar usuario
         if not password:
             return False, "La contrasena es obligatoria"
 
