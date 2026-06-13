@@ -5,7 +5,7 @@ import DetalleViajeModal from "../components/DetalleViajeModal";
 import CrearViajeModal from "../components/CrearViajeModal";
 import { fetchConToken } from "../utils/fetchConToken";
 import EditarViajeModal from "../components/EditarViajeModal";
-// import CancelarViajeModal from "../components/CancelarViajeModal";
+import CancelarViajeModal from "../components/CancelarViajeModal";
 
 const camposVaciosCrear = {
   origen: "",
@@ -63,8 +63,8 @@ function OperadorViajesPage() {
     }
   };
 
-const [viajeEditar, setViajeEditar] = useState(null);
-const [viajeCancelar, setViajeCancelar] = useState(null);
+  const [viajeEditar, setViajeEditar] = useState(null);
+  const [viajeCancelar, setViajeCancelar] = useState(null);
 
   const viajesFiltrados = useMemo(() => {
     return viajes.filter((v) => {
@@ -335,6 +335,16 @@ const [viajeCancelar, setViajeCancelar] = useState(null);
           onActualizado={() => {
             cargarViajes();
             setViajeEditar(null);
+          }}
+        />
+      )}
+      {viajeCancelar && (
+        <CancelarViajeModal
+          viaje={viajeCancelar}
+          onClose={() => setViajeCancelar(null)}
+          onActualizado={() => {
+            cargarViajes();
+            setViajeCancelar(null);
           }}
         />
       )}
