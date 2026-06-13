@@ -196,11 +196,17 @@ function AppContent() {
                   path="/dashboardOperator/perfil"
                   element={<PerfilPage />}
                 />
+                
+                <Route
+                  path="/dashboardOperator/camiones"
+                  element={<AdminCamionesPage />}
+                  />
 
                 <Route
                   path="/dashboardOperator/notificaciones"
                   element={<NotificacionesPage />}
                 />
+             
 
                 {/* MECÁNICO */}
                 <Route
