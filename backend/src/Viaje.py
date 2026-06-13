@@ -389,3 +389,24 @@ class Viaje:
             "id_chofer": self.id_chofer,
             "id_camion": self.id_camion,
         }
+    
+    def puede_iniciarse(self):
+        return self.estado == self.ESTADO_ACEPTADO
+
+    def puede_finalizarse(self):
+        return self.estado == self.ESTADO_EN_CURSO
+
+    def puede_cancelarse(self):
+        return self.estado in [self.ESTADO_PENDIENTE, self.ESTADO_ACEPTADO]
+
+    def iniciar(self):
+        if not self.puede_iniciarse():
+            return False
+        self.estado = self.ESTADO_EN_CURSO
+        return True
+
+    def finalizar(self):
+        if not self.puede_finalizarse():
+            return False
+        self.estado = self.ESTADO_FINALIZADO
+        return True

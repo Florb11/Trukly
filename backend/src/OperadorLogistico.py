@@ -94,3 +94,33 @@ class OperadorLogistico(Usuario):
         )
 
         return datos_usuario
+    
+    def puede_gestionar_viaje(self, viaje):
+        if viaje is None:
+            return False
+        return True
+
+    def crear_viaje(self, viaje):
+        if viaje is None:
+            return False
+        return self.gestionar_viaje(viaje)
+
+    def asignar_chofer_a_viaje(self, chofer, viaje):
+        if chofer is None or viaje is None:
+            return False
+        return viaje.asignar_chofer(chofer)
+
+    def agregar_carga_a_viaje(self, carga, viaje):
+        if carga is None or viaje is None:
+            return False
+        return viaje.agregar_carga(carga)
+
+    def cancelar_viaje(self, viaje, motivo):
+        if viaje is None:
+            return False
+        return viaje.cancelar(motivo)
+
+    def asignar_mecanico_a_reporte(self, mecanico, reporte):
+        if mecanico is None or reporte is None:
+            return False
+        return reporte.asignar_mecanico(mecanico)

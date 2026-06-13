@@ -159,5 +159,26 @@ def chofer_required(funcion):
            return funcion(*args, **kwargs)
 
         return wrapper
+def obtener_operador_actual_desde_token():
+    return AuthService.obtener_operador_actual_desde_token()
+
+
+def operador_required(funcion):
+
+    @wraps(funcion)
+    @jwt_required()
+    def wrapper(*args, **kwargs):
+        operador = obtener_operador_actual_desde_token()
+
+        if operador is None:
+            return (
+                jsonify({"mensaje": "No tenés permiso para realizar esta acción"}),
+                403,
+            )
+
+        g.operador_actual = operador
+        return funcion(*args, **kwargs)
+
+    return wrapper
 
       
