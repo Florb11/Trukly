@@ -9,7 +9,7 @@ from models.camion_model import CamionModel
 from utils.input_sanitizer import InputSanitizer
 from utils.auth_decorators import operador_required
 
-from src.OperadorLogistico import OperadorLogistico
+from models.usuario_model import UsuarioModel
 from src.Viaje import Viaje
 
 logger = get_app_logger()
@@ -139,6 +139,9 @@ class OperadorController:
             logger.exception(f"Error al cancelar viaje {id_viaje}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
         
+
+
+# CORREGIR
     @staticmethod
     @operador_required
     def editar_viaje(id_viaje):
@@ -194,4 +197,40 @@ class OperadorController:
         except Exception:
             db.session.rollback()
             logger.exception(f"Error al editar viaje {id_viaje}")
+            return jsonify({"mensaje": "Error interno del servidor"}), 500
+        
+
+    @staticmethod
+    @operador_required
+    def listar_camiones():
+        try:
+            camiones = CamionModel.query.all()
+            return jsonify([c.to_dict() for c in camiones]), 200
+        except Exception:
+            logger.exception("Error al listar camiones")
+            return jsonify({"mensaje": "Error interno del servidor"}), 500
+
+    @staticmethod
+    @operador_required
+    def listar_choferes():
+        try:
+            choferes = db.session.query(ChoferModel, UsuarioModel).join(
+                UsuarioModel, ChoferModel.Usuario_idUsuario == UsuarioModel.id_usuario
+            ).all()
+
+            resultado = []
+            for chofer, usuario in choferes:
+                resultado.append({
+                    "id_usuario": usuario.id_usuario,
+                    "nombre": usuario.nombre,
+                    "apellido": usuario.apellido,
+                    "estado": usuario.estado,
+                    "licencia": chofer.licencia,
+                    "vencimientoLicencia": str(chofer.vencimientoLicencia),
+                    "legajo": chofer.legajo,
+                })
+
+            return jsonify(resultado), 200
+        except Exception:
+            logger.exception("Error al listar choferes")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
