@@ -36,3 +36,11 @@ def ruta_cancelar_viaje(id_viaje):
 @operador_routes.route("/api/operador/viajes/<int:id_viaje>", methods=["PUT"])
 def ruta_editar_viaje(id_viaje):
     return OperadorController.editar_viaje(id_viaje)
+
+@operador_routes.route("/api/operador/camiones", methods=["GET"])
+def ruta_listar_camiones():
+    return OperadorController.listar_camiones()
+
+@operador_routes.route("/api/operador/choferes", methods=["GET"])
+def ruta_listar_choferes():
+    return OperadorController.listar_choferes()

@@ -29,6 +29,7 @@ import MecanicoReportesPage from "./pages/MecanicoReportesPage";
 import NotificacionesPage from "./pages/NotificacionesPage";
 import MecanicoMantenimientoPage from "./pages/MecanicoMantenimientoPage";
 import ChoferReportesPage from "./pages/ChoferReportesPage";
+import OperadorCamionesPage from "./pages/OperadorCamionesPage";
 
 import "./App.css";
 import "./styles/dashboard-unified.css";
@@ -199,7 +200,7 @@ function AppContent() {
                 
                 <Route
                   path="/dashboardOperator/camiones"
-                  element={<AdminCamionesPage />}
+                  element={<OperadorCamionesPage />}
                   />
 
                 <Route
