@@ -34,12 +34,7 @@ const menusPorRol = {
             label: "Mis viajes",
             path: "/dashboardTrucker/viajes",
             icon: <FaTruckLoading />,
-          },
-          {
-            label: "Rutas",
-            path: "/dashboardTrucker/rutas",
-            icon: <FaMapMarkedAlt />,
-          },
+          }
         ],
       },
       {
@@ -195,11 +190,7 @@ const menusPorRol = {
             path: "/dashboardOperator/crear-viaje",
             icon: <FaTruckLoading />,
           },
-          {
-            label: "Camiones",
-            path: "/dashboardOperator/camiones",
-            icon: <FaTruck />,
-          },
+        
         ],
       },
       {
@@ -210,10 +201,20 @@ const menusPorRol = {
             path: "/dashboardOperator/choferes",
             icon: <FaUsers />,
           },
+            {
+            label: "Camiones",
+            path: "/dashboardOperator/camiones",
+            icon: <FaTruck />,
+          },
           {
             label: "Estadísticas",
             path: "/dashboardOperator/estadisticas",
             icon: <FaChartLine />,
+          },
+           {
+            label: "Reportes",
+            path: "/dashboardOperator/reportes",
+            icon: <FaClipboardList />,
           },
         ],
       },

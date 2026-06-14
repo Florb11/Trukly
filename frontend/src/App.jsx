@@ -32,6 +32,7 @@ import ChoferReportesPage from "./pages/ChoferReportesPage";
 import OperadorCamionesPage from "./pages/OperadorCamionesPage";
 import OperadorChoferesPage from "./pages/OperadorChoferesPage";
 import OperadorEstadisticasPage from "./pages/OperadorEstadisticasPage";
+import OperadorReportesPage from "./pages/OperadorReportesPage";
 
 
 import "./App.css";
@@ -218,6 +219,10 @@ function AppContent() {
                   path="/dashboardOperator/estadisticas"
                   element={<OperadorEstadisticasPage />}
                 />  
+                <Route
+                  path="/dashboardOperator/reportes"
+                  element={<OperadorReportesPage />}
+                />
 
                 {/* MECÁNICO */}
                 <Route

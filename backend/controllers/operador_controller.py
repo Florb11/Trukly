@@ -1,4 +1,5 @@
 from flask import g, jsonify, request
+from models.mecanico_model import MecanicoModel
 from db_instance import db
 from utils.app_logger import get_app_logger
 
@@ -376,4 +377,28 @@ class OperadorController:
 
         except Exception:
             logger.exception(f"Error al obtener estadisticas del operador {operador.id_usuario}")
+            return jsonify({"mensaje": "Error interno del servidor"}), 500
+        
+    @staticmethod
+    @operador_required
+    def listar_mecanicos():
+        try:
+            mecanicos = db.session.query(MecanicoModel, UsuarioModel).join(
+                UsuarioModel, MecanicoModel.Usuario_idUsuario == UsuarioModel.id_usuario
+            ).all()
+
+            resultado = []
+            for mecanico, usuario in mecanicos:
+                resultado.append({
+                    "id_usuario": usuario.id_usuario,
+                    "nombre": usuario.nombre,
+                    "apellido": usuario.apellido,
+                    "estado": usuario.estado,
+                    "legajo": mecanico.legajo,
+                    "especialidad": mecanico.especialidad,
+                })
+
+            return jsonify(resultado), 200
+        except Exception:
+            logger.exception("Error al listar mecanicos")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
