@@ -158,24 +158,15 @@ class ReporteFalla:
 
     def tiene_camion_asociado(self):
         # verifica si tiene camion asociado
-        return (
-            self.camion is not None
-            or texto_valido(self.id_camion)
-        )
+        return self.camion is not None or texto_valido(self.id_camion)
 
     def tiene_chofer_asociado(self):
         # verifica si tiene chofer asociado
-        return (
-            self.chofer is not None
-            or texto_valido(self.id_chofer)
-        )
+        return self.chofer is not None or texto_valido(self.id_chofer)
 
     def tiene_mecanico_asignado(self):
         # verifica si tiene mecanico asignado
-        return (
-            self.mecanico is not None
-            or texto_valido(self.id_mecanico)
-        )
+        return self.mecanico is not None or texto_valido(self.id_mecanico)
 
     def pertenece_a_chofer(self, chofer):
         # verifica si el reporte pertenece al chofer
@@ -228,10 +219,7 @@ class ReporteFalla:
         if nuevo_estado not in self.ESTADOS_VALIDOS:
             return False
 
-        if (
-            nuevo_estado == self.ESTADO_PENDIENTE
-            and self.tiene_mecanico_asignado()
-        ):
+        if nuevo_estado == self.ESTADO_PENDIENTE and self.tiene_mecanico_asignado():
             return False
 
         self.estado = nuevo_estado
@@ -239,24 +227,21 @@ class ReporteFalla:
 
     def sincronizar_estado_por_asignacion(self):
         # si tiene mecanico, pasa a revision
-        if (
-            self.estado == self.ESTADO_PENDIENTE
-            and self.tiene_mecanico_asignado()
-        ):
+        if self.estado == self.ESTADO_PENDIENTE and self.tiene_mecanico_asignado():
             self.estado = self.ESTADO_EN_REVISION
             return True
 
         return False
 
     def puede_asignar_mecanico(self):
-        # solo se asigna si no esta cerrado
+
         return self.estado not in [
             self.ESTADO_RESUELTO,
             self.ESTADO_CANCELADO,
         ]
 
     def asignar_mecanico(self, mecanico):
-        # asigna un mecanico y pasa el reporte a revision
+
         if not self.puede_asignar_mecanico():
             return False
 
@@ -273,7 +258,7 @@ class ReporteFalla:
         return True
 
     def puede_ser_resuelto_por(self, mecanico, nota_reparacion):
-        # valida si un mecanico puede resolver el reporte
+
         id_mecanico = self.obtener_id_usuario(mecanico) or mecanico
 
         if not id_mecanico:
@@ -294,7 +279,7 @@ class ReporteFalla:
         return True
 
     def resolver_por_mecanico(self, mecanico, nota_reparacion):
-        # resuelve el reporte con nota y fecha
+
         if not self.puede_ser_resuelto_por(mecanico, nota_reparacion):
             return False
 
@@ -306,16 +291,12 @@ class ReporteFalla:
         self.fecha_resolucion = datetime.now()
 
         return True
-    
 
     def to_dict(self):
-        # convierte el reporte a diccionario
+
         return {
             "id_reporte": self.id_reporte,
-            "fecha_hora": formatear_fecha(
-                self.fecha_hora,
-                incluir_hora=True
-            ),
+            "fecha_hora": formatear_fecha(self.fecha_hora, incluir_hora=True),
             "descripcion": self.descripcion,
             "estado": self.estado,
             "id_camion": self.id_camion,
@@ -323,9 +304,6 @@ class ReporteFalla:
             "id_chofer": self.id_chofer,
             "nota_reparacion": self.nota_reparacion,
             "fecha_resolucion": formatear_fecha(
-                self.fecha_resolucion,
-                incluir_hora=True
+                self.fecha_resolucion, incluir_hora=True
             ),
         }
-    
-  
