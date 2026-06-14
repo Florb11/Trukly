@@ -124,3 +124,32 @@ class OperadorLogistico(Usuario):
         if mecanico is None or reporte is None:
             return False
         return reporte.asignar_mecanico(mecanico)
+    
+    def editar_viaje(self, viaje, datos):
+        if viaje is None:
+            return False, "Viaje no encontrado"
+
+        if not viaje.pertenece_a_operador(self):
+            return False, "No tenés permiso para editar este viaje"
+
+        if not viaje.puede_editarse():
+            return False, "No se puede editar un viaje cancelado o finalizado"
+
+        if datos.get("origen"):
+            viaje.origen = datos["origen"]
+        if datos.get("destino"):
+            viaje.destino = datos["destino"]
+        if datos.get("fecha_salida"):
+            viaje.fecha_salida = datos["fecha_salida"]
+        if datos.get("fecha_llegada"):
+            viaje.fecha_llegada = datos["fecha_llegada"]
+        if datos.get("recorrido") is not None:
+            viaje.recorrido = datos["recorrido"]
+        if datos.get("observaciones") is not None:
+            viaje.observaciones = datos["observaciones"]
+        if datos.get("Chofer_Usuario_idUsuario"):
+            viaje.id_chofer = datos["Chofer_Usuario_idUsuario"]
+        if datos.get("Camion_id_camion"):
+            viaje.id_camion = datos["Camion_id_camion"]
+
+        return True, None
