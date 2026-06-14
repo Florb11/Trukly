@@ -48,3 +48,7 @@ def ruta_listar_choferes():
 @operador_routes.route("/api/operador/estadisticas", methods=["GET"])
 def ruta_estadisticas():
     return OperadorController.obtener_estadisticas()
+
+@operador_routes.route("/api/operador/mecanicos", methods=["GET"])
+def ruta_listar_mecanicos():
+    return OperadorController.listar_mecanicos()
