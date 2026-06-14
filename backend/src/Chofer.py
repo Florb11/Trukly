@@ -149,3 +149,8 @@ class Chofer(Usuario):
         return reporte_model_query.filter_by(
             Chofer_Usuario_idUsuario=self.id_usuario
         ).all()
+    
+    def obtener_mis_viajes(self, viaje_model_query):
+        return viaje_model_query.filter_by(
+            Chofer_Usuario_idUsuario=self.id_usuario
+        ).all()
