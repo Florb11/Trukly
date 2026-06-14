@@ -33,6 +33,7 @@ import OperadorCamionesPage from "./pages/OperadorCamionesPage";
 import OperadorChoferesPage from "./pages/OperadorChoferesPage";
 import OperadorEstadisticasPage from "./pages/OperadorEstadisticasPage";
 import OperadorReportesPage from "./pages/OperadorReportesPage";
+import ChoferEstadisticasPage from "./pages/ChoferEstadisticasPage";
 
 
 import "./App.css";
@@ -127,7 +128,7 @@ function AppContent() {
 
                 <Route
                   path="/dashboardTrucker/estadisticas"
-                  element={<DashboardTruckerPage title="Estadísticas" />}
+                  element={<ChoferEstadisticasPage title="Estadísticas" />}
                 />
 
                 <Route

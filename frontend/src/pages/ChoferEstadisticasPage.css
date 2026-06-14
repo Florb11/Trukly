@@ -1,0 +1,172 @@
+.ch-stats-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.ch-stats-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+.ch-stats-heading span {
+  color: #6f42c1;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ch-stats-heading h1 {
+  margin: 0.3rem 0;
+  color: #2f2342;
+  font-size: clamp(1.8rem, 4vw, 2.7rem);
+}
+
+.ch-stats-heading p {
+  max-width: 720px;
+  margin: 0;
+  color: #6f657a;
+}
+
+.ch-stats-heading__icon {
+  display: grid;
+  place-items: center;
+  width: 74px;
+  height: 74px;
+  min-width: 74px;
+  border-radius: 22px;
+  background: #6f42c1;
+  color: #ffffff;
+  font-size: 2rem;
+  box-shadow: 0 15px 35px rgba(111, 66, 193, 0.25);
+}
+
+.ch-stats-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.ch-stats-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem;
+  border-radius: 22px;
+  background: #ffffff;
+  border: 1px solid #dceaf3;
+  box-shadow: 0 14px 34px rgba(11, 45, 77, 0.07);
+}
+
+.ch-stats-card span { display: block; margin-bottom: 0.35rem; color: #527086; font-size: 0.88rem; }
+.ch-stats-card strong { display: block; color: #0b2d4d; font-size: 2rem; }
+.ch-stats-card p { margin: 0.2rem 0 0; color: #527086; font-size: 0.87rem; }
+
+.ch-stats-card__icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  border-radius: 16px;
+  font-size: 1.45rem;
+}
+
+.ch-stats-card--blue .ch-stats-card__icon { background: #eff6ff; color: #1d4ed8; }
+.ch-stats-card--green .ch-stats-card__icon { background: #ecfdf5; color: #047857; }
+.ch-stats-card--violet .ch-stats-card__icon { background: #f3ecff; color: #6f42c1; }
+.ch-stats-card--orange .ch-stats-card__icon { background: #fff7ed; color: #c2410c; }
+
+.ch-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.2rem;
+}
+
+.ch-stats-section {
+  overflow: hidden;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid #dceaf3;
+  box-shadow: 0 18px 45px rgba(11, 45, 77, 0.08);
+}
+
+.ch-stats-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem 1.4rem;
+  border-bottom: 1px solid #f0f5f9;
+}
+
+.ch-stats-section__header h2 { margin: 0; color: #0b2d4d; font-size: 1.15rem; }
+.ch-stats-section__header span { color: #527086; font-size: 0.88rem; }
+.ch-stats-section__header > svg { color: #6f42c1; font-size: 1.35rem; }
+
+.ch-stats-empty { margin: 0; padding: 1.5rem; color: #527086; }
+
+.ch-stats-history { display: flex; flex-direction: column; }
+
+.ch-stats-history__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: center;
+  padding: 1rem 1.3rem;
+  border-bottom: 1px solid #f0f5f9;
+}
+
+.ch-stats-history__item:last-child { border-bottom: none; }
+
+.ch-stats-history__icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
+  background: #f3ecff;
+  color: #6f42c1;
+}
+
+.ch-stats-history__content strong { display: block; color: #0b2d4d; }
+.ch-stats-history__content span { display: block; margin-top: 0.2rem; color: #527086; font-size: 0.82rem; }
+.ch-stats-history__content small { display: block; margin-top: 0.2rem; color: #527086; font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ch-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.ch-badge--pendiente { background: #fff7ed; color: #c2410c; }
+.ch-badge--aceptado { background: #f3ecff; color: #6f42c1; }
+.ch-badge--curso { background: #eff6ff; color: #1d4ed8; }
+.ch-badge--finalizado { background: #ecfdf5; color: #047857; }
+.ch-badge--cancelado { background: #fef2f2; color: #b91c1c; }
+
+@media (max-width: 1100px) {
+  .ch-stats-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .ch-stats-heading__icon { display: none; }
+  .ch-stats-summary, .ch-stats-grid { grid-template-columns: 1fr; }
+  .ch-stats-history__item { grid-template-columns: auto minmax(0, 1fr); }
+  .ch-stats-history__item > .ch-badge { grid-column: 2; text-align: left; }
+}

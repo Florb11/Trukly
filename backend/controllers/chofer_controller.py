@@ -106,3 +106,54 @@ class ChoferController:
         except Exception:
             logger.exception(f"Error al listar viajes del chofer {chofer.id_usuario}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
+        
+    @staticmethod
+    @chofer_required
+    def obtener_estadisticas():
+        chofer = g.chofer_actual
+
+        try:
+            viajes = ViajeModel.query.filter_by(
+                Chofer_Usuario_idUsuario=chofer.id_usuario
+            ).all()
+
+            total_viajes = len(viajes)
+            viajes_pendientes = sum(1 for v in viajes if v.estado.lower() == "pendiente")
+            viajes_en_curso = sum(1 for v in viajes if v.estado.lower() == "en curso")
+            viajes_finalizados = sum(1 for v in viajes if v.estado.lower() == "finalizado")
+            viajes_cancelados = sum(1 for v in viajes if v.estado.lower() == "cancelado")
+
+            ultimos_viajes = ViajeModel.query.filter_by(
+                Chofer_Usuario_idUsuario=chofer.id_usuario
+            ).order_by(ViajeModel.id_viaje.desc()).limit(5).all()
+
+            reportes = ReporteModel.query.filter_by(
+                Chofer_Usuario_idUsuario=chofer.id_usuario
+            ).all()
+
+            reportes_pendientes = sum(1 for r in reportes if r.estado == "pendiente")
+            reportes_en_revision = sum(1 for r in reportes if r.estado == "en revision")
+            reportes_resueltos = sum(1 for r in reportes if r.estado == "resuelto")
+
+            ultimos_reportes = ReporteModel.query.filter_by(
+                Chofer_Usuario_idUsuario=chofer.id_usuario
+            ).order_by(ReporteModel.id_reporte.desc()).limit(5).all()
+
+            return jsonify({
+                "resumen": {
+                    "total_viajes": total_viajes,
+                    "viajes_pendientes": viajes_pendientes,
+                    "viajes_en_curso": viajes_en_curso,
+                    "viajes_finalizados": viajes_finalizados,
+                    "viajes_cancelados": viajes_cancelados,
+                    "reportes_pendientes": reportes_pendientes,
+                    "reportes_en_revision": reportes_en_revision,
+                    "reportes_resueltos": reportes_resueltos,
+                },
+                "ultimos_viajes": [v.to_dict() for v in ultimos_viajes],
+                "ultimos_reportes": [r.to_dict() for r in ultimos_reportes],
+            }), 200
+
+        except Exception:
+            logger.exception(f"Error al obtener estadisticas del chofer {chofer.id_usuario}")
+            return jsonify({"mensaje": "Error interno del servidor"}), 500
