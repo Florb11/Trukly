@@ -188,18 +188,6 @@ class OperadorController:
         if viaje_model is None:
             return jsonify({"mensaje": "Viaje no encontrado"}), 404
 
-        if viaje_model.OperadorLogistico_Usuario_idUsuario != operador.id_usuario:
-            return jsonify({"mensaje": "No tenés permiso para editar este viaje"}), 403
-
-        viaje = Viaje.crear_desde_datos(viaje_model.to_dict())
-        if not viaje.puede_editarse():
-            return (
-                jsonify(
-                    {"mensaje": "No se puede editar un viaje cancelado o finalizado"}
-                ),
-                400,
-            )
-
         id_chofer = datos.get("Chofer_Usuario_idUsuario")
         id_camion = datos.get("Camion_id_camion")
 
@@ -209,34 +197,29 @@ class OperadorController:
         if id_camion and not CamionModel.query.get(id_camion):
             return jsonify({"mensaje": "El camión no existe"}), 400
 
-        if id_chofer:
-            viaje_model.Chofer_Usuario_idUsuario = id_chofer
-        if id_camion:
-            viaje_model.Camion_id_camion = id_camion
-        if datos.get("origen"):
-            viaje_model.origen = datos["origen"]
-        if datos.get("destino"):
-            viaje_model.destino = datos["destino"]
-        if datos.get("fecha_salida"):
-            viaje_model.fecha_salida = datos["fecha_salida"]
-        if datos.get("fecha_llegada"):
-            viaje_model.fecha_llegada = datos["fecha_llegada"]
-        if datos.get("recorrido") is not None:
-            viaje_model.recorrido = datos["recorrido"]
-        if datos.get("observaciones") is not None:
-            viaje_model.observaciones = datos["observaciones"]
+        viaje_dict = viaje_model.to_dict()
+        viaje_dict["id_operador"] = viaje_dict.get("OperadorLogistico_Usuario_idUsuario")
+        viaje_dict["id_chofer"] = viaje_dict.get("Chofer_Usuario_idUsuario")
+        viaje_dict["id_camion"] = viaje_dict.get("Camion_id_camion")
+
+        viaje = Viaje.crear_desde_datos(viaje_dict)
+        editado, mensaje_error = operador.editar_viaje(viaje, datos)
+
+        if not editado:
+            return jsonify({"mensaje": mensaje_error}), 400
+
+        viaje_model.origen = viaje.origen
+        viaje_model.destino = viaje.destino
+        viaje_model.fecha_salida = viaje.fecha_salida
+        viaje_model.fecha_llegada = viaje.fecha_llegada
+        viaje_model.recorrido = viaje.recorrido
+        viaje_model.observaciones = viaje.observaciones
+        viaje_model.Chofer_Usuario_idUsuario = viaje.id_chofer
+        viaje_model.Camion_id_camion = viaje.id_camion
 
         try:
             db.session.commit()
-            return (
-                jsonify(
-                    {
-                        "mensaje": "Viaje actualizado correctamente",
-                        "viaje": viaje_model.to_dict(),
-                    }
-                ),
-                200,
-            )
+            return jsonify({"mensaje": "Viaje actualizado correctamente", "viaje": viaje_model.to_dict()}), 200
         except Exception:
             db.session.rollback()
             logger.exception(f"Error al editar viaje {id_viaje}")
