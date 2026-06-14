@@ -31,6 +31,8 @@ import MecanicoMantenimientoPage from "./pages/MecanicoMantenimientoPage";
 import ChoferReportesPage from "./pages/ChoferReportesPage";
 import OperadorCamionesPage from "./pages/OperadorCamionesPage";
 import OperadorChoferesPage from "./pages/OperadorChoferesPage";
+import OperadorEstadisticasPage from "./pages/OperadorEstadisticasPage";
+
 
 import "./App.css";
 import "./styles/dashboard-unified.css";
@@ -211,7 +213,11 @@ function AppContent() {
                 <Route
                   path="/dashboardOperator/choferes"
                   element={<OperadorChoferesPage />}
-                />
+                />  
+                 <Route
+                  path="/dashboardOperator/estadisticas"
+                  element={<OperadorEstadisticasPage />}
+                />  
 
                 {/* MECÁNICO */}
                 <Route

@@ -2,6 +2,8 @@ from flask import g, jsonify, request
 from db_instance import db
 from utils.app_logger import get_app_logger
 
+
+from models.reporte_model import ReporteModel
 from models.operador_model import OperadorModel
 from models.viaje_model import ViajeModel
 from models.chofer_model import ChoferModel
@@ -43,7 +45,15 @@ class OperadorController:
         )
         db.session.add(nuevo_operador)
         db.session.commit()
-        return jsonify({"mensaje": "Operador creado correctamente", "operador": nuevo_operador.to_dict()}), 201
+        return (
+            jsonify(
+                {
+                    "mensaje": "Operador creado correctamente",
+                    "operador": nuevo_operador.to_dict(),
+                }
+            ),
+            201,
+        )
 
     @staticmethod
     @operador_required
@@ -55,7 +65,9 @@ class OperadorController:
             ).all()
             return jsonify([v.to_dict() for v in viajes]), 200
         except Exception:
-            logger.exception(f"Error al listar viajes del operador {operador.id_usuario}")
+            logger.exception(
+                f"Error al listar viajes del operador {operador.id_usuario}"
+            )
             return jsonify({"mensaje": "Error interno del servidor"}), 500
 
     @staticmethod
@@ -77,7 +89,13 @@ class OperadorController:
         id_chofer = datos.get("Chofer_Usuario_idUsuario")
         id_camion = datos.get("Camion_id_camion")
 
-        if not origen or not destino or not fecha_salida or not id_chofer or not id_camion:
+        if (
+            not origen
+            or not destino
+            or not fecha_salida
+            or not id_chofer
+            or not id_camion
+        ):
             return jsonify({"mensaje": "Faltan campos obligatorios"}), 400
 
         valido, error = Viaje.validar_datos_viaje(datos)
@@ -99,7 +117,15 @@ class OperadorController:
             )
             db.session.add(nuevo_viaje)
             db.session.commit()
-            return jsonify({"mensaje": "Viaje creado correctamente", "viaje": nuevo_viaje.to_dict()}), 201
+            return (
+                jsonify(
+                    {
+                        "mensaje": "Viaje creado correctamente",
+                        "viaje": nuevo_viaje.to_dict(),
+                    }
+                ),
+                201,
+            )
 
         except Exception:
             db.session.rollback()
@@ -126,7 +152,12 @@ class OperadorController:
         viaje = Viaje.crear_desde_datos(viaje_model.to_dict())
 
         if not operador.cancelar_viaje(viaje, motivo):
-            return jsonify({"mensaje": "El viaje no puede cancelarse en su estado actual"}), 400
+            return (
+                jsonify(
+                    {"mensaje": "El viaje no puede cancelarse en su estado actual"}
+                ),
+                400,
+            )
 
         try:
             viaje_model.estado = viaje.estado
@@ -138,10 +169,8 @@ class OperadorController:
             db.session.rollback()
             logger.exception(f"Error al cancelar viaje {id_viaje}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
-        
 
-
-# CORREGIR
+    # CORREGIR
     @staticmethod
     @operador_required
     def editar_viaje(id_viaje):
@@ -163,7 +192,12 @@ class OperadorController:
 
         viaje = Viaje.crear_desde_datos(viaje_model.to_dict())
         if not viaje.puede_editarse():
-            return jsonify({"mensaje": "No se puede editar un viaje cancelado o finalizado"}), 400
+            return (
+                jsonify(
+                    {"mensaje": "No se puede editar un viaje cancelado o finalizado"}
+                ),
+                400,
+            )
 
         id_chofer = datos.get("Chofer_Usuario_idUsuario")
         id_camion = datos.get("Camion_id_camion")
@@ -193,12 +227,19 @@ class OperadorController:
 
         try:
             db.session.commit()
-            return jsonify({"mensaje": "Viaje actualizado correctamente", "viaje": viaje_model.to_dict()}), 200
+            return (
+                jsonify(
+                    {
+                        "mensaje": "Viaje actualizado correctamente",
+                        "viaje": viaje_model.to_dict(),
+                    }
+                ),
+                200,
+            )
         except Exception:
             db.session.rollback()
             logger.exception(f"Error al editar viaje {id_viaje}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
-        
 
     @staticmethod
     @operador_required
@@ -214,23 +255,125 @@ class OperadorController:
     @operador_required
     def listar_choferes():
         try:
-            choferes = db.session.query(ChoferModel, UsuarioModel).join(
-                UsuarioModel, ChoferModel.Usuario_idUsuario == UsuarioModel.id_usuario
-            ).all()
+            choferes = (
+                db.session.query(ChoferModel, UsuarioModel)
+                .join(
+                    UsuarioModel,
+                    ChoferModel.Usuario_idUsuario == UsuarioModel.id_usuario,
+                )
+                .all()
+            )
 
             resultado = []
             for chofer, usuario in choferes:
-                resultado.append({
-                    "id_usuario": usuario.id_usuario,
-                    "nombre": usuario.nombre,
-                    "apellido": usuario.apellido,
-                    "estado": usuario.estado,
-                    "licencia": chofer.licencia,
-                    "vencimientoLicencia": str(chofer.vencimientoLicencia),
-                    "legajo": chofer.legajo,
-                })
+                resultado.append(
+                    {
+                        "id_usuario": usuario.id_usuario,
+                        "nombre": usuario.nombre,
+                        "apellido": usuario.apellido,
+                        "estado": usuario.estado,
+                        "licencia": chofer.licencia,
+                        "vencimientoLicencia": str(chofer.vencimientoLicencia),
+                        "legajo": chofer.legajo,
+                    }
+                )
 
             return jsonify(resultado), 200
         except Exception:
             logger.exception("Error al listar choferes")
+            return jsonify({"mensaje": "Error interno del servidor"}), 500
+
+    @staticmethod
+    @operador_required
+    def obtener_estadisticas():
+        operador = g.operador_actual
+
+        try:
+            viajes = ViajeModel.query.filter_by(
+                OperadorLogistico_Usuario_idUsuario=operador.id_usuario
+            ).all()
+
+            total_viajes = len(viajes)
+            viajes_pendientes = sum(1 for v in viajes if v.estado == Viaje.ESTADO_PENDIENTE)
+            viajes_en_curso = sum(1 for v in viajes if v.estado == Viaje.ESTADO_EN_CURSO)
+            viajes_finalizados = sum(1 for v in viajes if v.estado == Viaje.ESTADO_FINALIZADO)
+            viajes_cancelados = sum(1 for v in viajes if v.estado == Viaje.ESTADO_CANCELADO)
+
+            ultimos_viajes = (
+                ViajeModel.query.filter_by(
+                    OperadorLogistico_Usuario_idUsuario=operador.id_usuario
+                )
+                .order_by(ViajeModel.id_viaje.desc())
+                .limit(5)
+                .all()
+            )
+
+            id_camiones = list({v.Camion_id_camion for v in viajes})
+            reportes = (
+                ReporteModel.query.filter(
+                    ReporteModel.Camion_id_camion.in_(id_camiones)
+                ).all()
+                if id_camiones
+                else []
+            )
+
+            reportes_pendientes = sum(1 for r in reportes if r.estado == "pendiente")
+            reportes_en_revision = sum(1 for r in reportes if r.estado == "en revision")
+            reportes_resueltos = sum(1 for r in reportes if r.estado == "resuelto")
+
+            ultimos_reportes = (
+                ReporteModel.query.filter(ReporteModel.Camion_id_camion.in_(id_camiones))
+                .order_by(ReporteModel.id_reporte.desc())
+                .limit(5)
+                .all()
+                if id_camiones
+                else []
+            )
+
+            from collections import Counter
+
+            conteo_choferes = Counter(v.Chofer_Usuario_idUsuario for v in viajes)
+            choferes_top = []
+            for id_chofer, total in conteo_choferes.most_common(5):
+                usuario = UsuarioModel.query.get(id_chofer)
+                if usuario:
+                    choferes_top.append({
+                        "id_usuario": id_chofer,
+                        "nombre": usuario.nombre,
+                        "apellido": usuario.apellido,
+                        "total_viajes": total,
+                    })
+
+            conteo_camiones = Counter(v.Camion_id_camion for v in viajes)
+            camiones_top = []
+            for id_camion, total in conteo_camiones.most_common(5):
+                camion = CamionModel.query.get(id_camion)
+                if camion:
+                    camiones_top.append({
+                        "id_camion": id_camion,
+                        "matricula": camion.matricula,
+                        "marca": camion.marca,
+                        "modelo": camion.modelo,
+                        "total_viajes": total,
+                    })
+
+            return jsonify({
+                "resumen": {
+                    "total_viajes": total_viajes,
+                    "viajes_pendientes": viajes_pendientes,
+                    "viajes_en_curso": viajes_en_curso,
+                    "viajes_finalizados": viajes_finalizados,
+                    "viajes_cancelados": viajes_cancelados,
+                    "reportes_pendientes": reportes_pendientes,
+                    "reportes_en_revision": reportes_en_revision,
+                    "reportes_resueltos": reportes_resueltos,
+                },
+                "ultimos_viajes": [v.to_dict() for v in ultimos_viajes],
+                "ultimos_reportes": [r.to_dict() for r in ultimos_reportes],
+                "choferes_mas_usados": choferes_top,
+                "camiones_mas_usados": camiones_top,
+            }), 200
+
+        except Exception:
+            logger.exception(f"Error al obtener estadisticas del operador {operador.id_usuario}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500

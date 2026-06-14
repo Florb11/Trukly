@@ -44,3 +44,7 @@ def ruta_listar_camiones():
 @operador_routes.route("/api/operador/choferes", methods=["GET"])
 def ruta_listar_choferes():
     return OperadorController.listar_choferes()
+
+@operador_routes.route("/api/operador/estadisticas", methods=["GET"])
+def ruta_estadisticas():
+    return OperadorController.obtener_estadisticas()
