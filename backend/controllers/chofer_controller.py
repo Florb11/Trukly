@@ -7,6 +7,7 @@ from models.camion_model import CamionModel
 from models.chofer_model import ChoferModel
 from utils.input_sanitizer import InputSanitizer
 from utils.auth_decorators import chofer_required
+from models.viaje_model import ViajeModel
 
 logger = get_app_logger()
 
@@ -91,4 +92,17 @@ class ChoferController:
             return jsonify([r.to_dict() for r in reportes]), 200
         except Exception:
             logger.exception(f"Error al listar reportes del chofer {chofer.id_usuario}")
+            return jsonify({"mensaje": "Error interno del servidor"}), 500
+        
+
+    @staticmethod
+    @chofer_required
+    def listar_viajes_propios():
+        chofer = g.chofer_actual
+
+        try:
+            viajes = chofer.obtener_mis_viajes(ViajeModel.query)
+            return jsonify([v.to_dict() for v in viajes]), 200
+        except Exception:
+            logger.exception(f"Error al listar viajes del chofer {chofer.id_usuario}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500

@@ -16,45 +16,41 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
   const usuario = JSON.parse(localStorage.getItem("usuario"));
   const idChofer = usuario?.id_usuario;
  
-  const cargarViajes = async () => {
-    try {
-      setCargandoViajes(true);
-      setErrorViajes("");
- 
-      const resultado = await fetchConToken("http://localhost:5000/api/viaje", {
-        method: "GET",
-      });
- 
-      if (!resultado) return;
- 
-      const { respuesta, data } = resultado;
- 
-      if (!respuesta.ok) {
-        throw new Error(data.mensaje || data.msg || "Error al cargar viajes");
-      }
- 
-      const misViajes = data.filter(
-        (viaje) => viaje.Chofer_Usuario_idUsuario === idChofer
-      );
- 
-      setViajes(misViajes);
-    } catch (error) {
-      setErrorViajes(error.message);
-      setViajes([]);
-    } finally {
-      setCargandoViajes(false);
+ const cargarViajes = async () => {
+  try {
+    setCargandoViajes(true);
+    setErrorViajes("");
+
+    const resultado = await fetchConToken("http://localhost:5000/api/choferes/mis-viajes", {
+      method: "GET",
+    });
+
+    if (!resultado) return;
+
+    const { respuesta, data } = resultado;
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || data.msg || "Error al cargar viajes");
     }
-  };
+
+    setViajes(Array.isArray(data) ? data : []);
+  } catch (error) {
+    setErrorViajes(error.message);
+    setViajes([]);
+  } finally {
+    setCargandoViajes(false);
+  }
+};
  
   useEffect(() => {
     cargarViajes();
   }, []);
  
   const totalViajes      = viajes.length;
-  const viajesActivos    = viajes.filter((v) => v.estado === "en curso").length;
-  const viajesPendientes = viajes.filter((v) => v.estado === "pendiente").length;
-  const viajesFinalizados= viajes.filter((v) => v.estado === "finalizado").length;
-  const viajesCancelados = viajes.filter((v) => v.estado === "cancelado").length;
+  const viajesActivos    = viajes.filter((v) => v.estado?.toLowerCase() === "en curso").length;
+  const viajesPendientes = viajes.filter((v) => v.estado?.toLowerCase() === "pendiente").length;
+  const viajesFinalizados= viajes.filter((v) => v.estado?.toLowerCase() === "finalizado").length;
+  const viajesCancelados = viajes.filter((v) => v.estado?.toLowerCase() === "cancelado").length;
  
   const pct = (n) => (totalViajes === 0 ? 0 : Math.round((n / totalViajes) * 100));
  

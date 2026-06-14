@@ -18,3 +18,6 @@ def ruta_crear_chofer():
 @chofer_routes.route("/api/choferes/mis-reportes", methods=["GET"])
 def ruta_listar_reportes_propios():
     return ChoferController.listar_reportes_propios()
+@chofer_routes.route("/api/choferes/mis-viajes", methods=["GET"])
+def ruta_listar_viajes_propios():
+    return ChoferController.listar_viajes_propios()
