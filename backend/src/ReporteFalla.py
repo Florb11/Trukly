@@ -306,6 +306,7 @@ class ReporteFalla:
         self.fecha_resolucion = datetime.now()
 
         return True
+    
 
     def to_dict(self):
         # convierte el reporte a diccionario
@@ -326,3 +327,5 @@ class ReporteFalla:
                 incluir_hora=True
             ),
         }
+    
+  

@@ -371,14 +371,14 @@ class ReporteController:
     @staticmethod
     @roles_required(Usuario.ROL_CHOFER)
     def crear_reporte():
-        # recibe el request
+    
         datos = InputSanitizer.sanitizar_campos(
             request.get_json(silent=True) or {},
             campos_texto=["descripcion"],
             campos_enteros=["Camion_id_camion"],
         )
 
-        # valida campos obligatorios
+      
         validador = ReporteController.crear_validador_creacion_reporte()
         datos_validos, mensaje_error = validador.validar(datos)
 
@@ -389,7 +389,7 @@ class ReporteController:
         camion_id = datos.get("Camion_id_camion")
         descripcion = datos.get("descripcion")
 
-        # valida reglas del dominio reporte
+     
         datos_validos, mensaje_error = ReporteFalla.validar_datos_reporte(
             {
                 "descripcion": descripcion,
@@ -400,7 +400,6 @@ class ReporteController:
         if not datos_validos:
             return jsonify({"mensaje": mensaje_error}), 400
 
-        # busca objetos de dominio
         chofer = ReporteController.obtener_chofer_clase(id_chofer)
         camion = ReporteController.obtener_camion_clase(camion_id)
 
@@ -410,7 +409,6 @@ class ReporteController:
         if chofer is None:
             return jsonify({"mensaje": "Chofer no encontrado"}), 404
 
-        # crea el reporte de dominio
         reporte_clase = ReporteFalla.crear_desde_datos(
             {
                 "fecha_hora": datetime.now(),
@@ -422,13 +420,12 @@ class ReporteController:
         if reporte_clase is None:
             return jsonify({"mensaje": "No se pudo crear el reporte"}), 400
 
-        # el chofer registra el reporte
+
         if not chofer.registrar_reporte(reporte_clase):
             return jsonify({
                 "mensaje": "No se pudo asociar el reporte al chofer"
             }), 400
 
-        # el camion registra el reporte
         if not camion.registrar_reporte(reporte_clase):
             return jsonify({
                 "mensaje": "No se pudo asociar el reporte al camion"
@@ -440,7 +437,7 @@ class ReporteController:
         if not reporte_clase.validar_estado():
             return jsonify({"mensaje": "Estado invalido"}), 400
 
-        # convierte dominio a modelo
+     
         nuevo_reporte = ReporteModel(
             fecha_hora=reporte_clase.fecha_hora,
             descripcion=reporte_clase.descripcion,
@@ -450,12 +447,13 @@ class ReporteController:
             Chofer_Usuario_idUsuario=reporte_clase.id_chofer,
         )
 
-        # cambia el estado del camion si corresponde
         camion_en_mantenimiento = (
             ReporteController.marcar_camion_en_mantenimiento_si_corresponde(
                 reporte_clase
             )
         )
+
+        ReporteController.notificar_reporte_creado(reporte_clase)
 
         try:
             db.session.add(nuevo_reporte)
@@ -475,6 +473,16 @@ class ReporteController:
             ),
             "camion_en_mantenimiento": camion_en_mantenimiento,
         }), 201
+    
+    @staticmethod
+    def notificar_reporte_creado(reporte_clase):
+        from models.operador_model import OperadorModel
+
+        event_manager = EventManager()
+        listener = NotificacionReporteListener(NotificacionService.agregar_a_sesion)
+        operadores = OperadorModel.query.all()
+
+        reporte_clase.notificar_creacion(event_manager, listener, operadores)
 
     @staticmethod
     @roles_required(
@@ -634,3 +642,27 @@ class ReporteController:
             ),
             "camion_en_mantenimiento": camion_en_mantenimiento,
         }), 200
+    
+    @staticmethod
+    def notificar_reporte_creado(reporte_clase):
+        from models.operador_model import OperadorModel
+
+        event_manager = EventManager()
+        listener = NotificacionReporteListener(NotificacionService.agregar_a_sesion)
+
+        operadores = OperadorModel.query.all()
+
+        for operador in operadores:
+            event_manager.suscribir("reporte_creado", listener)
+            event_manager.notificar(
+                "reporte_creado",
+                {
+                    "id_usuario": operador.Usuario_idUsuario,
+                    "titulo": "Nuevo reporte de falla",
+                    "mensaje": (
+                        f"El chofer #{reporte_clase.id_chofer} creó el reporte "
+                        f"#{reporte_clase.id_reporte} para el camión #{reporte_clase.id_camion}."
+                    ),
+                    "tipo": "reporte_creado",
+                }
+            )

@@ -42,6 +42,8 @@ function OperadorViajesPage() {
   const [form, setForm] = useState(camposVaciosCrear);
   const [errorForm, setErrorForm] = useState("");
   const [mensajeOk, setMensajeOk] = useState("");
+  const [viajeEditar, setViajeEditar] = useState(null);
+  const [viajeCancelar, setViajeCancelar] = useState(null);
 
   useEffect(() => {
     cargarViajes();
@@ -63,9 +65,6 @@ function OperadorViajesPage() {
     }
   };
 
-  const [viajeEditar, setViajeEditar] = useState(null);
-  const [viajeCancelar, setViajeCancelar] = useState(null);
-
   const viajesFiltrados = useMemo(() => {
     return viajes.filter((v) => {
       const texto = busqueda.toLowerCase();
@@ -74,7 +73,7 @@ function OperadorViajesPage() {
         v.destino?.toLowerCase().includes(texto) ||
         v.id_viaje?.toString().includes(texto);
       const coincideEstado =
-        filtroEstado === "todos" || v.estado === filtroEstado;
+        filtroEstado === "todos" || v.estado?.toLowerCase() === filtroEstado;
       return coincideTexto && coincideEstado;
     });
   }, [viajes, busqueda, filtroEstado]);
@@ -83,10 +82,12 @@ function OperadorViajesPage() {
     () => ({
       total: viajes.length,
       activos: viajes.filter(
-        (v) => v.estado === "en curso" || v.estado === "aceptado",
+        (v) =>
+          v.estado?.toLowerCase() === "en curso" ||
+          v.estado?.toLowerCase() === "aceptado",
       ).length,
-      pendientes: viajes.filter((v) => v.estado === "pendiente").length,
-      cancelados: viajes.filter((v) => v.estado === "cancelado").length,
+      pendientes: viajes.filter((v) => v.estado?.toLowerCase() === "pendiente").length,
+      cancelados: viajes.filter((v) => v.estado?.toLowerCase() === "cancelado").length,
     }),
     [viajes],
   );
@@ -252,9 +253,9 @@ function OperadorViajesPage() {
               </thead>
               <tbody>
                 {viajesFiltrados.map((viaje) => {
+                  const estadoLower = viaje.estado?.toLowerCase();
                   const puedeEditarse =
-                    viaje.estado !== "cancelado" &&
-                    viaje.estado !== "finalizado";
+                    estadoLower !== "cancelado" && estadoLower !== "finalizado";
                   return (
                     <tr key={viaje.id_viaje}>
                       <td className="operator-table__id">#{viaje.id_viaje}</td>
@@ -264,19 +265,11 @@ function OperadorViajesPage() {
                       <td>{formatearFecha(viaje.fecha_llegada)}</td>
                       <td>{viaje.recorrido} km</td>
                       <td>
-                        <span
-                          className={`chofer-badge chofer-badge--${viaje.estado?.replace(" ", "-")}`}
-                        >
+                        <span className={`chofer-badge chofer-badge--${estadoLower?.replace(" ", "-")}`}>
                           {viaje.estado}
                         </span>
                       </td>
-                      <td
-                        style={{
-                          display: "flex",
-                          gap: "8px",
-                          alignItems: "center",
-                        }}
-                      >
+                      <td style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                         <button
                           type="button"
                           className="op-viajes-btn-ver"
@@ -327,7 +320,6 @@ function OperadorViajesPage() {
           onClose={() => setViajeDetalle(null)}
         />
       )}
-
       {viajeEditar && (
         <EditarViajeModal
           viaje={viajeEditar}
