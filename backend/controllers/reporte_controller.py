@@ -661,7 +661,6 @@ class ReporteController:
                     "titulo": "Nuevo reporte de falla",
                     "mensaje": (
                         f"El chofer #{reporte_clase.id_chofer} creó el reporte "
-                        f"#{reporte_clase.id_reporte} para el camión #{reporte_clase.id_camion}."
                     ),
                     "tipo": "reporte_creado",
                 }
