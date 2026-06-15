@@ -1,4 +1,5 @@
 from flask import Blueprint
+from utils.auth_decorators import chofer_required
 from controllers.chofer_controller import ChoferController
 
 chofer_routes = Blueprint("chofer_routes", __name__)
@@ -26,3 +27,8 @@ def ruta_listar_viajes_propios():
 @chofer_routes.route("/api/choferes/estadisticas", methods=["GET"])
 def ruta_estadisticas():
     return ChoferController.obtener_estadisticas()
+
+@chofer_routes.route("/api/choferes/camiones", methods=["GET"])
+@chofer_required
+def ruta_listar_camiones_chofer():
+    return ChoferController.listar_camiones()

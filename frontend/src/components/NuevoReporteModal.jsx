@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { fetchConToken } from "../utils/fetchConToken"; 
 import "./NuevoReporteModal.css";
 
 function NuevoReporteModal({
@@ -7,6 +9,19 @@ function NuevoReporteModal({
   onSubmit,
   onClose,
 }) {
+  const [camiones, setCamiones] = useState([]);
+
+useEffect(() => {
+    fetchConToken("http://localhost:5000/api/choferes/camiones")
+      .then(({ data }) => {
+        console.log("respuesta camiones:", data);
+        setCamiones(data.camiones || []);
+      })
+      .catch((err) => {
+        console.log("error:", err);
+        setCamiones([]);
+      });
+  }, []);
   return (
     <div className="reporte-modal-overlay" onClick={onClose}>
       <div className="reporte-modal" onClick={(e) => e.stopPropagation()}>
@@ -23,20 +38,23 @@ function NuevoReporteModal({
         </div>
 
         <form className="reporte-modal__form" onSubmit={onSubmit}>
-          
-   
+
           <div className="reporte-modal__field">
-            <label htmlFor="id_camion">ID del camión</label>
-            <input
-              type="number"
+            <label htmlFor="id_camion">Camión</label>
+            <select
               id="id_camion"
               name="id_camion"
               value={formNuevo.id_camion || ""}
               onChange={onChange}
-              placeholder="Ej: 3"
-              min="1"
               required
-            />
+            >
+              <option value="">Seleccioná un camión</option>
+              {camiones.map((camion) => (
+                <option key={camion.id_camion} value={camion.id_camion}>
+                  Camión {camion.id_camion} — {camion.marca} {camion.modelo} ({camion.matricula})
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="reporte-modal__field">
