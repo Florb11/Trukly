@@ -157,3 +157,11 @@ class ChoferController:
         except Exception:
             logger.exception(f"Error al obtener estadisticas del chofer {chofer.id_usuario}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
+    
+    @staticmethod
+    def listar_camiones():
+        from models.camion_model import CamionModel
+        camiones = CamionModel.query.all()
+        return jsonify({
+            "camiones": [c.to_dict() for c in camiones]
+        }), 200
