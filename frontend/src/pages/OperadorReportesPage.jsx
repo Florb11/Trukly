@@ -122,13 +122,13 @@ function OperadorReportesPage() {
               <tbody>
                 {reportesFiltrados.map((reporte) => (
                   <tr key={reporte.id_reporte}>
-                    <td>#{reporte.id_reporte}</td>
+                    <td>{reporte.id_reporte}</td>
                     <td>{reporte.fecha_hora}</td>
                     <td className="op-reportes-table__desc">{reporte.descripcion}</td>
                     <td><span className={getEstadoClass(reporte.estado)}>{reporte.estado}</span></td>
-                    <td>#{reporte.Camion_id_camion}</td>
-                    <td>#{reporte.Chofer_Usuario_idUsuario}</td>
-                    <td>{reporte.Mecanico_Usuario_idUsuario ? `#${reporte.Mecanico_Usuario_idUsuario}` : "-"}</td>
+                    <td>{reporte.Camion_id_camion}</td>
+                    <td>{reporte.Chofer_Usuario_idUsuario}</td>
+                    <td>{reporte.Mecanico_Usuario_idUsuario ? `${reporte.Mecanico_Usuario_idUsuario}` : "-"}</td>
                     <td>
                       <div className="op-reportes-actions">
                         <button

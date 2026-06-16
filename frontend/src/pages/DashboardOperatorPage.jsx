@@ -205,11 +205,11 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
                   <tbody>
                     {ultimosViajes.map((v) => (
                       <tr key={v.id_viaje}>
-                        <td className="operator-table__id">#{v.id_viaje}</td>
+                        <td className="operator-table__id">{v.id_viaje}</td>
                         <td>{v.origen}</td>
                         <td>{v.destino}</td>
-                        <td>#{v.Chofer_Usuario_idUsuario}</td>
-                        <td>#{v.Camion_id_camion}</td>
+                        <td>{v.Chofer_Usuario_idUsuario}</td>
+                        <td>{v.Camion_id_camion}</td>
                         <td>{v.fecha_salida || "-"}</td>
                         <td>
                           <span className={getEstadoClass(v.estado)}>

@@ -258,7 +258,7 @@ function OperadorViajesPage() {
                     estadoLower !== "cancelado" && estadoLower !== "finalizado";
                   return (
                     <tr key={viaje.id_viaje}>
-                      <td className="operator-table__id">#{viaje.id_viaje}</td>
+                      <td className="operator-table__id">{viaje.id_viaje}</td>
                       <td>{viaje.origen}</td>
                       <td>{viaje.destino}</td>
                       <td>{formatearFecha(viaje.fecha_salida)}</td>

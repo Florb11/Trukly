@@ -105,7 +105,7 @@ function OperadorCamionesPage() {
               <tbody>
                 {camionesFiltrados.map((camion) => (
                   <tr key={camion.id_camion}>
-                    <td className="operator-table__id">#{camion.id_camion}</td>
+                    <td className="operator-table__id">{camion.id_camion}</td>
                     <td>{camion.matricula}</td>
                     <td>{camion.marca}</td>
                     <td>{camion.modelo}</td>
