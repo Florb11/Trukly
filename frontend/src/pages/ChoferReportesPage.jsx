@@ -228,9 +228,9 @@ function ChoferReportesPage() {
                 <tbody>
                   {reportesFiltrados.map((reporte) => (
                     <tr key={reporte.id_reporte}>
-                      <td>#{reporte.id_reporte}</td>
+                      <td>{reporte.id_reporte}</td>
                       <td>{reporte.fecha_hora}</td>
-                      <td>Camión #{reporte.Camion_id_camion}</td>
+                      <td>Camión {reporte.Camion_id_camion}</td>
                       <td className="reportes-table__descripcion">
                         {reporte.descripcion}
                       </td>
