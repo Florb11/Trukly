@@ -105,7 +105,7 @@ function OperadorChoferesPage() {
               <tbody>
                 {choferesFiltrados.map((chofer) => (
                   <tr key={chofer.id_usuario}>
-                    <td className="operator-table__id">#{chofer.id_usuario}</td>
+                    <td className="operator-table__id">{chofer.id_usuario}</td>
                     <td>{chofer.nombre}</td>
                     <td>{chofer.apellido}</td>
                     <td>{chofer.legajo}</td>

@@ -172,7 +172,7 @@ function OperadorEstadisticasPage() {
                   <div className="op-stats-history__icon"><FaTruckLoading /></div>
                   <div className="op-stats-history__content">
                     <strong>{viaje.origen} → {viaje.destino}</strong>
-                    <span>Viaje #{viaje.id_viaje} · Chofer #{viaje.Chofer_Usuario_idUsuario} · Camión #{viaje.Camion_id_camion}</span>
+                    <span>Viaje {viaje.id_viaje} · Chofer {viaje.Chofer_Usuario_idUsuario} · Camión {viaje.Camion_id_camion}</span>
                     <small>Salida: {formatearFecha(viaje.fecha_salida)}</small>
                   </div>
                   <span className={getBadgeViaje(viaje.estado)}>{viaje.estado}</span>
@@ -195,8 +195,8 @@ function OperadorEstadisticasPage() {
                 <div key={reporte.id_reporte} className="op-stats-history__item">
                   <div className="op-stats-history__icon"><FaExclamationTriangle /></div>
                   <div className="op-stats-history__content">
-                    <strong>Reporte #{reporte.id_reporte}</strong>
-                    <span>Camión #{reporte.Camion_id_camion} · Chofer #{reporte.Chofer_Usuario_idUsuario}</span>
+                    <strong>Reporte {reporte.id_reporte}</strong>
+                    <span>Camión {reporte.Camion_id_camion} · Chofer {reporte.Chofer_Usuario_idUsuario}</span>
                     <small>{reporte.descripcion}</small>
                   </div>
                   <span className={getBadgeReporte(reporte.estado)}>{reporte.estado}</span>
