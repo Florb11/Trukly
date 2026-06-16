@@ -136,8 +136,8 @@ function ChoferEstadisticasPage() {
                 <div key={reporte.id_reporte} className="ch-stats-history__item">
                   <div className="ch-stats-history__icon"><FaExclamationTriangle /></div>
                   <div className="ch-stats-history__content">
-                    <strong>Reporte #{reporte.id_reporte}</strong>
-                    <span>Camión #{reporte.Camion_id_camion}</span>
+                    <strong>Reporte {reporte.id_reporte}</strong>
+                    <span>Camión {reporte.Camion_id_camion}</span>
                     <small>{reporte.descripcion}</small>
                   </div>
                   <span className={getBadgeReporte(reporte.estado)}>{reporte.estado}</span>
