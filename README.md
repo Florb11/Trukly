@@ -76,7 +76,7 @@ trukly/
 |--------|-----------|-------------|
 | **Singleton** | `db_instance.py` | Una única instancia de SQLAlchemy compartida en toda la app |
 | **Composite** | `utils/validation_composite.py` | Validaciones anidadas y combinables (`ValidadorCompuesto`, `CampoObligatorio`, `ValorPermitido`, `ValidacionCondicional`, etc.) |
-| **Observer** | `notificacion_routes` / `NotificacionesPage` | Las acciones del sistema generan notificaciones automáticas para los usuarios correspondientes |
+| **Observer** | `EventListener.py` / `EventManager.py` /NotificacionReporteListener.py | Las acciones del sistema generan notificaciones automáticas para los usuarios correspondientes |
 | **MVC** | Estructura general | Separación clara entre modelos, controladores y vistas |
 
 ---
