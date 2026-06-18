@@ -116,6 +116,7 @@ class Camion:
             return False
 
         self.viajes_asignados.append(viaje)
+        self.cambiar_estado(self.ESTADO_EN_VIAJE)
         return True
 
     def registrar_reporte(self, reporte):

@@ -3,6 +3,10 @@ from models.mecanico_model import MecanicoModel
 from db_instance import db
 from utils.app_logger import get_app_logger
 
+from src.Camion import Camion
+from src.Viaje import Viaje
+from models.chofer_model import ChoferModel
+from models.camion_model import CamionModel
 from models.reporte_model import ReporteModel
 from models.operador_model import OperadorModel
 from models.viaje_model import ViajeModel
@@ -102,6 +106,28 @@ class OperadorController:
         if not valido:
             return jsonify({"mensaje": error}), 400
 
+        chofer_model = ChoferModel.query.get(id_chofer)
+        if not chofer_model:
+            return jsonify({"mensaje": "El chofer no existe"}), 400
+
+        camion_model = CamionModel.query.get(id_camion)
+        if not camion_model:
+            return jsonify({"mensaje": "El camión no existe"}), 400
+
+        # crea el viaje de dominio
+        viaje = Viaje.crear_desde_datos(datos)
+
+        # crea el camion de dominio y le pide que se asigne al viaje
+        camion = Camion.crear_desde_datos(camion_model.to_dict())
+
+        if not operador.crear_viaje(viaje):
+            return jsonify({"mensaje": "No se pudo crear el viaje"}), 400
+
+        if not camion.asignar_viaje(viaje):
+            return jsonify({"mensaje": "El camión no está disponible para un viaje"}), 400
+
+        viaje.asignar_chofer(chofer_model)
+
         try:
             nuevo_viaje = ViajeModel(
                 OperadorLogistico_Usuario_idUsuario=operador.id_usuario,
@@ -111,27 +137,22 @@ class OperadorController:
                 fecha_llegada=fecha_llegada,
                 origen=origen,
                 destino=destino,
-                estado=Viaje.ESTADO_PENDIENTE,
+                estado=viaje.estado,
                 observaciones=datos.get("observaciones"),
                 recorrido=datos.get("recorrido", 0),
             )
+
+            camion_model.estado = camion.estado
+
             db.session.add(nuevo_viaje)
             db.session.commit()
-            return (
-                jsonify(
-                    {
-                        "mensaje": "Viaje creado correctamente",
-                        "viaje": nuevo_viaje.to_dict(),
-                    }
-                ),
-                201,
-            )
+            return jsonify({"mensaje": "Viaje creado correctamente", "viaje": nuevo_viaje.to_dict()}), 201
 
         except Exception:
             db.session.rollback()
             logger.exception(f"Error al crear viaje por operador {operador.id_usuario}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
-
+        
     @staticmethod
     @operador_required
     def cancelar_viaje(id_viaje):
@@ -223,15 +244,15 @@ class OperadorController:
             db.session.rollback()
             logger.exception(f"Error al editar viaje {id_viaje}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
-
+        
     @staticmethod
     @operador_required
     def listar_camiones():
         try:
-            camiones = CamionModel.query.filter_by(estado="disponible").all()
+            camiones = CamionModel.query.all()
             return jsonify([c.to_dict() for c in camiones]), 200
         except Exception:
-            logger.exception("Error al listar camiones disponibles")
+            logger.exception("Error al listar camiones")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
 
     @staticmethod
@@ -243,10 +264,6 @@ class OperadorController:
                 .join(
                     UsuarioModel,
                     ChoferModel.Usuario_idUsuario == UsuarioModel.id_usuario,
-                )
-                .filter(
-                    UsuarioModel.estado == "activo",
-                    UsuarioModel.rol == "chofer",
                 )
                 .all()
             )
@@ -267,7 +284,7 @@ class OperadorController:
 
             return jsonify(resultado), 200
         except Exception:
-            logger.exception("Error al listar choferes disponibles")
+            logger.exception("Error al listar choferes")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
 
     @staticmethod
