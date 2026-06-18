@@ -19,9 +19,9 @@
 
 ## 📋 Descripción
 
-**Trukly** es una aplicación web para la gestión de flotas de camiones. Permite administrar viajes, choferes, mecánicos, operadores logísticos y el seguimiento de reportes de falla, todo desde una interfaz moderna con dashboards y roles diferenciados por tipo de usuario.
+**Trukly** es una aplicación web orientada a la gestión de flotas de camiones. Permite administrar viajes, choferes, mecánicos, operadores logísticos, camiones y reportes de falla desde una interfaz moderna con dashboards y roles diferenciados según el tipo de usuario.
 
-El sistema sigue una arquitectura **MVC (Modelo - Vista - Controlador)** con una **API REST** desarrollada en Flask que se comunica con el frontend en React mediante JSON.
+El sistema sigue una arquitectura **MVC (Modelo - Vista - Controlador)** y utiliza una **API REST** desarrollada en Flask. El frontend en React se comunica con el backend mediante peticiones HTTP, enviando y recibiendo datos en formato **JSON**.
 
 ---
 
@@ -99,7 +99,7 @@ Desacopla la lógica de negocio de la generación de notificaciones. Cuando ocur
 ### MVC
 | Capa | Responsabilidad |
 |------|----------------|
-| **Modelo** (`models/`) | Representa las tablas de la base de datos via SQLAlchemy |
+| **Modelo** (`models/`) | Representa las tablas de la base de datos mediante SQLAlchemy |
 | **Vista** (`frontend/`) | Interfaz en React, consume la API REST |
 | **Controlador** (`controllers/`) | Coordina el flujo: recibe el request, delega en las clases de dominio y responde |
 | **Clases de dominio** (`src/`) | Contienen toda la lógica de negocio |
@@ -113,7 +113,7 @@ Desacopla la lógica de negocio de la generación de notificaciones. Cuando ocur
 - **JWT** con expiración de 60 minutos. Al vencer, el frontend elimina el token y redirige al login automáticamente.
 - **Decoradores de autorización por rol** en Flask (`@admin_required`, `@chofer_required`, `@operador_required`, `@mecanico_required`, `@usuario_required`, `@roles_required`). Cada endpoint protegido verifica que el token sea válido, que el usuario esté activo y que el rol del token coincida con el rol en la base de datos.
 - **Sanitización de inputs** con `InputSanitizer`: limpieza de texto, emails, contraseñas, enteros y decimales antes de cualquier procesamiento. Usa `html.escape` para prevenir XSS.
-- **Validación de contraseñas**: se aplican validacion al registrar o cambiar la contraseña.
+- **Validación de contraseñas**: se aplican validaciones al registrar o cambiar la contraseña.
 - **Rutas protegidas en el frontend** con `ProtectedRoute`: si el usuario no tiene sesión o intenta acceder a una sección sin permiso, es redirigido automáticamente. Las páginas no encontradas y los accesos no autorizados tienen páginas dedicadas (`NotFoundPage`, `NoAutorizadoPage`).
 - **CORS** configurado con Flask-CORS.
 
