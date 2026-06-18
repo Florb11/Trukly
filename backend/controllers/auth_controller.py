@@ -40,7 +40,7 @@ class AuthController:
 
     @staticmethod
     def crear_objeto_usuario(usuario_model):
-        # convierte UsuarioModel a Usuario de dominio
+        # convierte UsuarioModel a objeto usuario
         if usuario_model is None:
             return None
 
@@ -143,7 +143,7 @@ class AuthController:
 
     @staticmethod
     def _crear_chofer_clase(datos, password_hash):
-        # crea chofer de dominio desde datos validados
+        # crea chofer obj desde datos validados
         vencimiento_licencia = Chofer.convertir_vencimiento_licencia(
             datos["vencimientoLicencia"]
         )
@@ -166,7 +166,7 @@ class AuthController:
 
     @staticmethod
     def _crear_usuario_model_desde_chofer(chofer_clase):
-        # convierte Chofer de dominio a UsuarioModel
+        # convierte Chofer obj a UsuarioModel
         return UsuarioModel(
             username=chofer_clase.username,
             email=chofer_clase.email,
@@ -179,7 +179,7 @@ class AuthController:
 
     @staticmethod
     def _crear_chofer_model_desde_chofer(chofer_clase):
-        # convierte Chofer de dominio a ChoferModel
+        # convierte Chofer a ChoferModel
         return ChoferModel(
             Usuario_idUsuario=chofer_clase.id_usuario,
             licencia=chofer_clase.licencia,
@@ -194,7 +194,6 @@ class AuthController:
             request.get_json(silent=True) or {}
         )
 
-        # valida campos y reglas de dominio
         validador = AuthController._crear_validador_registro_chofer()
         datos_validos, mensaje_error = validador.validar(datos)
 
@@ -219,7 +218,7 @@ class AuthController:
             datos["password"]
         ).decode("utf-8")
 
-        # crea objeto de dominio
+        # crea objeto 
         chofer_clase = AuthController._crear_chofer_clase(
             datos,
             password_hash
@@ -230,7 +229,7 @@ class AuthController:
                 "mensaje": "No se pudo registrar el chofer"
             }), 400
 
-        # convierte dominio a modelos
+        # convierte obj a modelos
         nuevo_usuario = AuthController._crear_usuario_model_desde_chofer(
             chofer_clase
         )

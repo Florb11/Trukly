@@ -54,7 +54,6 @@ class UsuarioModel(db.Model):
         nullable=True
     )
 
-    # convierte el modelo a diccionario para devolverlo como JSON
     def to_dict(self):
         return {
             "id_usuario": self.id_usuario,

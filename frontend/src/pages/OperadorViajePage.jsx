@@ -45,6 +45,9 @@ function OperadorViajesPage() {
   const [viajeEditar, setViajeEditar] = useState(null);
   const [viajeCancelar, setViajeCancelar] = useState(null);
 
+  const [choferes, setChoferes] = useState([]);
+  const [camiones, setCamiones] = useState([]);
+
   useEffect(() => {
     cargarViajes();
   }, []);
@@ -55,25 +58,77 @@ function OperadorViajesPage() {
         "http://localhost:5000/api/operador/viajes",
         { method: "GET" },
       );
+
       if (!resultado) return;
+
       const { respuesta, data } = resultado;
-      if (!respuesta.ok)
+
+      if (!respuesta.ok) {
         throw new Error(data.mensaje || "Error al obtener viajes");
+      }
+
       setViajes(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error cargando viajes:", error);
     }
   };
 
+  const cargarChoferes = async () => {
+    try {
+      const resultado = await fetchConToken(
+        "http://localhost:5000/api/operador/choferes",
+        { method: "GET" },
+      );
+
+      if (!resultado) return;
+
+      const { respuesta, data } = resultado;
+
+      if (!respuesta.ok) {
+        throw new Error(data.mensaje || "Error al obtener choferes");
+      }
+
+      setChoferes(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error cargando choferes:", error);
+      setChoferes([]);
+    }
+  };
+
+  const cargarCamiones = async () => {
+    try {
+      const resultado = await fetchConToken(
+        "http://localhost:5000/api/operador/camiones",
+        { method: "GET" },
+      );
+
+      if (!resultado) return;
+
+      const { respuesta, data } = resultado;
+
+      if (!respuesta.ok) {
+        throw new Error(data.mensaje || "Error al obtener camiones");
+      }
+
+      setCamiones(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error cargando camiones:", error);
+      setCamiones([]);
+    }
+  };
+
   const viajesFiltrados = useMemo(() => {
     return viajes.filter((v) => {
       const texto = busqueda.toLowerCase();
+
       const coincideTexto =
         v.origen?.toLowerCase().includes(texto) ||
         v.destino?.toLowerCase().includes(texto) ||
         v.id_viaje?.toString().includes(texto);
+
       const coincideEstado =
         filtroEstado === "todos" || v.estado?.toLowerCase() === filtroEstado;
+
       return coincideTexto && coincideEstado;
     });
   }, [viajes, busqueda, filtroEstado]);
@@ -86,8 +141,10 @@ function OperadorViajesPage() {
           v.estado?.toLowerCase() === "en curso" ||
           v.estado?.toLowerCase() === "aceptado",
       ).length,
-      pendientes: viajes.filter((v) => v.estado?.toLowerCase() === "pendiente").length,
-      cancelados: viajes.filter((v) => v.estado?.toLowerCase() === "cancelado").length,
+      pendientes: viajes.filter((v) => v.estado?.toLowerCase() === "pendiente")
+        .length,
+      cancelados: viajes.filter((v) => v.estado?.toLowerCase() === "cancelado")
+        .length,
     }),
     [viajes],
   );
@@ -96,6 +153,8 @@ function OperadorViajesPage() {
     setForm(camposVaciosCrear);
     setErrorForm("");
     setModalCrear(true);
+    cargarChoferes();
+    cargarCamiones();
   };
 
   const cerrarCrear = () => {
@@ -118,6 +177,7 @@ function OperadorViajesPage() {
       "Chofer_Usuario_idUsuario",
       "Camion_id_camion",
     ];
+
     for (const campo of requeridos) {
       if (!form[campo].toString().trim()) {
         setErrorForm("Completá todos los campos obligatorios.");
@@ -142,10 +202,14 @@ function OperadorViajesPage() {
           }),
         },
       );
+
       if (!resultado) return;
+
       const { respuesta, data } = resultado;
-      if (!respuesta.ok)
+
+      if (!respuesta.ok) {
         throw new Error(data.mensaje || "Error al crear viaje");
+      }
 
       setMensajeOk("Viaje creado correctamente.");
       cerrarCrear();
@@ -167,6 +231,7 @@ function OperadorViajesPage() {
             registrá nuevos recorridos.
           </p>
         </div>
+
         <div className="op-viajes-header__right">
           <button
             type="button"
@@ -183,14 +248,17 @@ function OperadorViajesPage() {
           <span>Total</span>
           <strong>{stats.total}</strong>
         </article>
+
         <article className="op-viajes-stat op-viajes-stat--active">
           <span>En curso / aceptados</span>
           <strong>{stats.activos}</strong>
         </article>
+
         <article className="op-viajes-stat op-viajes-stat--pending">
           <span>Pendientes</span>
           <strong>{stats.pendientes}</strong>
         </article>
+
         <article className="op-viajes-stat op-viajes-stat--cancelled">
           <span>Cancelados</span>
           <strong>{stats.cancelados}</strong>
@@ -220,12 +288,15 @@ function OperadorViajesPage() {
               onChange={(e) => setBusqueda(e.target.value)}
             />
           </div>
+
           <div className="op-viajes-estado-tabs">
             {ESTADO_OPCIONES.map((estado) => (
               <button
                 key={estado}
                 type="button"
-                className={`op-viajes-tab ${filtroEstado === estado ? "op-viajes-tab--active" : ""}`}
+                className={`op-viajes-tab ${
+                  filtroEstado === estado ? "op-viajes-tab--active" : ""
+                }`}
                 onClick={() => setFiltroEstado(estado)}
               >
                 {estado === "todos" ? "Todos" : estado}
@@ -251,11 +322,14 @@ function OperadorViajesPage() {
                   <th>Acciones</th>
                 </tr>
               </thead>
+
               <tbody>
                 {viajesFiltrados.map((viaje) => {
                   const estadoLower = viaje.estado?.toLowerCase();
+
                   const puedeEditarse =
                     estadoLower !== "cancelado" && estadoLower !== "finalizado";
+
                   return (
                     <tr key={viaje.id_viaje}>
                       <td className="operator-table__id">{viaje.id_viaje}</td>
@@ -265,11 +339,22 @@ function OperadorViajesPage() {
                       <td>{formatearFecha(viaje.fecha_llegada)}</td>
                       <td>{viaje.recorrido} km</td>
                       <td>
-                        <span className={`chofer-badge chofer-badge--${estadoLower?.replace(" ", "-")}`}>
+                        <span
+                          className={`chofer-badge chofer-badge--${estadoLower?.replace(
+                            " ",
+                            "-",
+                          )}`}
+                        >
                           {viaje.estado}
                         </span>
                       </td>
-                      <td style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <td
+                        style={{
+                          display: "flex",
+                          gap: "8px",
+                          alignItems: "center",
+                        }}
+                      >
                         <button
                           type="button"
                           className="op-viajes-btn-ver"
@@ -277,6 +362,7 @@ function OperadorViajesPage() {
                         >
                           <FaEye /> Ver
                         </button>
+
                         {puedeEditarse && (
                           <>
                             <button
@@ -286,6 +372,7 @@ function OperadorViajesPage() {
                             >
                               Editar
                             </button>
+
                             <button
                               type="button"
                               className="op-viajes-btn-cancelar"
@@ -312,14 +399,18 @@ function OperadorViajesPage() {
           onChange={handleFormChange}
           onSubmit={crearViaje}
           onClose={cerrarCrear}
+          choferes={choferes}
+          camiones={camiones}
         />
       )}
+
       {viajeDetalle && (
         <DetalleViajeModal
           viaje={viajeDetalle}
           onClose={() => setViajeDetalle(null)}
         />
       )}
+
       {viajeEditar && (
         <EditarViajeModal
           viaje={viajeEditar}
@@ -330,6 +421,7 @@ function OperadorViajesPage() {
           }}
         />
       )}
+
       {viajeCancelar && (
         <CancelarViajeModal
           viaje={viajeCancelar}

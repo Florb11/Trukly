@@ -100,7 +100,8 @@
 }
 
 .viaje-modal__field input,
-.viaje-modal__field textarea {
+.viaje-modal__field textarea,
+.viaje-modal__field select {
   width: 100%;
   border: 1.5px solid #dceaf3;
   background: #ffffff;
@@ -114,8 +115,14 @@
   box-sizing: border-box;
 }
 
+.viaje-modal__field select {
+  height: 42px;
+  cursor: pointer;
+}
+
 .viaje-modal__field input:focus,
-.viaje-modal__field textarea:focus {
+.viaje-modal__field textarea:focus,
+.viaje-modal__field select:focus {
   border-color: #1683bd;
   box-shadow: 0 0 0 3px rgba(22, 131, 189, 0.12);
 }

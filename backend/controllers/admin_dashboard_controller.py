@@ -14,16 +14,13 @@ from src.Viaje import Viaje
 from src.ReporteFalla import ReporteFalla
 from utils.auth_decorators import admin_required
 
-#AdminDashboardController no necesita crear objetos de dominio porque no ejecuta una accion de negocio.
-#Solo consulta datos para mostrar resumenes.
-#Usa constantes de Usuario, Camion, Viaje y ReporteFalla para no repetir strings sueltos.
-#La logica se separa en metodos privados para que el endpoint principal quede mas legible.
+#Este controller solo consulta datos para mostrar resumenes
+
 
 class AdminDashboardController:
 
     @staticmethod
     def _calcular_porcentaje(parte, total):
-        # calcula porcentaje evitando division por cero
         if total <= 0:
             return 0
 

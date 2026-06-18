@@ -3,10 +3,7 @@ import os
 
 
 def get_app_logger():
-    # Devuelve el logger principal 
     logger = logging.getLogger("trukly")
-
-    # Si ya tiene handlers, lo devuelve para no duplicar logs
     if logger.handlers:
         return logger
 
@@ -34,15 +31,8 @@ def get_app_logger():
             "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
         )
     )
-
-    # Guarda logs desde nivel INFO 
     logger.setLevel(logging.INFO)
-
-    # Agrega el handler al logger
     logger.addHandler(handler)
-
-    # Evita que el log se repita en otros loggers
     logger.propagate = False
 
-    # Devuelve el logger listo para usar
     return logger

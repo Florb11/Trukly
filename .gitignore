@@ -9,5 +9,6 @@ dist/
 backend/uploads/perfiles/*
 !backend/uploads/perfiles/.gitkeep
 
-backend/logs/
+backend/logs/*
+!backend/logs/.gitkeep
 *.log

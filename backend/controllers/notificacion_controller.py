@@ -17,7 +17,6 @@ class NotificacionController:
 
     @staticmethod
     def crear_objeto_usuario(usuario_model):
-        # convierte UsuarioModel a Usuario de dominio
         if usuario_model is None:
             return None
 
@@ -28,7 +27,6 @@ class NotificacionController:
 
     @staticmethod
     def crear_objeto_notificacion(notificacion_model, usuario=None):
-        # convierte NotificacionModel a Notificacion de dominio
         if notificacion_model is None:
             return None
 

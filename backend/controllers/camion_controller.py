@@ -194,7 +194,7 @@ class CamionController:
         if not datos_validos:
             return jsonify({"mensaje": mensaje_error}), 400
 
-        # valida reglas de negocio en el dominio
+        # valida reglas de negocio
         datos_validos, mensaje_error = CamionController._validar_datos_dominio(
             admin,
             datos
@@ -203,7 +203,7 @@ class CamionController:
         if not datos_validos:
             return jsonify({"mensaje": mensaje_error}), 400
 
-        # el admin crea el objeto de dominio
+        # el admin crea el objeto 
         camion_clase = admin.crear_camion(datos)
 
         if camion_clase is None:
@@ -276,7 +276,7 @@ class CamionController:
         if not datos_validos:
             return jsonify({"mensaje": mensaje_error}), 400
 
-        # valida reglas de negocio en el dominio
+        # valida reglas de negocio 
         datos_validos, mensaje_error = CamionController._validar_datos_dominio(
             admin,
             datos_camion

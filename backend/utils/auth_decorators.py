@@ -40,10 +40,9 @@ def roles_required(*roles_permitidos):
                     403,
                 )
 
-            # Guarda el usuario en g para usarlo durante esta request
+            # Guarda el usuario en g para usarlo durante esta request IMPORTANTE ESTO 
             g.usuario_actual = usuario
 
-            # Si paso todas las validaciones, ejecuta la funcion original
             return funcion(*args, **kwargs)
 
         return wrapper
@@ -52,12 +51,10 @@ def roles_required(*roles_permitidos):
 
 
 def obtener_admin_actual_desde_token():
-    # Pide al AuthService el admin actual armado como objeto 
     return AuthService.obtener_admin_actual_desde_token()
 
 
 def admin_required(funcion):
-    # Decorador especifico para endpoints de admin
 
     @wraps(funcion)
     @jwt_required()
@@ -82,7 +79,6 @@ def admin_required(funcion):
 
 
 def obtener_mecanico_actual_desde_token():
-    # Pide al AuthService el mecanico actual armado como objeto 
     return AuthService.obtener_mecanico_actual_desde_token()
 
 

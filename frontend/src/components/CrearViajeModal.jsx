@@ -1,6 +1,14 @@
 import "./CrearViajeModal.css";
 
-function CrearViajeModal({ form, error, onChange, onSubmit, onClose }) {
+function CrearViajeModal({
+  form,
+  error,
+  onChange,
+  onSubmit,
+  onClose,
+  choferes = [],
+  camiones = [],
+}) {
   return (
     <div className="viaje-modal-overlay" onClick={onClose}>
       <div className="viaje-modal" onClick={(e) => e.stopPropagation()}>
@@ -9,7 +17,9 @@ function CrearViajeModal({ form, error, onChange, onSubmit, onClose }) {
             <span>Operador logístico</span>
             <h2>Nuevo viaje</h2>
           </div>
-          <button type="button" onClick={onClose} aria-label="Cerrar">✕</button>
+          <button type="button" onClick={onClose} aria-label="Cerrar">
+            ✕
+          </button>
         </div>
 
         <form className="viaje-modal__form" onSubmit={onSubmit}>
@@ -26,6 +36,7 @@ function CrearViajeModal({ form, error, onChange, onSubmit, onClose }) {
                 maxLength={45}
               />
             </div>
+
             <div className="viaje-modal__field">
               <label htmlFor="destino">Destino</label>
               <input
@@ -51,6 +62,7 @@ function CrearViajeModal({ form, error, onChange, onSubmit, onClose }) {
                 onChange={onChange}
               />
             </div>
+
             <div className="viaje-modal__field">
               <label htmlFor="fecha_llegada">Fecha de llegada</label>
               <input
@@ -65,28 +77,39 @@ function CrearViajeModal({ form, error, onChange, onSubmit, onClose }) {
 
           <div className="viaje-modal__row">
             <div className="viaje-modal__field">
-              <label htmlFor="Chofer_Usuario_idUsuario">ID del chofer</label>
-              <input
-                type="number"
+              <label htmlFor="Chofer_Usuario_idUsuario">Chofer</label>
+              <select
                 id="Chofer_Usuario_idUsuario"
                 name="Chofer_Usuario_idUsuario"
                 value={form.Chofer_Usuario_idUsuario}
                 onChange={onChange}
-                placeholder="Ej: 5"
-                min="1"
-              />
+              >
+                <option value="">Seleccionar chofer</option>
+
+                {choferes.map((chofer) => (
+                  <option key={chofer.id_usuario} value={chofer.id_usuario}>
+                    {chofer.nombre} {chofer.apellido} - Legajo {chofer.legajo}
+                  </option>
+                ))}
+              </select>
             </div>
+
             <div className="viaje-modal__field">
-              <label htmlFor="Camion_id_camion">ID del camión</label>
-              <input
-                type="number"
+              <label htmlFor="Camion_id_camion">Camión</label>
+              <select
                 id="Camion_id_camion"
                 name="Camion_id_camion"
                 value={form.Camion_id_camion}
                 onChange={onChange}
-                placeholder="Ej: 3"
-                min="1"
-              />
+              >
+                <option value="">Seleccionar camión</option>
+
+                {camiones.map((camion) => (
+                  <option key={camion.id_camion} value={camion.id_camion}>
+                    {camion.matricula} - {camion.marca} {camion.modelo}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -120,10 +143,18 @@ function CrearViajeModal({ form, error, onChange, onSubmit, onClose }) {
           {error && <p className="viaje-modal__error">⚠ {error}</p>}
 
           <div className="viaje-modal__actions">
-            <button type="button" className="viaje-modal__btn viaje-modal__btn--cancelar" onClick={onClose}>
+            <button
+              type="button"
+              className="viaje-modal__btn viaje-modal__btn--cancelar"
+              onClick={onClose}
+            >
               Cancelar
             </button>
-            <button type="submit" className="viaje-modal__btn viaje-modal__btn--guardar">
+
+            <button
+              type="submit"
+              className="viaje-modal__btn viaje-modal__btn--guardar"
+            >
               Crear viaje
             </button>
           </div>

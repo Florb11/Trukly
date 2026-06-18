@@ -25,7 +25,6 @@ class Notificacion:
 
     @classmethod
     def crear_desde_datos(cls, datos, usuario=None):
-        # crea una notificacion desde un diccionario
         if datos is None:
             return None
 
@@ -121,7 +120,6 @@ class Notificacion:
         return True
 
     def to_dict(self):
-        # convierte la notificacion a diccionario
         return {
             "id_notificacion": self.id_notificacion,
             "id_usuario": self.id_usuario,

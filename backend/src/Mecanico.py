@@ -77,7 +77,6 @@ class Mecanico(Usuario):
             nota_reparacion
         )
 
-    # cambia el estado del reporte a resuelto y guarda la nota de reparacion
     def resolver_reporte(self, reporte, nota_reparacion):
         if reporte is None:
             return False

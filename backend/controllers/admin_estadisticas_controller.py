@@ -12,9 +12,7 @@ from src.Viaje import Viaje
 from src.ReporteFalla import ReporteFalla
 from utils.auth_decorators import admin_required
 
-#En este caso no se crean clases de dominio porque no hay una accion de negocio sobre una entidad.
-#Es un endpoint de consulta estadistica. El controller consulta modelos, arma rankings y devuelve un resumen.
-#Las reglas de estados igual se mantienen centralizadas usando constantes de Viaje y ReporteFalla.
+#Consulta estadistica
 
 class AdminEstadisticasController:
 

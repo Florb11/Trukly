@@ -97,7 +97,6 @@ class Administrador(Usuario):
         return estado in Administrador.ESTADOS_VALIDOS
 
     def _construir_usuario_por_rol(self, datos, password):
-        # arma un usuario de dominio segun su rol
         if datos is None:
             return None
 
@@ -257,7 +256,6 @@ class Administrador(Usuario):
         return True
 
     def validar_datos_camion(self, datos_camion):
-        # delega la validacion al dominio camion
         return Camion.validar_datos_camion(datos_camion)
 
     def crear_camion(self, datos, id_camion=None):
@@ -311,7 +309,6 @@ class Administrador(Usuario):
         return camion
 
     def modificar_camion(self, camion):
-        # modifica un camion desde el dominio
         if camion is None:
             return False
 
@@ -352,7 +349,6 @@ class Administrador(Usuario):
         return estado_cambiado
 
     def to_dict(self):
-        # convierte el administrador a diccionario
         datos_usuario = super().to_dict()
 
         datos_usuario.update(

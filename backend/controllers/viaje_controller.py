@@ -85,7 +85,6 @@ class ViajeController:
 
     @staticmethod
     def crear_objeto_camion(camion_model):
-        # convierte CamionModel a Camion de dominio
         if camion_model is None:
             return None
 
@@ -103,7 +102,6 @@ class ViajeController:
 
     @staticmethod
     def crear_objeto_chofer(usuario_model, chofer_model):
-        # convierte UsuarioModel y ChoferModel a Chofer de dominio
         if usuario_model is None or chofer_model is None:
             return None
 
@@ -126,7 +124,6 @@ class ViajeController:
 
     @staticmethod
     def crear_objeto_operador(usuario_model, operador_model):
-        # convierte UsuarioModel y OperadorModel a OperadorLogistico
         if usuario_model is None or operador_model is None:
             return None
 
@@ -148,7 +145,6 @@ class ViajeController:
 
     @staticmethod
     def obtener_chofer_clase(id_chofer):
-        # busca el chofer en BD y lo pasa a dominio
         if not id_chofer:
             return None
 
@@ -159,7 +155,6 @@ class ViajeController:
 
     @staticmethod
     def obtener_operador_clase(id_operador):
-        # busca el operador en BD y lo pasa a dominio
         if not id_operador:
             return None
 
@@ -170,7 +165,6 @@ class ViajeController:
 
     @staticmethod
     def obtener_camion_clase(id_camion):
-        # busca el camion en BD y lo pasa a dominio
         if not id_camion:
             return None
 
@@ -180,7 +174,6 @@ class ViajeController:
 
     @staticmethod
     def crear_objeto_viaje(viaje_model, cargar_relaciones=True):
-        # convierte ViajeModel a Viaje de dominio
         operador = None
         chofer = None
         camion = None
@@ -219,7 +212,6 @@ class ViajeController:
 
     @staticmethod
     def crear_modelo_viaje(viaje):
-        # convierte Viaje de dominio a ViajeModel
         return ViajeModel(
             fecha_salida=viaje.fecha_salida,
             fecha_llegada=viaje.fecha_llegada,
@@ -235,7 +227,6 @@ class ViajeController:
 
     @staticmethod
     def actualizar_modelo_viaje(viaje_model, viaje):
-        # copia datos del dominio al modelo de BD
         viaje_model.fecha_salida = viaje.fecha_salida
         viaje_model.fecha_llegada = viaje.fecha_llegada
         viaje_model.origen = viaje.origen
@@ -251,7 +242,6 @@ class ViajeController:
 
     @staticmethod
     def obtener_viajes_por_rol(rol, id_usuario):
-        # filtra viajes segun el rol
         if rol == Usuario.ROL_ADMIN:
             return ViajeModel.query.all()
 
@@ -294,7 +284,6 @@ class ViajeController:
         Usuario.ROL_OPERADOR,
     )
     def obtener_viaje(id_viaje):
-        # obtiene un viaje y valida permiso de visualizacion
         viaje_model = ViajeModel.query.get(id_viaje)
 
         if viaje_model is None:
@@ -391,7 +380,6 @@ class ViajeController:
         if not id_camion:
             return jsonify({"mensaje": "El camion es obligatorio"}), 400
 
-        # busca objetos de dominio
         operador = ViajeController.obtener_operador_clase(id_operador)
         chofer = ViajeController.obtener_chofer_clase(id_chofer)
         camion = ViajeController.obtener_camion_clase(id_camion)
@@ -405,16 +393,13 @@ class ViajeController:
         if camion is None:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
 
-        # regla de negocio del camion
         if not camion.esta_disponible():
             return jsonify({
                 "mensaje": "El camion no esta disponible para asignar un viaje"
             }), 400
 
-        # prepara datos limpios para el dominio
         datos_viaje = ViajeController.preparar_datos_viaje(datos)
 
-        # crea el viaje de dominio
         viaje = Viaje.crear_desde_datos(
             datos_viaje,
             operador=operador,
@@ -427,7 +412,6 @@ class ViajeController:
                 "mensaje": "Los datos del viaje no son validos"
             }), 400
 
-        # convierte dominio a modelo
         nuevo_viaje = ViajeController.crear_modelo_viaje(viaje)
 
         try:
@@ -449,7 +433,6 @@ class ViajeController:
     @staticmethod
     @roles_required(Usuario.ROL_ADMIN)
     def listar_viajes_admin():
-        # lista todos los viajes para admin
         viajes = ViajeModel.query.all()
 
         return jsonify([viaje.to_dict() for viaje in viajes]), 200
@@ -457,7 +440,6 @@ class ViajeController:
     @staticmethod
     @roles_required(Usuario.ROL_ADMIN)
     def obtener_viaje_admin(id_viaje):
-        # obtiene cualquier viaje como admin
         viaje = ViajeModel.query.get(id_viaje)
 
         if viaje is None:
@@ -468,7 +450,6 @@ class ViajeController:
     @staticmethod
     @roles_required(Usuario.ROL_ADMIN)
     def cancelar_viaje_admin(id_viaje):
-        # cancela un viaje con motivo
         datos = InputSanitizer.sanitizar_campos(
             request.get_json(silent=True) or {},
             campos_texto=["motivo"],

@@ -61,7 +61,6 @@ class Viaje:
 
     @staticmethod
     def obtener_id_usuario(usuario):
-        # obtiene el id de un usuario de dominio
         if usuario is None:
             return None
 
@@ -69,7 +68,6 @@ class Viaje:
 
     @staticmethod
     def obtener_id_camion(camion):
-        # obtiene el id de un camion de dominio
         if camion is None:
             return None
 
@@ -84,7 +82,6 @@ class Viaje:
         chofer=None,
         camion=None,
     ):
-        # crea un viaje de dominio desde un diccionario
         if datos is None:
             return None
 
@@ -104,24 +101,16 @@ class Viaje:
             id_camion=datos.get("id_camion"),
         )
 
-        # si ya tiene id, solo carga el objeto relacionado
-        # si no tiene id, pide al operador que gestione el viaje
         if operador is not None:
             if viaje.tiene_operador_asignado():
                 viaje.operador = operador
             else:
                 operador.gestionar_viaje(viaje)
-
-        # si ya tiene id, solo carga el objeto relacionado
-        # si no tiene id, pide al chofer que acepte la asignacion
         if chofer is not None:
             if viaje.tiene_chofer_asignado():
                 viaje.chofer = chofer
             else:
                 chofer.asignar_viaje(viaje)
-
-        # si ya tiene id, solo carga el objeto relacionado
-        # si no tiene id, el camion valida si puede aceptar el viaje
         if camion is not None:
             if viaje.tiene_camion_asignado():
                 viaje.camion = camion
