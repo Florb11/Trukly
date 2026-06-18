@@ -14,9 +14,7 @@ START TRANSACTION;
 SET time_zone = "+00:00";
 SET NAMES utf8mb4;
  
--- ------------------------------------------------------------
--- Eliminar la base de datos si ya existe y crearla de nuevo
--- ------------------------------------------------------------
+
 DROP DATABASE IF EXISTS `trukly`;
 CREATE DATABASE `trukly`
   DEFAULT CHARACTER SET utf8mb4
@@ -25,9 +23,7 @@ CREATE DATABASE `trukly`
 USE `trukly`;
  
 
--- TABLAS
 
--- Tabla: usuario
 CREATE TABLE `usuario` (
   `id_usuario`   INT(11)      NOT NULL AUTO_INCREMENT,
   `username`     VARCHAR(30)  NOT NULL,
@@ -43,7 +39,6 @@ CREATE TABLE `usuario` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  
 
--- Tabla: administrador
 CREATE TABLE `administrador` (
   `Usuario_idUsuario` INT(11)     NOT NULL,
   `legajo`            VARCHAR(45) NOT NULL,
@@ -51,8 +46,8 @@ CREATE TABLE `administrador` (
   CONSTRAINT `fk_Administrador_Usuario`
     FOREIGN KEY (`Usuario_idUsuario`) REFERENCES `usuario` (`id_usuario`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
- 
--- Tabla: chofer
+
+
 
 CREATE TABLE `chofer` (
   `Usuario_idUsuario`   INT(11)     NOT NULL,
@@ -65,7 +60,7 @@ CREATE TABLE `chofer` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  
 
--- Tabla: mecanico
+
 
 CREATE TABLE `mecanico` (
   `Usuario_idUsuario` INT(11)     NOT NULL,
@@ -77,7 +72,6 @@ CREATE TABLE `mecanico` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  
 
--- Tabla: operadorlogistico
 CREATE TABLE `operadorlogistico` (
   `Usuario_idUsuario` INT(11)     NOT NULL,
   `legajo`            VARCHAR(45) NOT NULL,
@@ -88,7 +82,7 @@ CREATE TABLE `operadorlogistico` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  
 
--- Tabla: camion
+
 CREATE TABLE `camion` (
   `id_camion`      INT(11)     NOT NULL AUTO_INCREMENT,
   `matricula`      VARCHAR(15) NOT NULL,
@@ -102,7 +96,7 @@ CREATE TABLE `camion` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  
 
--- Tabla: viaje
+
 CREATE TABLE `viaje` (
   `id_viaje`                          INT(11)      NOT NULL AUTO_INCREMENT,
   `OperadorLogistico_Usuario_idUsuario` INT(11)    NOT NULL,
@@ -128,7 +122,6 @@ CREATE TABLE `viaje` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  
 
--- Tabla: carga
 CREATE TABLE `carga` (
   `id_carga`     INT(11)     NOT NULL AUTO_INCREMENT,
   `descripcion`  VARCHAR(45) NOT NULL,
@@ -141,8 +134,7 @@ CREATE TABLE `carga` (
   CONSTRAINT `fk_Carga_Viaje`
     FOREIGN KEY (`Viaje_id_viaje`) REFERENCES `viaje` (`id_viaje`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
- 
--- Tabla: registroingresosalida
+
 CREATE TABLE `registroingresosalida` (
   `id_registro`    INT(11)      NOT NULL AUTO_INCREMENT,
   `fecha_hora`     DATETIME     NOT NULL,
@@ -156,7 +148,6 @@ CREATE TABLE `registroingresosalida` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  
 
--- Tabla: reportefalla
 CREATE TABLE `reportefalla` (
   `id_reporte`                INT(11)      NOT NULL AUTO_INCREMENT,
   `fecha_hora`                DATETIME     NOT NULL,
@@ -179,7 +170,7 @@ CREATE TABLE `reportefalla` (
     FOREIGN KEY (`Chofer_Usuario_idUsuario`) REFERENCES `chofer` (`Usuario_idUsuario`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  
--- Tabla: notificacion
+
 CREATE TABLE `notificacion` (
   `id_notificacion`  INT(11)      NOT NULL AUTO_INCREMENT,
   `Usuario_idUsuario` INT(11)     NOT NULL,
@@ -193,12 +184,6 @@ CREATE TABLE `notificacion` (
   CONSTRAINT `fk_Notificacion_Usuario`
     FOREIGN KEY (`Usuario_idUsuario`) REFERENCES `usuario` (`id_usuario`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
- 
- 
-
--- DATOS DE PRUEBA
-
--- Usuarios
 
 INSERT INTO `usuario` (`id_usuario`, `username`, `email`, `password`, `nombre`, `apellido`, `estado`, `rol`) VALUES
 (1,  'admin1',    'admin1@trukly.com',    '$2b$12$cxSgvwGZo8hq4taHO7vakOZDz3OsvCczKXmb65kjxwUD/qA1BWn5.', 'Admin',    'Admin',  'activo', 'admin'),
@@ -206,8 +191,6 @@ INSERT INTO `usuario` (`id_usuario`, `username`, `email`, `password`, `nombre`, 
 (22, 'Operador1', 'operador@gmail.com',   '$2b$12$/tBoQw4fXYMMl13nnLsMFONe0vWJLaWYam0u/MonzBe2EyUoz2ffq', 'Sebastian','Lopez',  'activo', 'operador'),
 (23, 'Mecanico1', 'meca1@hotmail.com',    '$2b$12$xgCsIR3OrHvg.Jgiuz59v.dPTb/tssPSmFQWRSv/VEg0HPXWNtnO2', 'Elias',    'Lopez',  'activo', 'mecanico');
  
-
--- Roles específicos
 INSERT INTO `administrador` (`Usuario_idUsuario`, `legajo`) VALUES
 (1, 'ADM001');
  
@@ -221,7 +204,6 @@ INSERT INTO `mecanico` (`Usuario_idUsuario`, `legajo`, `especialidad`) VALUES
 (23, 'MEC001', 'Motores');
  
 
--- Camiones
 INSERT INTO `camion` (`id_camion`, `matricula`, `marca`, `modelo`, `capacidad_carga`, `estado`, `nroTanque`) VALUES
 (1, 'DEF5678',  'Scania',   'R450',   30000, 'disponible',      1),
 (2, 'GHI9012',  'Mercedes', 'Actros', 26000, 'disponible',      2),
@@ -231,7 +213,7 @@ INSERT INTO `camion` (`id_camion`, `matricula`, `marca`, `modelo`, `capacidad_ca
 (9, 'STU5678',  'Volvo',    'FH2',    6000,  'en mantenimiento', 9);
  
 
--- Viajes
+
 INSERT INTO `viaje` (`id_viaje`, `OperadorLogistico_Usuario_idUsuario`, `Chofer_Usuario_idUsuario`, `Camion_id_camion`, `fecha_salida`, `fecha_llegada`, `origen`, `destino`, `estado`, `observaciones`, `recorrido`) VALUES
 (20, 22, 17, 1, '2026-06-30', '2026-07-31', 'Buenos Aires', 'Rosario',    'pendiente',  'No hay observaciones para este viaje.',          299),
 (21, 22, 17, 2, '2026-07-22', '2026-07-30', 'Cordoba',      'Chacabuco',  'pendiente',  'En la llegada se debe presentar la documentación.', 1200),
@@ -239,13 +221,13 @@ INSERT INTO `viaje` (`id_viaje`, `OperadorLogistico_Usuario_idUsuario`, `Chofer_
 (23, 22, 17, 2, '2026-06-16', '2026-06-16', 'Buenos Aires', 'Chacabuco',  'cancelado',  'Cancelado por admin. Motivo: El camión presentó problemas.', 190);
  
 
--- Reportes de falla
+
 INSERT INTO `reportefalla` (`id_reporte`, `fecha_hora`, `descripcion`, `estado`, `Camion_id_camion`, `Mecanico_Usuario_idUsuario`, `Chofer_Usuario_idUsuario`, `nota_reparacion`, `fecha_resolucion`) VALUES
 (1, '2026-06-18 04:12:41', 'Ruido en el motor',        'pendiente',   5, NULL, 17, NULL, NULL),
 (2, '2026-06-18 04:12:55', 'Problema con las ruedas',  'en revision', 9, 23,   17, NULL, NULL);
  
 
--- Notificaciones
+
 INSERT INTO `notificacion` (`id_notificacion`, `Usuario_idUsuario`, `titulo`, `mensaje`, `leida`, `fecha_hora`, `tipo`) VALUES
 (1, 22, 'Nuevo reporte de falla',   'El chofer #17 creó el reporte #1.', 1, '2026-06-18 04:12:41', 'reporte_creado'),
 (2, 22, 'Nuevo reporte de falla',   'El chofer #17 creó el reporte #2.', 0, '2026-06-18 04:12:55', 'reporte_creado'),
