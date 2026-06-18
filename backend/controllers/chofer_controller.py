@@ -1,4 +1,7 @@
+import datetime
+
 from flask import g, jsonify, request
+from src.Viaje import Viaje
 from db_instance import db
 from utils.app_logger import get_app_logger
 
@@ -165,3 +168,65 @@ class ChoferController:
         return jsonify({
             "camiones": [c.to_dict() for c in camiones]
         }), 200
+    
+    @staticmethod
+    @chofer_required
+    def iniciar_viaje(id_viaje):
+        chofer = g.chofer_actual
+
+        viaje_model = ViajeModel.query.get(id_viaje)
+        if viaje_model is None:
+            return jsonify({"mensaje": "Viaje no encontrado"}), 404
+
+        viaje_dict = viaje_model.to_dict()
+        viaje_dict["id_chofer"] = viaje_dict.get("Chofer_Usuario_idUsuario")
+        viaje_dict["id_camion"] = viaje_dict.get("Camion_id_camion")
+        viaje_dict["id_operador"] = viaje_dict.get("OperadorLogistico_Usuario_idUsuario")
+
+        viaje = Viaje.crear_desde_datos(viaje_dict)
+        iniciado, mensaje_error = chofer.iniciar_viaje(viaje)
+
+        if not iniciado:
+            return jsonify({"mensaje": mensaje_error}), 400
+
+        viaje_model.estado = viaje.estado
+
+        try:
+            db.session.commit()
+            return jsonify({"mensaje": "Viaje aceptado correctamente", "viaje": viaje_model.to_dict()}), 200
+        except Exception:
+            db.session.rollback()
+            logger.exception(f"Error al iniciar viaje {id_viaje}")
+            return jsonify({"mensaje": "Error interno del servidor"}), 500
+
+    @staticmethod
+    @chofer_required
+    def finalizar_viaje(id_viaje):
+        chofer = g.chofer_actual
+
+        viaje_model = ViajeModel.query.get(id_viaje)
+        if viaje_model is None:
+            return jsonify({"mensaje": "Viaje no encontrado"}), 404
+
+        viaje_dict = viaje_model.to_dict()
+        viaje_dict["id_chofer"] = viaje_dict.get("Chofer_Usuario_idUsuario")
+        viaje_dict["id_camion"] = viaje_dict.get("Camion_id_camion")
+        viaje_dict["id_operador"] = viaje_dict.get("OperadorLogistico_Usuario_idUsuario")
+
+        viaje = Viaje.crear_desde_datos(viaje_dict)
+        finalizado, mensaje_error = chofer.finalizar_viaje(viaje)
+
+        if not finalizado:
+            return jsonify({"mensaje": mensaje_error}), 400
+
+        viaje_model.estado = viaje.estado
+        if not viaje_model.fecha_llegada:
+            viaje_model.fecha_llegada = datetime.now().date()
+
+        try:
+            db.session.commit()
+            return jsonify({"mensaje": "Viaje finalizado correctamente", "viaje": viaje_model.to_dict()}), 200
+        except Exception:
+            db.session.rollback()
+            logger.exception(f"Error al finalizar viaje {id_viaje}")
+            return jsonify({"mensaje": "Error interno del servidor"}), 500

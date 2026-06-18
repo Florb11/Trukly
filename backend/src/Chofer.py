@@ -154,3 +154,33 @@ class Chofer(Usuario):
         return viaje_model_query.filter_by(
             Chofer_Usuario_idUsuario=self.id_usuario
         ).all()
+
+    def iniciar_viaje(self, viaje):
+        if viaje is None:
+            return False, "Viaje no encontrado"
+
+        if not viaje.pertenece_a_chofer(self):
+            return False, "No tenés permiso para iniciar este viaje"
+
+        if not viaje.puede_aceptarse():
+            return False, "El viaje no puede aceptarse en su estado actual"
+
+        if not viaje.aceptar():
+            return False, "No se pudo aceptar el viaje"
+
+        return True, None
+
+    def finalizar_viaje(self, viaje):
+        if viaje is None:
+            return False, "Viaje no encontrado"
+
+        if not viaje.pertenece_a_chofer(self):
+            return False, "No tenés permiso para finalizar este viaje"
+
+        if not viaje.puede_finalizarse():
+            return False, "El viaje no puede finalizarse en su estado actual"
+
+        if not viaje.finalizar():
+            return False, "No se pudo finalizar el viaje"
+
+        return True, None
