@@ -72,12 +72,39 @@ trukly/
 
 ## 🏗️ Patrones de diseño aplicados
 
-| Patrón | Ubicación | Descripción |
-|--------|-----------|-------------|
-| **Singleton** | `db_instance.py` | Una única instancia de SQLAlchemy compartida en toda la app |
-| **Composite** | `utils/validation_composite.py` | Validaciones anidadas y combinables (`ValidadorCompuesto`, `CampoObligatorio`, `ValorPermitido`, `ValidacionCondicional`, etc.) |
-| **Observer** | `EventListener.py` / `EventManager.py` /NotificacionReporteListener.py | Las acciones del sistema generan notificaciones automáticas para los usuarios correspondientes |
-| **MVC** | Estructura general | Separación clara entre modelos, controladores y vistas |
+### Singleton — `db_instance.py`
+Garantiza que exista una única instancia de `SQLAlchemy` en toda la aplicación. Se implementó con una metaclase (`DatabaseManager`) que controla la creación de instancias y reutiliza siempre la misma conexión a la base de datos.
+
+### Composite — `utils/validation_composite.py`
+Permite construir validaciones simples y combinarlas en validadores compuestos. Todas las validaciones implementan la interfaz `Validacion` con el método `validar()`.
+
+| Clase | Rol |
+|-------|-----|
+| `Validacion` | Componente base (interfaz) |
+| `ValidadorCompuesto` | Composite — agrupa y ejecuta validaciones en cadena |
+| `CampoObligatorio` | Hoja — valida que un campo no esté vacío |
+| `ValorPermitido` | Hoja — valida que el valor esté en una lista permitida |
+| `ValidacionFuncion` | Hoja — delega la validación a una función externa |
+| `ValidacionCondicional` | Hoja — ejecuta una validación solo si se cumple una condición |
+
+### Observer — `src/observer/`
+Desacopla la lógica de negocio de la generación de notificaciones. Cuando ocurre un evento (por ejemplo, un chofer crea un reporte de falla), el `EventManager` avisa a todos los suscriptores registrados sin que el servicio sepa quién está escuchando.
+
+| Clase | Rol |
+|-------|-----|
+| `EventListener` | Suscriptor base (interfaz) con método `actualizar()` |
+| `EventManager` | Publicador — gestiona suscriptores y dispara eventos con `notificar()` |
+| `NotificacionReporteListener` | Suscriptor concreto — crea y guarda una `Notificacion` al recibir el evento |
+
+### MVC
+| Capa | Responsabilidad |
+|------|----------------|
+| **Modelo** (`models/`) | Representa las tablas de la base de datos via SQLAlchemy |
+| **Vista** (`frontend/`) | Interfaz en React, consume la API REST |
+| **Controlador** (`controllers/`) | Coordina el flujo: recibe el request, delega en las clases de dominio y responde |
+| **Clases de dominio** (`src/`) | Contienen toda la lógica de negocio |
+
+---
 
 ---
 
@@ -124,13 +151,13 @@ Las rutas están organizadas en Blueprints de Flask, uno por módulo:
 
 ### 🗄️ 1. Base de datos
 
-Importá el script que está dentro de `backend/database/`:
+1. Abrí XAMPP y asegurate de tener **Apache** y **MySQL** corriendo.
+2. Entrá a `http://localhost/phpmyadmin`.
+3. Creá una base de datos llamada `trukly`.
+4. Seleccioná esa base de datos, entrá a la pestaña **Importar**.
+5. Elegí el archivo `backend/database/Script.sql` y hacé clic en **Continuar**.
 
-```bash
-mysql -u root -p < backend/database/Script.sql
-```
-
-> Esto crea la base de datos, las tablas y carga los datos de prueba automáticamente.
+> Esto crea todas las tablas y carga los datos de prueba automáticamente.
 
 ---
 
@@ -225,6 +252,17 @@ Cada rol tiene su propio dashboard con las secciones correspondientes. Todos los
 - **3 notificaciones**
 
 ---
+
+## 📐 Diagramas
+
+### Diagrama de clases
+![Diagrama de clases](docs/diagrama_clases.png)
+
+### Patrón Composite
+![Diagrama Composite](docs/diagrama_composite.png)
+
+### Patrón Observer
+![Diagrama Observer](docs/diagrama_observer.png)
 
 <div align="center">
   <sub>Desarrollado por Juan Del Pozo y Florencia Bergman— Trukly </sub>
