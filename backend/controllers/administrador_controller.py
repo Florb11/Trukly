@@ -16,11 +16,6 @@ from utils.validation_composite import CampoObligatorio, ValidadorCompuesto
 logger = get_app_logger()
 
 
-#AdministradorController no crea un Usuario nuevo.
-#Solo crea los datos especificos de administrador para un usuario que ya existe.
-#Por eso reconstruye el objeto de dominio con admin.reconstruir_usuario()
-#y despues persiste AdministradorModel.
-
 class AdministradorController:
 
     @staticmethod

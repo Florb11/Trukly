@@ -62,7 +62,6 @@ class PerfilController:
 
     @staticmethod
     def _crear_usuario_clase(usuario_db):
-        # convierte UsuarioModel a Usuario de dominio
         datos_usuario = usuario_db.to_dict()
         datos_usuario["password"] = usuario_db.password
 
@@ -70,7 +69,6 @@ class PerfilController:
 
     @staticmethod
     def _agregar_datos_por_rol(datos_usuario, usuario_db):
-        # agrega datos especificos segun el rol
         if usuario_db.rol == Usuario.ROL_ADMIN:
             administrador = AdministradorModel.query.get(
                 usuario_db.id_usuario

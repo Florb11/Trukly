@@ -3,7 +3,6 @@ from models.mecanico_model import MecanicoModel
 from db_instance import db
 from utils.app_logger import get_app_logger
 
-
 from models.reporte_model import ReporteModel
 from models.operador_model import OperadorModel
 from models.viaje_model import ViajeModel
@@ -229,10 +228,10 @@ class OperadorController:
     @operador_required
     def listar_camiones():
         try:
-            camiones = CamionModel.query.all()
+            camiones = CamionModel.query.filter_by(estado="disponible").all()
             return jsonify([c.to_dict() for c in camiones]), 200
         except Exception:
-            logger.exception("Error al listar camiones")
+            logger.exception("Error al listar camiones disponibles")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
 
     @staticmethod
@@ -244,6 +243,10 @@ class OperadorController:
                 .join(
                     UsuarioModel,
                     ChoferModel.Usuario_idUsuario == UsuarioModel.id_usuario,
+                )
+                .filter(
+                    UsuarioModel.estado == "activo",
+                    UsuarioModel.rol == "chofer",
                 )
                 .all()
             )
@@ -264,7 +267,7 @@ class OperadorController:
 
             return jsonify(resultado), 200
         except Exception:
-            logger.exception("Error al listar choferes")
+            logger.exception("Error al listar choferes disponibles")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
 
     @staticmethod
@@ -361,7 +364,7 @@ class OperadorController:
         except Exception:
             logger.exception(f"Error al obtener estadisticas del operador {operador.id_usuario}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
-        
+
     @staticmethod
     @operador_required
     def listar_mecanicos():

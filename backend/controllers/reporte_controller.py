@@ -66,7 +66,6 @@ class ReporteController:
 
     @staticmethod
     def crear_objeto_camion(camion_model):
-        # convierte CamionModel a Camion de dominio
         if camion_model is None:
             return None
 
@@ -84,7 +83,6 @@ class ReporteController:
 
     @staticmethod
     def crear_objeto_chofer(usuario_model, chofer_model):
-        # convierte UsuarioModel y ChoferModel a Chofer de dominio
         if usuario_model is None or chofer_model is None:
             return None
 
@@ -107,7 +105,6 @@ class ReporteController:
 
     @staticmethod
     def crear_objeto_mecanico(usuario_model, mecanico_model):
-        # convierte UsuarioModel y MecanicoModel a Mecanico de dominio
         if usuario_model is None or mecanico_model is None:
             return None
 
@@ -129,7 +126,6 @@ class ReporteController:
 
     @staticmethod
     def obtener_chofer_clase(id_chofer):
-        # busca chofer en BD y lo convierte a dominio
         if not id_chofer:
             return None
 
@@ -143,7 +139,6 @@ class ReporteController:
 
     @staticmethod
     def obtener_mecanico_clase(id_mecanico):
-        # busca mecanico en BD y lo convierte a dominio
         if not id_mecanico:
             return None
 
@@ -157,7 +152,6 @@ class ReporteController:
 
     @staticmethod
     def obtener_camion_clase(id_camion):
-        # busca camion en BD y lo convierte a dominio
         if not id_camion:
             return None
 
@@ -167,7 +161,6 @@ class ReporteController:
 
     @staticmethod
     def crear_objeto_reporte(reporte_model, cargar_relaciones=True):
-        # convierte ReporteModel a ReporteFalla de dominio
         camion = None
         mecanico = None
         chofer = None
@@ -205,7 +198,6 @@ class ReporteController:
 
     @staticmethod
     def actualizar_modelo_reporte(reporte_model, reporte_clase):
-        # copia cambios del dominio al modelo
         reporte_model.estado = reporte_clase.estado
         reporte_model.Mecanico_Usuario_idUsuario = (
             reporte_clase.id_mecanico
@@ -215,7 +207,6 @@ class ReporteController:
 
     @staticmethod
     def preparar_respuesta_reporte(reporte_model):
-        # arma la respuesta para el frontend
         reporte_clase = ReporteController.crear_objeto_reporte(
             reporte_model,
             cargar_relaciones=False
@@ -231,12 +222,10 @@ class ReporteController:
 
     @staticmethod
     def actualizar_modelo_camion(camion_model, camion_clase):
-        # copia el estado del dominio al modelo
         camion_model.estado = camion_clase.estado
 
     @staticmethod
     def obtener_reportes_activos_camion(id_camion, id_reporte_excluido):
-        # busca reportes activos del camion
         return (
             ReporteModel.query
             .filter(
@@ -249,7 +238,6 @@ class ReporteController:
 
     @staticmethod
     def liberar_camion_si_corresponde(reporte_clase):
-        # libera el camion si ya no tiene reportes activos
         if reporte_clase.estado in ReporteFalla.ESTADOS_ACTIVOS:
             return False
 
@@ -512,7 +500,6 @@ class ReporteController:
 
         nuevo_estado = datos.get("estado")
 
-        # crea objeto de dominio
         reporte_clase = ReporteController.crear_objeto_reporte(reporte_db)
         rol = AuthService.obtener_rol_actual()
 
@@ -538,7 +525,6 @@ class ReporteController:
             reporte_clase
         )
 
-        # actualiza estado del camion si corresponde
         camion_liberado = ReporteController.liberar_camion_si_corresponde(
             reporte_clase
         )
@@ -591,13 +577,11 @@ class ReporteController:
 
         id_mecanico = datos.get("Mecanico_Usuario_idUsuario")
 
-        # busca mecanico de dominio
         mecanico = ReporteController.obtener_mecanico_clase(id_mecanico)
 
         if mecanico is None:
             return jsonify({"mensaje": "Mecanico no encontrado"}), 404
 
-        # crea reporte de dominio
         reporte_clase = ReporteController.crear_objeto_reporte(reporte_db)
 
         # el mecanico registra el reporte asignado

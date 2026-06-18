@@ -60,7 +60,6 @@ class Usuario:
 
     @classmethod
     def crear_desde_datos(cls, datos):
-        # crea un usuario desde un diccionario
         if datos is None:
             return None
 
@@ -143,7 +142,6 @@ class Usuario:
         return True, None
 
     def cerrar_sesion(self):
-        # representa el cierre de sesion a nivel dominio
         return True
 
     def to_dict(self):

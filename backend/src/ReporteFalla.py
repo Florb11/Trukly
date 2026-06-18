@@ -59,7 +59,6 @@ class ReporteFalla:
         mecanico=None,
         chofer=None,
     ):
-        # crea un reporte de dominio desde un diccionario
         if datos is None:
             return None
 
@@ -88,7 +87,6 @@ class ReporteFalla:
 
     @staticmethod
     def obtener_id_usuario(usuario):
-        # obtiene el id de un usuario de dominio
         if usuario is None:
             return None
 
@@ -96,7 +94,6 @@ class ReporteFalla:
 
     @staticmethod
     def obtener_id_camion(camion):
-        # obtiene el id de un camion de dominio
         if camion is None:
             return None
 

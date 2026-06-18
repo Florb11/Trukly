@@ -205,7 +205,6 @@ class Camion:
         return False
 
     def to_dict(self):
-        # convierte el objeto a diccionario
         return {
             "id_camion": self.id_camion,
             "matricula": self.matricula,
