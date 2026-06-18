@@ -405,3 +405,11 @@ class Viaje:
             return False
         self.estado = self.ESTADO_FINALIZADO
         return True
+    def puede_aceptarse(self):
+        return self.estado == self.ESTADO_PENDIENTE
+
+    def aceptar(self):
+        if not self.puede_aceptarse():
+            return False
+        self.estado = self.ESTADO_EN_CURSO
+        return True

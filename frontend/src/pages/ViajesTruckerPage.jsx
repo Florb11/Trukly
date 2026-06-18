@@ -7,16 +7,16 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
   const [viajes, setViajes] = useState([]);
   const [cargandoViajes, setCargandoViajes] = useState(true);
   const [errorViajes, setErrorViajes] = useState("");
+  const [accionando, setAccionando] = useState(null);
 
   const usuario = JSON.parse(localStorage.getItem("usuario"));
-  const idChofer = usuario?.id_usuario;
 
   const cargarViajes = async () => {
     try {
       setCargandoViajes(true);
       setErrorViajes("");
 
-      const resultado = await fetchConToken("http://localhost:5000/api/viaje", {
+      const resultado = await fetchConToken("http://localhost:5000/api/choferes/mis-viajes", {
         method: "GET",
       });
 
@@ -28,11 +28,7 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
         throw new Error(data.mensaje || data.msg || "Error al cargar viajes");
       }
 
-      const misViajes = data.filter(
-        (viaje) => viaje.Chofer_Usuario_idUsuario === idChofer,
-      );
-
-      setViajes(misViajes);
+      setViajes(Array.isArray(data) ? data : []);
     } catch (error) {
       setErrorViajes(error.message);
       setViajes([]);
@@ -45,13 +41,45 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
     cargarViajes();
   }, []);
 
-  const viajesActivos = viajes.filter((v) => v.estado === "en curso").length;
-  const viajesPendientes = viajes.filter(
-    (v) => v.estado === "pendiente",
-  ).length;
-  const viajesFinalizados = viajes.filter(
-    (v) => v.estado === "finalizado",
-  ).length;
+  const aceptarViaje = async (idViaje) => {
+    setAccionando(idViaje);
+    try {
+      const resultado = await fetchConToken(
+        `http://localhost:5000/api/choferes/viajes/${idViaje}/iniciar`,
+        { method: "PUT" }
+      );
+      if (!resultado) return;
+      const { respuesta, data } = resultado;
+      if (!respuesta.ok) throw new Error(data.mensaje || "Error al aceptar el viaje");
+      cargarViajes();
+    } catch (error) {
+      setErrorViajes(error.message);
+    } finally {
+      setAccionando(null);
+    }
+  };
+
+  const finalizarViaje = async (idViaje) => {
+    setAccionando(idViaje);
+    try {
+      const resultado = await fetchConToken(
+        `http://localhost:5000/api/choferes/viajes/${idViaje}/finalizar`,
+        { method: "PUT" }
+      );
+      if (!resultado) return;
+      const { respuesta, data } = resultado;
+      if (!respuesta.ok) throw new Error(data.mensaje || "Error al finalizar el viaje");
+      cargarViajes();
+    } catch (error) {
+      setErrorViajes(error.message);
+    } finally {
+      setAccionando(null);
+    }
+  };
+
+  const viajesActivos = viajes.filter((v) => v.estado?.toLowerCase() === "en curso").length;
+  const viajesPendientes = viajes.filter((v) => v.estado?.toLowerCase() === "pendiente").length;
+  const viajesFinalizados = viajes.filter((v) => v.estado?.toLowerCase() === "finalizado").length;
 
   return (
     <section className="chofer-page">
@@ -99,6 +127,10 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
         </article>
       </div>
 
+      {errorViajes && (
+        <p className="admin-message admin-message--error">{errorViajes}</p>
+      )}
+
       <article className="chofer-table-card">
         <div className="chofer-table-card__header">
           <h2>Mis viajes asignados</h2>
@@ -107,8 +139,6 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
 
         {cargandoViajes ? (
           <p className="admin-message">Cargando viajes...</p>
-        ) : errorViajes ? (
-          <p className="admin-message admin-message--error">{errorViajes}</p>
         ) : viajes.length === 0 ? (
           <p className="admin-message">No tenés viajes asignados.</p>
         ) : (
@@ -121,24 +151,50 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
                   <th>Fecha salida</th>
                   <th>Fecha llegada</th>
                   <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {viajes.map((viaje) => (
-                  <tr key={viaje.id_viaje}>
-                    <td>{viaje.origen}</td>
-                    <td>{viaje.destino}</td>
-                    <td>{viaje.fecha_salida}</td>
-                    <td>{viaje.fecha_llegada}</td>
-                    <td>
-                      <span
-                        className={`chofer-badge chofer-badge--${viaje.estado.replace(" ", "-")}`}
-                      >
-                        {viaje.estado}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {viajes.map((viaje) => {
+                  const estadoLower = viaje.estado?.toLowerCase();
+                  return (
+                    <tr key={viaje.id_viaje}>
+                      <td>{viaje.origen}</td>
+                      <td>{viaje.destino}</td>
+                      <td>{viaje.fecha_salida}</td>
+                      <td>{viaje.fecha_llegada || "-"}</td>
+                      <td>
+                        <span
+                          className={`chofer-badge chofer-badge--${estadoLower?.replace(" ", "-")}`}
+                        >
+                          {viaje.estado}
+                        </span>
+                      </td>
+                      <td>
+                        {estadoLower === "pendiente" && (
+                          <button
+                            type="button"
+                            className="chofer-btn-accion chofer-btn-accion--aceptar"
+                            disabled={accionando === viaje.id_viaje}
+                            onClick={() => aceptarViaje(viaje.id_viaje)}
+                          >
+                            {accionando === viaje.id_viaje ? "Procesando..." : "Aceptar viaje"}
+                          </button>
+                        )}
+                        {estadoLower === "en curso" && (
+                          <button
+                            type="button"
+                            className="chofer-btn-accion chofer-btn-accion--finalizar"
+                            disabled={accionando === viaje.id_viaje}
+                            onClick={() => finalizarViaje(viaje.id_viaje)}
+                          >
+                            {accionando === viaje.id_viaje ? "Procesando..." : "Finalizar viaje"}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
