@@ -296,17 +296,23 @@
   background: #22c55e;
 }
 
-.estado-badge--inactivo,
 .estado-badge--pendiente {
   background: #fef3c7;
   color: #92400e;
 }
 
-.estado-badge--inactivo::before,
 .estado-badge--pendiente::before {
   background: #f59e0b;
 }
 
+.estado-badge--inactivo {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.estado-badge--inactivo::before {
+  background: #ef4444;
+}
 
 .btn-accion {
   display: inline-flex;
