@@ -1,12 +1,4 @@
 import { useEffect, useState } from "react";
-import {
-  FaTruck,
-  FaTruckLoading,
-  FaUsers,
-  FaClipboardList,
-  FaExclamationTriangle,
-  FaCheckCircle,
-} from "react-icons/fa";
 import "./DashboardOperatorPage.css";
 import { fetchConToken } from "../utils/fetchConToken";
 
@@ -26,8 +18,12 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
       setError("");
 
       const [resViajes, resStats] = await Promise.all([
-        fetchConToken("http://localhost:5000/api/operador/viajes", { method: "GET" }),
-        fetchConToken("http://localhost:5000/api/operador/estadisticas", { method: "GET" }),
+        fetchConToken("http://localhost:5000/api/operador/viajes", {
+          method: "GET",
+        }),
+        fetchConToken("http://localhost:5000/api/operador/estadisticas", {
+          method: "GET",
+        }),
       ]);
 
       if (resViajes) {
@@ -53,28 +49,30 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
       label: "Viajes totales",
       value: resumen.total_viajes ?? 0,
       detail: `${resumen.viajes_en_curso ?? 0} en curso`,
-      icon: <FaTruckLoading />,
+
       tone: "info",
     },
     {
       label: "Finalizados",
       value: resumen.viajes_finalizados ?? 0,
       detail: `${resumen.viajes_cancelados ?? 0} cancelados`,
-      icon: <FaCheckCircle />,
+
       tone: "success",
     },
     {
       label: "Pendientes",
       value: resumen.viajes_pendientes ?? 0,
       detail: "Sin iniciar",
-      icon: <FaClipboardList />,
+
       tone: "warning",
     },
     {
       label: "Reportes activos",
-      value: (resumen.reportes_pendientes ?? 0) + (resumen.reportes_en_revision ?? 0),
+      value:
+        (resumen.reportes_pendientes ?? 0) +
+        (resumen.reportes_en_revision ?? 0),
       detail: `${resumen.reportes_resueltos ?? 0} resueltos`,
-      icon: <FaExclamationTriangle />,
+
       tone: "dark",
     },
   ];
@@ -86,10 +84,18 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
   const total = viajes.length || 1;
   const pct = (n) => Math.round((n / total) * 100);
 
-  const finalizados = viajes.filter(v => v.estado?.toLowerCase() === "finalizado").length;
-  const enCurso = viajes.filter(v => v.estado?.toLowerCase() === "en curso").length;
-  const pendientes = viajes.filter(v => v.estado?.toLowerCase() === "pendiente").length;
-  const cancelados = viajes.filter(v => v.estado?.toLowerCase() === "cancelado").length;
+  const finalizados = viajes.filter(
+    (v) => v.estado?.toLowerCase() === "finalizado",
+  ).length;
+  const enCurso = viajes.filter(
+    (v) => v.estado?.toLowerCase() === "en curso",
+  ).length;
+  const pendientes = viajes.filter(
+    (v) => v.estado?.toLowerCase() === "pendiente",
+  ).length;
+  const cancelados = viajes.filter(
+    (v) => v.estado?.toLowerCase() === "cancelado",
+  ).length;
 
   const getEstadoClass = (estado) => {
     const e = (estado || "").toLowerCase().replace(/\s+/g, "-");
@@ -113,7 +119,10 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
         <>
           <div className="operator-page__grid">
             {stats.map((stat) => (
-              <article className={`operator-card operator-card--${stat.tone}`} key={stat.label}>
+              <article
+                className={`operator-card operator-card--${stat.tone}`}
+                key={stat.label}
+              >
                 <div>
                   <span>{stat.label}</span>
                   <strong>{stat.value}</strong>
@@ -139,12 +148,20 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
                       return d.toISOString().slice(0, 10);
                     });
                     const conteos = dias.map(
-                      (dia) => viajes.filter((v) => v.fecha_salida?.slice(0, 10) === dia).length
+                      (dia) =>
+                        viajes.filter(
+                          (v) => v.fecha_salida?.slice(0, 10) === dia,
+                        ).length,
                     );
                     const maximo = Math.max(...conteos, 1);
                     return conteos.map((v, i) => (
                       <div key={i} className="operator-chart__bar-wrap">
-                        <div className="operator-chart__bar" style={{ height: `${Math.round((v / maximo) * 100)}%` }} />
+                        <div
+                          className="operator-chart__bar"
+                          style={{
+                            height: `${Math.round((v / maximo) * 100)}%`,
+                          }}
+                        />
                         <span className="operator-chart__label">
                           {["L", "M", "X", "J", "V", "S", "D"][i]}
                         </span>
