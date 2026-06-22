@@ -19,17 +19,18 @@
  
 .op-viajes-header span {
   color: #1683bd;
-  font-size: 13px;
-  font-weight: 850;
+  font-size: 12px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
  
 .op-viajes-header h1 {
   color: #0b2d4d;
-  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-size: 26px;
+  font-weight: 800;
   line-height: 1.12;
-  margin: 6px 0 0;
+  margin: 4px 0 6px;
 }
  
 .op-viajes-header p {

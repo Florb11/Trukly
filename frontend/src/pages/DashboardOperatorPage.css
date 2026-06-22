@@ -16,17 +16,18 @@
 
 .operator-page__header span {
     color: #1683bd;
-    font-size: 13px;
-    font-weight: 850;
+    font-size: 12px;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
 }
 
 .operator-page__header h1 {
     color: #0b2d4d;
-    font-size: 36px;
+    font-size: 26px;
+    font-weight: 800;
     line-height: 1.12;
-    margin: 8px 0 0;
+    margin: 4px 0 6px;
 }
 
 .operator-page__cta {
