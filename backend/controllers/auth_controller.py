@@ -320,7 +320,7 @@ class AuthController:
             )
 
             return jsonify({
-                "mensaje": "La cuenta todavia no esta activa"
+                "mensaje": "Tu cuenta se encuentra desactivada. Contactá al administrador"
             }), 403
 
         token = create_access_token(
