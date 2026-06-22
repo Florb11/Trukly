@@ -1,0 +1,28 @@
+.admin-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.admin-badge--ok {
+  background-color: #d4f7e0;
+  color: #1e7e45;
+}
+
+.admin-badge--info {
+  background-color: #d6ebff;
+  color: #1158c7;
+}
+
+.admin-badge--warn {
+  background-color: #fff3cd;
+  color: #8a6d1f;
+}
+
+.admin-badge--danger {
+  background-color: #fde2e1;
+  color: #b3261e;
+}
