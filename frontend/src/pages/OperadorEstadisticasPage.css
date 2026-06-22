@@ -18,16 +18,18 @@
 
 .op-stats-heading span {
   color: #1683bd;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .op-stats-heading h1 {
-  margin: 0.3rem 0;
+  font-size: 26px;
+  font-weight: 800;
+  margin: 4px 0 6px;
   color: #0b2d4d;
-  font-size: clamp(1.8rem, 4vw, 2.7rem);
+
 }
 
 .op-stats-heading p {
