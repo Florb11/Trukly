@@ -8,20 +8,27 @@
   justify-content: space-between;
   gap: 18px;
   margin-bottom: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px 28px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 .admin-dashboard__heading span {
   color: #6d28d9;
-  font-size: 13px;
-  font-weight: 850;
+  font-size: 12px;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .admin-dashboard__heading h1 {
   color: #111827;
-  font-size: 34px;
-  line-height: 1.12;
-  margin: 8px 0 0;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0;
 }
 
 .admin-dashboard__action {

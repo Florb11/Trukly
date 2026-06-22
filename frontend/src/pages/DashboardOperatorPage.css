@@ -195,7 +195,7 @@
 
 .operator-chart__bar {
     width: 100%;
-    background: linear-gradient(180deg, #1683bd, #9be7ff);
+    background: #6f42c1;
     border-radius: 5px 5px 0 0;
     transition: height 0.4s ease;
 }
@@ -241,7 +241,7 @@
 .operator-progress-item__bar i {
     display: block;
     height: 100%;
-    background: linear-gradient(90deg, #1683bd, #9be7ff);
+    background: #6f42c1;
     border-radius: 99px;
     font-style: normal;
 }

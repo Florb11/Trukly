@@ -150,7 +150,7 @@ function AdminReportesPage() {
         <section className="reportes-page">
             <div className="reportes-page__heading">
                 <div className="reportes-page__heading-text">
-                    <span>Administración</span>
+                    <span className="admin-page__label">Administración</span>
                     <h1>Reportes de falla</h1>
                 </div>
             </div>
