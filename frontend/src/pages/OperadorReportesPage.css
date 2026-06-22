@@ -5,6 +5,14 @@
   padding: 24px;
 }
 
+.op-reportes-heading {
+  background: #fff;
+  border: 1px solid #dceaf3;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(11, 45, 77, 0.07);
+  padding: 24px 28px;
+}
+
 .op-reportes-heading span {
   color: #1683bd;
   font-size: 12px;
