@@ -7,53 +7,65 @@ import {
 } from "react-icons/fa";
 import "./DashboardTruckerPage.css";
 import { fetchConToken } from "../utils/fetchConToken";
- 
+
 function DashboardTruckerPage({ title = "Panel del chofer" }) {
   const [viajes, setViajes] = useState([]);
   const [cargandoViajes, setCargandoViajes] = useState(true);
   const [errorViajes, setErrorViajes] = useState("");
- 
+
   const usuario = JSON.parse(localStorage.getItem("usuario"));
   const idChofer = usuario?.id_usuario;
- 
- const cargarViajes = async () => {
-  try {
-    setCargandoViajes(true);
-    setErrorViajes("");
 
-    const resultado = await fetchConToken("http://localhost:5000/api/choferes/mis-viajes", {
-      method: "GET",
-    });
+  const cargarViajes = async () => {
+    try {
+      setCargandoViajes(true);
+      setErrorViajes("");
 
-    if (!resultado) return;
+      const resultado = await fetchConToken(
+        "http://localhost:5000/api/choferes/mis-viajes",
+        {
+          method: "GET",
+        },
+      );
 
-    const { respuesta, data } = resultado;
+      if (!resultado) return;
 
-    if (!respuesta.ok) {
-      throw new Error(data.mensaje || data.msg || "Error al cargar viajes");
+      const { respuesta, data } = resultado;
+
+      if (!respuesta.ok) {
+        throw new Error(data.mensaje || data.msg || "Error al cargar viajes");
+      }
+
+      setViajes(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setErrorViajes(error.message);
+      setViajes([]);
+    } finally {
+      setCargandoViajes(false);
     }
+  };
 
-    setViajes(Array.isArray(data) ? data : []);
-  } catch (error) {
-    setErrorViajes(error.message);
-    setViajes([]);
-  } finally {
-    setCargandoViajes(false);
-  }
-};
- 
   useEffect(() => {
     cargarViajes();
   }, []);
- 
-  const totalViajes      = viajes.length;
-  const viajesActivos    = viajes.filter((v) => v.estado?.toLowerCase() === "en curso").length;
-  const viajesPendientes = viajes.filter((v) => v.estado?.toLowerCase() === "pendiente").length;
-  const viajesFinalizados= viajes.filter((v) => v.estado?.toLowerCase() === "finalizado").length;
-  const viajesCancelados = viajes.filter((v) => v.estado?.toLowerCase() === "cancelado").length;
- 
-  const pct = (n) => (totalViajes === 0 ? 0 : Math.round((n / totalViajes) * 100));
- 
+
+  const totalViajes = viajes.length;
+  const viajesActivos = viajes.filter(
+    (v) => v.estado?.toLowerCase() === "en curso",
+  ).length;
+  const viajesPendientes = viajes.filter(
+    (v) => v.estado?.toLowerCase() === "pendiente",
+  ).length;
+  const viajesFinalizados = viajes.filter(
+    (v) => v.estado?.toLowerCase() === "finalizado",
+  ).length;
+  const viajesCancelados = viajes.filter(
+    (v) => v.estado?.toLowerCase() === "cancelado",
+  ).length;
+
+  const pct = (n) =>
+    totalViajes === 0 ? 0 : Math.round((n / totalViajes) * 100);
+
   const getChoferStats = () => [
     {
       label: "Viajes totales",
@@ -84,26 +96,29 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
       tone: "dark",
     },
   ];
- 
+
   const getActividadViajes = () => {
     const dias = Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
       return d.toISOString().slice(0, 10);
     });
- 
+
     const conteos = dias.map(
-      (dia) => viajes.filter((v) => v.fecha_salida?.slice(0, 10) === dia).length
+      (dia) =>
+        viajes.filter((v) => v.fecha_salida?.slice(0, 10) === dia).length,
     );
- 
+
     const maximo = Math.max(...conteos, 1);
-    return conteos.map((v) => (v === 0 ? "8%" : `${Math.round((v / maximo) * 100)}%`));
+    return conteos.map((v) =>
+      v === 0 ? "8%" : `${Math.round((v / maximo) * 100)}%`,
+    );
   };
- 
+
   const ultimosViajes = [...viajes]
     .sort((a, b) => new Date(b.fecha_salida) - new Date(a.fecha_salida))
     .slice(0, 5);
- 
+
   return (
     <section className="admin-dashboard">
       <div className="admin-dashboard__heading">
@@ -112,7 +127,7 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
           <h1>{title}</h1>
         </div>
       </div>
- 
+
       {cargandoViajes ? (
         <p className="admin-message">Cargando tu información...</p>
       ) : errorViajes ? (
@@ -132,7 +147,7 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
               </article>
             ))}
           </div>
- 
+
           <div className="admin-dashboard__grid">
             <article className="admin-card admin-card--chart">
               <div className="admin-card__header">
@@ -145,43 +160,51 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
                 ))}
               </div>
             </article>
- 
+
             <article className="admin-card">
               <div className="admin-card__header">
-                <h2>Distribución de estados</h2>
+                <h2>Estado de mis viajes</h2>
                 <span>Métricas personales</span>
               </div>
               <div className="admin-progress-list">
                 <div>
                   <span>Finalizados</span>
                   <strong>{pct(viajesFinalizados)}%</strong>
-                  <div><i style={{ width: `${pct(viajesFinalizados)}%` }} /></div>
+                  <div>
+                    <i style={{ width: `${pct(viajesFinalizados)}%` }} />
+                  </div>
                 </div>
                 <div>
                   <span>En curso</span>
                   <strong>{pct(viajesActivos)}%</strong>
-                  <div><i style={{ width: `${pct(viajesActivos)}%` }} /></div>
+                  <div>
+                    <i style={{ width: `${pct(viajesActivos)}%` }} />
+                  </div>
                 </div>
                 <div>
                   <span>Pendientes</span>
                   <strong>{pct(viajesPendientes)}%</strong>
-                  <div><i style={{ width: `${pct(viajesPendientes)}%` }} /></div>
+                  <div>
+                    <i style={{ width: `${pct(viajesPendientes)}%` }} />
+                  </div>
                 </div>
                 <div>
                   <span>Cancelados</span>
                   <strong>{pct(viajesCancelados)}%</strong>
-                  <div><i style={{ width: `${pct(viajesCancelados)}%` }} /></div>
+                  <div>
+                    <i style={{ width: `${pct(viajesCancelados)}%` }} />
+                  </div>
                 </div>
               </div>
             </article>
           </div>
- 
+
           <article className="admin-card">
             <div className="admin-card__header">
               <h2>Últimos viajes asignados</h2>
               <span>Historial reciente</span>
             </div>
- 
+
             {ultimosViajes.length === 0 ? (
               <p className="admin-message">No tenés viajes asignados.</p>
             ) : (
@@ -204,9 +227,17 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
                         <td>{viaje.fecha_salida}</td>
                         <td>{viaje.fecha_llegada || "-"}</td>
                         <td>
-                          <span className={`admin-badge admin-badge--${
-                            viaje.estado === "finalizado" ? "ok" : "warn"
-                          }`}>
+                          <span
+                            className={`admin-badge admin-badge--${
+                              viaje.estado === "finalizado"
+                                ? "ok"
+                                : viaje.estado === "en curso"
+                                  ? "info"
+                                  : viaje.estado === "cancelado"
+                                    ? "danger"
+                                    : "warn"
+                            }`}
+                          >
                             {viaje.estado}
                           </span>
                         </td>
@@ -222,5 +253,5 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
     </section>
   );
 }
- 
+
 export default DashboardTruckerPage;
