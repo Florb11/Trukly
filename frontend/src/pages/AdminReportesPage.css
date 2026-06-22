@@ -10,6 +10,11 @@
     gap: 16px;
     margin-bottom: 28px;
     flex-wrap: wrap;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px 28px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 .reportes-page__heading-text span {
@@ -354,6 +359,13 @@
         border-top: 1px solid #e5e7eb;
         flex-wrap: wrap;
     }
+    .admin-page__label {
+        color: #6d28d9;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        }
 }
 
 @media (max-width: 480px) {

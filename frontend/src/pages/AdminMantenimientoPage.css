@@ -18,16 +18,18 @@
 
 .mantenimiento-page__heading span {
   color: #6f42c1;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.78rem;
+  font-size: 12px;
   letter-spacing: 0.08em;
 }
 
 .mantenimiento-page__heading h1 {
-  margin: 0.3rem 0;
+  margin: 0;
   color: #2f2342;
-  font-size: clamp(1.8rem, 4vw, 2.7rem);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
 }
 
 .mantenimiento-page__heading p {
