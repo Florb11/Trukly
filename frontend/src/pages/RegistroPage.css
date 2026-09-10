@@ -167,6 +167,12 @@
   transform: translateY(-1px);
 }
 
+.registro-google-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .registro-google-button svg {
   color: #ea4335;
   flex: 0 0 auto;

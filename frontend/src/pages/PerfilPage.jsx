@@ -5,6 +5,7 @@ import {
   FaIdBadge,
   FaLock,
   FaSave,
+  FaTruckMoving,
   FaUser,
 } from "react-icons/fa";
 import { fetchConToken } from "../utils/fetchConToken";
@@ -17,6 +18,9 @@ function PerfilPage() {
     nombre: "",
     apellido: "",
     email: "",
+    licencia: "",
+    vencimientoLicencia: "",
+    legajo: "",
   });
   const [formPassword, setFormPassword] = useState({
     password_actual: "",
@@ -74,6 +78,9 @@ function PerfilPage() {
         nombre: data.perfil.nombre || "",
         apellido: data.perfil.apellido || "",
         email: data.perfil.email || "",
+        licencia: data.perfil.licencia || "",
+        vencimientoLicencia: data.perfil.vencimientoLicencia || "",
+        legajo: data.perfil.legajo || "",
       });
 
       actualizarUsuarioGuardado(data.perfil);
@@ -244,6 +251,9 @@ function PerfilPage() {
     return `http://localhost:5000${perfil.foto_perfil}`;
   };
 
+  const esChofer = perfil?.rol === "chofer";
+  const requiereCompletarPerfil = esChofer && perfil?.perfil_completo === false;
+
   if (cargando) {
     return (
       <section className="admin-perfil-page">
@@ -269,8 +279,9 @@ function PerfilPage() {
           <span>Cuenta</span>
           <h1>Mi perfil</h1>
           <p>
-            Consultá y actualizá tus datos personales y la seguridad de tu
-            cuenta.
+            {requiereCompletarPerfil
+              ? "Completá tus datos de chofer para poder operar en Trukly."
+              : "Consultá y actualizá tus datos personales y la seguridad de tu cuenta."}
           </p>
         </div>
 
@@ -332,6 +343,22 @@ function PerfilPage() {
               <strong>{perfil.legajo || "-"}</strong>
             </div>
 
+            {esChofer && (
+              <>
+                <div>
+                  <FaTruckMoving />
+                  <span>Licencia</span>
+                  <strong>{perfil.licencia || "-"}</strong>
+                </div>
+
+                <div>
+                  <FaIdBadge />
+                  <span>Vencimiento</span>
+                  <strong>{perfil.vencimientoLicencia || "-"}</strong>
+                </div>
+              </>
+            )}
+
             <div>
               <FaEnvelope />
               <span>Email</span>
@@ -345,7 +372,11 @@ function PerfilPage() {
             <div className="admin-perfil-card__header">
               <div>
                 <h2>Datos personales</h2>
-                <span>Actualizá tu información de contacto</span>
+                <span>
+                  {requiereCompletarPerfil
+                    ? "Estos datos son obligatorios para choferes"
+                    : "Actualizá tu información de contacto"}
+                </span>
               </div>
 
               <FaUser />
@@ -357,21 +388,23 @@ function PerfilPage() {
                   <span>Nombre</span>
                   <input
                     type="text"
-                    name="nombre"
-                    value={formPerfil.nombre}
-                    onChange={handlePerfilChange}
-                  />
-                </label>
+                  name="nombre"
+                  value={formPerfil.nombre}
+                  onChange={handlePerfilChange}
+                  required
+                />
+              </label>
 
                 <label>
                   <span>Apellido</span>
                   <input
                     type="text"
-                    name="apellido"
-                    value={formPerfil.apellido}
-                    onChange={handlePerfilChange}
-                  />
-                </label>
+                  name="apellido"
+                  value={formPerfil.apellido}
+                  onChange={handlePerfilChange}
+                  required
+                />
+              </label>
               </div>
 
               <label>
@@ -381,8 +414,50 @@ function PerfilPage() {
                   name="email"
                   value={formPerfil.email}
                   onChange={handlePerfilChange}
+                  required
                 />
               </label>
+
+              {esChofer && (
+                <>
+                  <div className="admin-perfil-form__row">
+                    <label>
+                      <span>Licencia</span>
+                      <input
+                        type="text"
+                        name="licencia"
+                        value={formPerfil.licencia}
+                        onChange={handlePerfilChange}
+                        pattern="[A-Za-z0-9 -]+"
+                        title="La licencia solo puede contener letras, números, espacios o guiones."
+                        required
+                      />
+                    </label>
+
+                    <label>
+                      <span>Vencimiento de licencia</span>
+                      <input
+                        type="date"
+                        name="vencimientoLicencia"
+                        value={formPerfil.vencimientoLicencia}
+                        onChange={handlePerfilChange}
+                        required
+                      />
+                    </label>
+                  </div>
+
+                  <label>
+                    <span>Legajo</span>
+                    <input
+                      type="text"
+                      name="legajo"
+                      value={formPerfil.legajo}
+                      onChange={handlePerfilChange}
+                      required
+                    />
+                  </label>
+                </>
+              )}
 
               <div className="admin-perfil-form__footer">
                 <button type="submit" disabled={guardandoPerfil}>
