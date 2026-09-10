@@ -12,11 +12,13 @@ from models.mecanico_model import MecanicoModel
 from models.operador_model import OperadorModel
 
 from src.Usuario import Usuario
+from src.Chofer import Chofer
 from utils.auth_decorators import usuario_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
 from utils.validation_composite import (
     CampoObligatorio,
+    ValidacionFuncion,
     ValidadorCompuesto,
 )
 
@@ -61,6 +63,35 @@ class PerfilController:
         )
 
     @staticmethod
+    def _crear_validador_datos_chofer():
+        validador = ValidadorCompuesto(
+            [
+                CampoObligatorio("licencia", "La licencia es obligatoria"),
+                CampoObligatorio(
+                    "vencimientoLicencia",
+                    "La fecha de vencimiento de la licencia es obligatoria"
+                ),
+                CampoObligatorio("legajo", "El legajo es obligatorio"),
+            ]
+        )
+
+        validador.agregar(
+            ValidacionFuncion(
+                "licencia",
+                Chofer.validar_licencia
+            )
+        )
+
+        validador.agregar(
+            ValidacionFuncion(
+                "vencimientoLicencia",
+                Chofer.validar_vencimiento_licencia
+            )
+        )
+
+        return validador
+
+    @staticmethod
     def _crear_usuario_clase(usuario_db):
         datos_usuario = usuario_db.to_dict()
         datos_usuario["password"] = usuario_db.password
@@ -69,6 +100,8 @@ class PerfilController:
 
     @staticmethod
     def _agregar_datos_por_rol(datos_usuario, usuario_db):
+        datos_usuario["perfil_completo"] = True
+
         if usuario_db.rol == Usuario.ROL_ADMIN:
             administrador = AdministradorModel.query.get(
                 usuario_db.id_usuario
@@ -88,6 +121,17 @@ class PerfilController:
                 datos_usuario["vencimientoLicencia"] = str(
                     chofer.vencimientoLicencia
                 )
+            else:
+                datos_usuario["legajo"] = None
+                datos_usuario["licencia"] = None
+                datos_usuario["vencimientoLicencia"] = None
+
+            datos_usuario["perfil_completo"] = bool(
+                chofer
+                and chofer.legajo
+                and chofer.licencia
+                and chofer.vencimientoLicencia
+            )
 
         elif usuario_db.rol == Usuario.ROL_MECANICO:
             mecanico = MecanicoModel.query.get(
@@ -168,7 +212,13 @@ class PerfilController:
 
         datos = InputSanitizer.sanitizar_campos(
             request.get_json(silent=True) or {},
-            campos_texto=["nombre", "apellido"],
+            campos_texto=[
+                "nombre",
+                "apellido",
+                "licencia",
+                "vencimientoLicencia",
+                "legajo",
+            ],
             campos_email=["email"],
         )
 
@@ -224,6 +274,46 @@ class PerfilController:
         usuario_db.nombre = usuario_clase.nombre
         usuario_db.apellido = usuario_clase.apellido
         usuario_db.email = usuario_clase.email
+
+        if usuario_db.rol == Usuario.ROL_CHOFER:
+            datos_chofer_recibidos = any(
+                campo in datos
+                for campo in [
+                    "licencia",
+                    "vencimientoLicencia",
+                    "legajo",
+                ]
+            )
+
+            if datos_chofer_recibidos:
+                validador_chofer = PerfilController._crear_validador_datos_chofer()
+                datos_validos, mensaje_error = validador_chofer.validar(datos)
+
+                if not datos_validos:
+                    return jsonify({
+                        "mensaje": mensaje_error
+                    }), 400
+
+                chofer = ChoferModel.query.get(usuario_db.id_usuario)
+
+                if chofer is None:
+                    chofer = ChoferModel(
+                        Usuario_idUsuario=usuario_db.id_usuario,
+                        licencia=datos["licencia"],
+                        vencimientoLicencia=Chofer.convertir_vencimiento_licencia(
+                            datos["vencimientoLicencia"]
+                        ),
+                        legajo=datos["legajo"],
+                    )
+                    db.session.add(chofer)
+                else:
+                    chofer.licencia = datos["licencia"]
+                    chofer.vencimientoLicencia = (
+                        Chofer.convertir_vencimiento_licencia(
+                            datos["vencimientoLicencia"]
+                        )
+                    )
+                    chofer.legajo = datos["legajo"]
 
         try:
             db.session.commit()

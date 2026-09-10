@@ -328,6 +328,8 @@ class AdminUsuariosController:
 
     @staticmethod
     def _agregar_datos_por_rol(datos_usuario, id_usuario, rol):
+        datos_usuario["perfil_completo"] = True
+
         if rol == Usuario.ROL_ADMIN:
             administrador = AdministradorModel.query.get(id_usuario)
 
@@ -343,6 +345,17 @@ class AdminUsuariosController:
                 datos_usuario["vencimientoLicencia"] = str(
                     chofer.vencimientoLicencia
                 )
+            else:
+                datos_usuario["legajo"] = None
+                datos_usuario["licencia"] = None
+                datos_usuario["vencimientoLicencia"] = None
+
+            datos_usuario["perfil_completo"] = bool(
+                chofer
+                and chofer.legajo
+                and chofer.licencia
+                and chofer.vencimientoLicencia
+            )
 
         elif rol == Usuario.ROL_MECANICO:
             mecanico = MecanicoModel.query.get(id_usuario)

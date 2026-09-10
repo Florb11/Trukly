@@ -30,9 +30,6 @@ class AuthController:
         "email",
         "nombre",
         "apellido",
-        "licencia",
-        "vencimientoLicencia",
-        "legajo",
     ]
 
     CAMPOS_LOGIN = [
@@ -46,9 +43,6 @@ class AuthController:
         "email",
         "nombre",
         "apellido",
-        "licencia",
-        "vencimientoLicencia",
-        "legajo",
     ]
 
     @staticmethod
@@ -108,18 +102,16 @@ class AuthController:
             AuthController.CAMPOS_REGISTRO_FIREBASE_CHOFER
         )
 
-        validador.agregar(
-            ValidacionFuncion(
-                "licencia",
-                Chofer.validar_licencia
-            )
-        )
+        return validador
 
-        validador.agregar(
-            ValidacionFuncion(
+    @staticmethod
+    def _crear_validador_datos_chofer():
+        validador = AuthController._crear_validador_campos_obligatorios(
+            [
+                "licencia",
                 "vencimientoLicencia",
-                Chofer.validar_vencimiento_licencia
-            )
+                "legajo",
+            ]
         )
 
         return validador
@@ -229,6 +221,54 @@ class AuthController:
         )
 
     @staticmethod
+    def _crear_usuario_model_firebase(datos, password_hash, firebase_uid):
+        return UsuarioModel(
+            username=datos["username"],
+            email=datos["email"],
+            password=password_hash,
+            nombre=datos["nombre"],
+            apellido=datos["apellido"],
+            estado=Usuario.ESTADO_PENDIENTE,
+            rol=Usuario.ROL_CHOFER,
+            firebase_uid=firebase_uid,
+        )
+
+    @staticmethod
+    def _crear_usuario_model_chofer_pendiente(datos, password_hash):
+        return UsuarioModel(
+            username=datos["username"],
+            email=datos["email"],
+            password=password_hash,
+            nombre=datos["nombre"],
+            apellido=datos["apellido"],
+            estado=Usuario.ESTADO_PENDIENTE,
+            rol=Usuario.ROL_CHOFER,
+        )
+
+    @staticmethod
+    def _perfil_completo_usuario(usuario_model):
+        if usuario_model.rol != Usuario.ROL_CHOFER:
+            return True
+
+        chofer = ChoferModel.query.get(usuario_model.id_usuario)
+
+        return bool(
+            chofer
+            and chofer.licencia
+            and chofer.vencimientoLicencia
+            and chofer.legajo
+        )
+
+    @staticmethod
+    def _usuario_to_dict_con_perfil(usuario_model):
+        datos_usuario = usuario_model.to_dict()
+        datos_usuario["perfil_completo"] = (
+            AuthController._perfil_completo_usuario(usuario_model)
+        )
+
+        return datos_usuario
+
+    @staticmethod
     def _crear_chofer_model_desde_chofer(chofer_clase):
         # convierte Chofer a ChoferModel
         return ChoferModel(
@@ -251,7 +291,7 @@ class AuthController:
         return jsonify({
             "mensaje": "Login correcto",
             "token": token,
-            "usuario": usuario_clase.to_dict(),
+            "usuario": AuthController._usuario_to_dict_con_perfil(usuario_clase),
         }), 200
 
     @staticmethod
@@ -285,33 +325,13 @@ class AuthController:
             datos["password"]
         ).decode("utf-8")
 
-        # crea objeto 
-        chofer_clase = AuthController._crear_chofer_clase(
+        nuevo_usuario = AuthController._crear_usuario_model_chofer_pendiente(
             datos,
             password_hash
         )
 
-        if chofer_clase is None:
-            return jsonify({
-                "mensaje": "No se pudo registrar el chofer"
-            }), 400
-
-        # convierte obj a modelos
-        nuevo_usuario = AuthController._crear_usuario_model_desde_chofer(
-            chofer_clase
-        )
-
         try:
             db.session.add(nuevo_usuario)
-            db.session.flush()
-
-            chofer_clase.id_usuario = nuevo_usuario.id_usuario
-
-            nuevo_chofer = AuthController._crear_chofer_model_desde_chofer(
-                chofer_clase
-            )
-
-            db.session.add(nuevo_chofer)
             db.session.commit()
 
         except Exception:
@@ -324,8 +344,8 @@ class AuthController:
 
         return jsonify({
             "mensaje": "Solicitud de registro enviada correctamente",
-            "usuario": nuevo_usuario.to_dict(),
-            "chofer": nuevo_chofer.to_dict(),
+            "usuario": AuthController._usuario_to_dict_con_perfil(nuevo_usuario),
+            "chofer": None,
         }), 201
 
     @staticmethod
@@ -387,32 +407,46 @@ class AuthController:
             f"firebase:{firebase_uid}"
         ).decode("utf-8")
 
-        chofer_clase = AuthController._crear_chofer_clase(
+        nuevo_usuario = AuthController._crear_usuario_model_firebase(
             datos,
-            password_hash
+            password_hash,
+            firebase_uid
         )
+        nuevo_chofer = None
+        campos_chofer = [
+            datos.get("licencia"),
+            datos.get("vencimientoLicencia"),
+            datos.get("legajo"),
+        ]
 
-        if chofer_clase is None:
-            return jsonify({
-                "mensaje": "No se pudo registrar el chofer"
-            }), 400
+        if any(campos_chofer):
+            validador_chofer = AuthController._crear_validador_datos_chofer()
+            datos_validos, mensaje_error = validador_chofer.validar(datos)
 
-        nuevo_usuario = AuthController._crear_usuario_model_desde_chofer(
-            chofer_clase
-        )
-        nuevo_usuario.firebase_uid = firebase_uid
+            if not datos_validos:
+                return jsonify({"mensaje": mensaje_error}), 400
 
         try:
             db.session.add(nuevo_usuario)
             db.session.flush()
 
-            chofer_clase.id_usuario = nuevo_usuario.id_usuario
+            if any(campos_chofer):
+                chofer_clase = AuthController._crear_chofer_clase(
+                    datos,
+                    password_hash
+                )
 
-            nuevo_chofer = AuthController._crear_chofer_model_desde_chofer(
-                chofer_clase
-            )
+                if chofer_clase is None:
+                    return jsonify({
+                        "mensaje": "No se pudo registrar el chofer"
+                    }), 400
 
-            db.session.add(nuevo_chofer)
+                chofer_clase.id_usuario = nuevo_usuario.id_usuario
+                nuevo_chofer = AuthController._crear_chofer_model_desde_chofer(
+                    chofer_clase
+                )
+                db.session.add(nuevo_chofer)
+
             db.session.commit()
 
         except Exception:
@@ -425,8 +459,8 @@ class AuthController:
 
         return jsonify({
             "mensaje": "Solicitud de registro enviada correctamente",
-            "usuario": nuevo_usuario.to_dict(),
-            "chofer": nuevo_chofer.to_dict(),
+            "usuario": AuthController._usuario_to_dict_con_perfil(nuevo_usuario),
+            "chofer": nuevo_chofer.to_dict() if nuevo_chofer else None,
         }), 201
 
     @staticmethod
@@ -460,7 +494,11 @@ class AuthController:
 
         if usuario is None:
             return jsonify({
-                "mensaje": "No existe un usuario de Trukly para esa cuenta"
+                "mensaje": (
+                    "La cuenta existe en Firebase, pero todavía no tiene "
+                    "solicitud de alta en Trukly. Registrate primero desde "
+                    "Solicitá acceso."
+                )
             }), 404
 
         if not usuario.firebase_uid:

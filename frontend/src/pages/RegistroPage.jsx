@@ -10,6 +10,7 @@ import {
 import "./RegistroPage.css";
 import logoTrukly from "../assets/logo-trukly.png";
 import { auth } from "../firebase";
+import { obtenerMensajeAuth } from "../utils/authErrors";
 
 function RegistroPage() {
   const [formulario, setFormulario] = useState({
@@ -26,6 +27,7 @@ function RegistroPage() {
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
   const [firebaseTokenGoogle, setFirebaseTokenGoogle] = useState("");
+  const [vinculandoGoogle, setVinculandoGoogle] = useState(false);
   const registroConGoogle = !!firebaseTokenGoogle;
   const googleProvider = new GoogleAuthProvider();
 
@@ -71,8 +73,11 @@ function RegistroPage() {
   };
 
   const handleGoogleRegistro = async () => {
+    if (vinculandoGoogle) return;
+
     setMensaje("");
     setError("");
+    setVinculandoGoogle(true);
 
     try {
       const credencial = await signInWithPopup(auth, googleProvider);
@@ -92,9 +97,11 @@ function RegistroPage() {
           (credencial.user.email ? credencial.user.email.split("@")[0] : ""),
         password: "",
       }));
-      setMensaje("Cuenta de Google vinculada. Completá los datos de Trukly.");
-    } catch {
-      setError("No se pudo vincular la cuenta de Google");
+      setMensaje("Cuenta de Google vinculada. Confirmá tus datos básicos.");
+    } catch (error) {
+      setError(obtenerMensajeAuth(error, "No se pudo vincular la cuenta de Google"));
+    } finally {
+      setVinculandoGoogle(false);
     }
   };
 
@@ -133,8 +140,8 @@ function RegistroPage() {
 
         setError(data.mensaje || "No se pudo registrar el chofer");
       }
-    } catch {
-      setError("No se pudo registrar con Firebase o conectar con el backend");
+    } catch (error) {
+      setError(obtenerMensajeAuth(error, "No se pudo registrar con Firebase o conectar con el backend"));
     }
   };
 
@@ -159,7 +166,7 @@ function RegistroPage() {
                 <FaIdCard />
               </span>
               <strong>Datos personales</strong>
-              <p>Nombre, usuario, email y licencia para identificar tu perfil.</p>
+              <p>Nombre, usuario y email para iniciar la solicitud de alta.</p>
             </div>
 
             <div>
@@ -188,13 +195,18 @@ function RegistroPage() {
             type="button"
             className="registro-google-button"
             onClick={handleGoogleRegistro}
+            disabled={vinculandoGoogle}
           >
             <FaGoogle />
-            Continuar con Google
+            {vinculandoGoogle ? "Conectando..." : "Continuar con Google"}
           </button>
 
           <div className="registro-divider">
-            <span>o completá el registro manual</span>
+            <span>
+              {registroConGoogle
+                ? "confirmá tus datos básicos"
+                : "o registrate con email"}
+            </span>
           </div>
 
           <form className="registro-form" onSubmit={handleSubmit}>
@@ -249,47 +261,6 @@ function RegistroPage() {
               />
             </label>
 
-            <label className="registro-field" htmlFor="licencia">
-  <span>Licencia</span>
-  <input
-    type="text"
-    id="licencia"
-    name="licencia"
-    value={formulario.licencia}
-    onChange={handleChange}
-    placeholder="Ej: ABC123"
-    pattern="[A-Za-z0-9]+"
-    title="La licencia solo puede contener letras y números, sin espacios ni guiones."
-    aria-describedby="licencia-ayuda"
-  />
-  <small id="licencia-ayuda" className="registro-ayuda">
-    La licencia solo puede contener letras y números, sin espacios ni guiones.
-  </small>
-</label>
-
-            <label className="registro-field" htmlFor="vencimientoLicencia">
-              <span>Vencimiento de licencia</span>
-              <input
-                type="date"
-                id="vencimientoLicencia"
-                name="vencimientoLicencia"
-                value={formulario.vencimientoLicencia}
-                onChange={handleChange}
-              />
-            </label>
-
-            <label className="registro-field" htmlFor="legajo">
-              <span>Legajo</span>
-              <input
-                type="text"
-                id="legajo"
-                name="legajo"
-                value={formulario.legajo}
-                onChange={handleChange}
-                placeholder="Ingresá tu legajo"
-              />
-            </label>
-
             {!registroConGoogle && (
               <label className="registro-field" htmlFor="password-registro">
                 <span>Contraseña</span>
@@ -310,7 +281,9 @@ function RegistroPage() {
               </label>
             )}
 
-            <button type="submit">Solicitar registro</button>
+            <button type="submit">
+              {registroConGoogle ? "Solicitar alta con Google" : "Solicitar registro"}
+            </button>
           </form>
 
           {mensaje && <p className="registro-mensaje exito">{mensaje}</p>}

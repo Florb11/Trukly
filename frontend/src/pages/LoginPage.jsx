@@ -16,6 +16,7 @@ import "./LoginPage.css";
 import logoTrukly from "../assets/logo-trukly.png";
 import { useAuth } from "../context/AuthContext";
 import { auth } from "../firebase";
+import { obtenerMensajeAuth } from "../utils/authErrors";
 
 function LoginPage() {
   const { login } = useAuth();
@@ -32,6 +33,7 @@ function LoginPage() {
 
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
+  const [googleProcesando, setGoogleProcesando] = useState(false);
   const googleProvider = new GoogleAuthProvider();
 
   const handleChange = (e) => {
@@ -113,26 +115,36 @@ function LoginPage() {
 
       const firebaseToken = await credencial.user.getIdToken();
       await loginConBackendFirebase(firebaseToken);
-    } catch {
+    } catch (error) {
       try {
         await loginBackendTradicional();
-      } catch {
-        setError("No se pudo iniciar sesión con Firebase o con el backend");
+      } catch (errorBackend) {
+        setError(
+          obtenerMensajeAuth(
+            errorBackend?.message ? errorBackend : error,
+            "No se pudo iniciar sesión con Firebase o con el backend"
+          )
+        );
       }
     }
   };
 
   const handleGoogleLogin = async () => {
+    if (googleProcesando) return;
+
     setMensaje("");
     setError("");
+    setGoogleProcesando(true);
 
     try {
       const credencial = await signInWithPopup(auth, googleProvider);
       const firebaseToken = await credencial.user.getIdToken();
 
       await loginConBackendFirebase(firebaseToken);
-    } catch {
-      setError("No se pudo iniciar sesión con Google");
+    } catch (error) {
+      setError(obtenerMensajeAuth(error, "No se pudo iniciar sesión con Google"));
+    } finally {
+      setGoogleProcesando(false);
     }
   };
 
@@ -237,9 +249,10 @@ function LoginPage() {
             type="button"
             className="auth-google-button"
             onClick={handleGoogleLogin}
+            disabled={googleProcesando}
           >
             <FaGoogle />
-            Continuar con Google
+            {googleProcesando ? "Conectando..." : "Continuar con Google"}
           </button>
 
           {sesionExpirada && (
