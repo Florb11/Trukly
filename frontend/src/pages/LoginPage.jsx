@@ -8,9 +8,13 @@ import {
   FaTools,
 } from "react-icons/fa";
 import {
+  browserLocalPersistence,
+  browserSessionPersistence,
   GoogleAuthProvider,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
+  setPersistence,
 } from "firebase/auth";
 import "./LoginPage.css";
 import logoTrukly from "../assets/logo-trukly.png";
@@ -34,6 +38,10 @@ function LoginPage() {
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
   const [googleProcesando, setGoogleProcesando] = useState(false);
+  const [recordarSesion, setRecordarSesion] = useState(true);
+  const [emailRecuperacion, setEmailRecuperacion] = useState("");
+  const [mostrarRecuperacion, setMostrarRecuperacion] = useState(false);
+  const [enviandoRecuperacion, setEnviandoRecuperacion] = useState(false);
   const googleProvider = new GoogleAuthProvider();
 
   const handleChange = (e) => {
@@ -57,29 +65,6 @@ function LoginPage() {
     }
   };
 
-  const loginBackendTradicional = async () => {
-    const respuesta = await fetch("http://localhost:5000/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: formulario.email,
-        password: formulario.password,
-      }),
-    });
-
-    const data = await respuesta.json();
-
-    if (!respuesta.ok) {
-      throw new Error(data.mensaje || "No se pudo iniciar sesión");
-    }
-
-    login(data.token, data.usuario);
-    setMensaje("Inicio de sesión correcto");
-    redirigirPorRol(data.usuario.rol);
-  };
-
   const loginConBackendFirebase = async (firebaseToken) => {
     const respuesta = await fetch("http://localhost:5000/api/auth/firebase-login", {
       method: "POST",
@@ -95,9 +80,16 @@ function LoginPage() {
       throw new Error(data.mensaje || "No se pudo iniciar sesión");
     }
 
-    login(data.token, data.usuario);
+    login(data.token, data.usuario, recordarSesion);
     setMensaje("Inicio de sesión correcto");
     redirigirPorRol(data.usuario.rol);
+  };
+
+  const aplicarPersistenciaFirebase = async () => {
+    await setPersistence(
+      auth,
+      recordarSesion ? browserLocalPersistence : browserSessionPersistence
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -107,6 +99,8 @@ function LoginPage() {
     setError("");
 
     try {
+      await aplicarPersistenciaFirebase();
+
       const credencial = await signInWithEmailAndPassword(
         auth,
         formulario.email,
@@ -116,16 +110,7 @@ function LoginPage() {
       const firebaseToken = await credencial.user.getIdToken();
       await loginConBackendFirebase(firebaseToken);
     } catch (error) {
-      try {
-        await loginBackendTradicional();
-      } catch (errorBackend) {
-        setError(
-          obtenerMensajeAuth(
-            errorBackend?.message ? errorBackend : error,
-            "No se pudo iniciar sesión con Firebase o con el backend"
-          )
-        );
-      }
+      setError(obtenerMensajeAuth(error, "No se pudo iniciar sesión"));
     }
   };
 
@@ -137,6 +122,8 @@ function LoginPage() {
     setGoogleProcesando(true);
 
     try {
+      await aplicarPersistenciaFirebase();
+
       const credencial = await signInWithPopup(auth, googleProvider);
       const firebaseToken = await credencial.user.getIdToken();
 
@@ -145,6 +132,28 @@ function LoginPage() {
       setError(obtenerMensajeAuth(error, "No se pudo iniciar sesión con Google"));
     } finally {
       setGoogleProcesando(false);
+    }
+  };
+
+  const recuperarPassword = async (e) => {
+    e.preventDefault();
+
+    try {
+      setMensaje("");
+      setError("");
+      setEnviandoRecuperacion(true);
+
+      await sendPasswordResetEmail(
+        auth,
+        emailRecuperacion || formulario.email
+      );
+
+      setMensaje("Te enviamos un email para recuperar tu contraseña.");
+      setMostrarRecuperacion(false);
+    } catch (error) {
+      setError(obtenerMensajeAuth(error, "No se pudo enviar el email de recuperación"));
+    } finally {
+      setEnviandoRecuperacion(false);
     }
   };
 
@@ -232,14 +241,47 @@ function LoginPage() {
 
             <div className="auth-options">
               <label className="auth-check">
-                <input type="checkbox" />
+                <input
+                  type="checkbox"
+                  checked={recordarSesion}
+                  onChange={(e) => setRecordarSesion(e.target.checked)}
+                />
                 <span>Recordarme</span>
               </label>
-              <a href="#contacto">Necesito ayuda</a>
+              <button
+                type="button"
+                className="auth-link-button"
+                onClick={() => {
+                  setEmailRecuperacion(formulario.email);
+                  setMostrarRecuperacion((visible) => !visible);
+                }}
+              >
+                Olvidé mi contraseña
+              </button>
             </div>
 
             <button type="submit">Entrar</button>
           </form>
+
+          {mostrarRecuperacion && (
+            <form className="auth-reset-form" onSubmit={recuperarPassword}>
+              <label className="auth-field" htmlFor="email-recuperacion">
+                <span>Email</span>
+                <input
+                  type="email"
+                  id="email-recuperacion"
+                  value={emailRecuperacion}
+                  onChange={(e) => setEmailRecuperacion(e.target.value)}
+                  placeholder="tu@email.com"
+                  required
+                />
+              </label>
+
+              <button type="submit" disabled={enviandoRecuperacion}>
+                {enviandoRecuperacion ? "Enviando..." : "Enviar recuperación"}
+              </button>
+            </form>
+          )}
 
           <div className="auth-divider">
             <span>o</span>

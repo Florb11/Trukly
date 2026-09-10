@@ -5,6 +5,10 @@ export const obtenerMensajeAuth = (error, mensajeFallback) => {
     return "Se cerró la ventana de Google antes de completar el acceso.";
   }
 
+  if (codigo === "auth/cancelled-popup-request") {
+    return "Ya había una ventana de Google abierta. Cerrala o esperá unos segundos y volvé a intentar.";
+  }
+
   if (codigo === "auth/popup-blocked") {
     return "El navegador bloqueó la ventana de Google. Permití popups para este sitio.";
   }
@@ -31,6 +35,14 @@ export const obtenerMensajeAuth = (error, mensajeFallback) => {
 
   if (codigo === "auth/weak-password") {
     return "La contraseña es demasiado débil.";
+  }
+
+  if (codigo === "auth/user-not-found") {
+    return "No existe una cuenta de Firebase con ese email.";
+  }
+
+  if (codigo === "auth/invalid-credential") {
+    return "El email o la contraseña no son correctos.";
   }
 
   return error?.message || mensajeFallback;

@@ -62,6 +62,14 @@ def ruta_listar_usuarios():
 def ruta_desactivar_usuario(id_usuario):
     return AdminUsuariosController.desactivar_usuario(id_usuario)
 
+# ruta preparar acceso Firebase para enviar recuperación/invitación
+@administrador_routes.route(
+    "/api/admin/usuarios/<int:id_usuario>/preparar-acceso",
+    methods=["POST"]
+)
+def ruta_preparar_acceso_usuario(id_usuario):
+    return AdminUsuariosController.preparar_acceso_firebase(id_usuario)
+
 # ruta modificar usuario
 @administrador_routes.route(
     "/api/admin/usuarios/<int:id_usuario>",

@@ -39,16 +39,21 @@ function PerfilPage() {
   const { actualizarUsuario } = useAuth();
 
   const actualizarUsuarioGuardado = (datosActualizados) => {
-    const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+    const storage = localStorage.getItem("usuario")
+      ? localStorage
+      : sessionStorage;
+    const usuarioGuardadoTexto = storage.getItem("usuario");
 
-    if (!usuarioGuardado) return;
+    if (!usuarioGuardadoTexto) return;
+
+    const usuarioGuardado = JSON.parse(usuarioGuardadoTexto);
 
     const usuarioActualizado = {
       ...usuarioGuardado,
       ...datosActualizados,
     };
 
-    localStorage.setItem("usuario", JSON.stringify(usuarioActualizado));
+    storage.setItem("usuario", JSON.stringify(usuarioActualizado));
 
     if (actualizarUsuario) {
       actualizarUsuario(usuarioActualizado);
@@ -209,7 +214,7 @@ function PerfilPage() {
       setMensaje("");
       setError("");
 
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
       const respuesta = await fetch("http://localhost:5000/api/perfil/foto", {
         method: "POST",

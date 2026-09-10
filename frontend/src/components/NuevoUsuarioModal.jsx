@@ -62,16 +62,6 @@ function NuevoUsuarioModal({
                     </label>
 
                     <label>
-                        Contraseña
-                        <input
-                            type="password"
-                            name="password"
-                            value={formNuevo.password}
-                            onChange={onChange}
-                        />
-                    </label>
-
-                    <label>
                         Nombre
                         <input
                             type="text"

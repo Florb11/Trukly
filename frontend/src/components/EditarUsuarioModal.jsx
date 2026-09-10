@@ -83,17 +83,6 @@ function EditarUsuarioModal({
                     </label>
 
                     <label>
-                        Nueva contraseña
-                        <input
-                            type="password"
-                            name="password"
-                            value={formEditar.password}
-                            onChange={onChange}
-                            placeholder="Dejar vacío para no cambiar"
-                        />
-                    </label>
-
-                    <label>
                         Legajo
                         <input
                             type="text"

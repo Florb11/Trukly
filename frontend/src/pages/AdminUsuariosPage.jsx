@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { fetchConToken } from "../utils/fetchConToken";
 import NuevoUsuarioModal from "../components/NuevoUsuarioModal";
 import EditarUsuarioModal from "../components/EditarUsuarioModal";
 import DetalleUsuarioModal from "../components/DetalleUsuarioModal";
+import { auth } from "../firebase";
+import { obtenerMensajeAuth } from "../utils/authErrors";
 import "./AdminUsuariosPage.css";
 
 function AdminUsuariosPage() {
@@ -29,7 +32,6 @@ function AdminUsuariosPage() {
         nombre: "",
         apellido: "",
         estado: "",
-        password: "",
         legajo: "",
         licencia: "",
         vencimientoLicencia: "",
@@ -40,7 +42,6 @@ function AdminUsuariosPage() {
     const [formNuevo, setFormNuevo] = useState({
         username: "",
         email: "",
-        password: "",
         nombre: "",
         apellido: "",
         estado: "activo",
@@ -161,7 +162,6 @@ function AdminUsuariosPage() {
             nombre: usuario.nombre || "",
             apellido: usuario.apellido || "",
             estado: usuario.estado || "",
-            password: "",
             legajo: usuario.legajo || "",
             licencia: usuario.licencia || "",
             vencimientoLicencia: usuario.vencimientoLicencia || "",
@@ -180,7 +180,6 @@ function AdminUsuariosPage() {
             nombre: "",
             apellido: "",
             estado: "",
-            password: "",
             legajo: "",
             licencia: "",
             vencimientoLicencia: "",
@@ -225,14 +224,12 @@ function AdminUsuariosPage() {
                 throw new Error(data.mensaje || data.msg || "Error al modificar usuario");
             }
 
-            const { password, ...datosSinPassword } = formEditar;
-
             setUsuarios((prev) =>
                 prev.map((usuario) =>
                     usuario.id_usuario === usuarioEditando.id_usuario
                         ? {
                               ...usuario,
-                              ...datosSinPassword,
+                              ...formEditar,
                           }
                         : usuario
                 )
@@ -259,7 +256,6 @@ function AdminUsuariosPage() {
         setFormNuevo({
             username: "",
             email: "",
-            password: "",
             nombre: "",
             apellido: "",
             estado: "activo",
@@ -311,6 +307,40 @@ function AdminUsuariosPage() {
             cerrarNuevoUsuario();
         } catch (error) {
             setErrorNuevo(error.message);
+        }
+    };
+
+    const enviarAcceso = async (usuario) => {
+        try {
+            setMensajeUsuarios("");
+            setErrorUsuarios("");
+
+            const resultado = await fetchConToken(
+                `http://localhost:5000/api/admin/usuarios/${usuario.id_usuario}/preparar-acceso`,
+                { method: "POST" }
+            );
+
+            if (!resultado) return;
+
+            const { respuesta, data } = resultado;
+
+            if (!respuesta.ok) {
+                throw new Error(data.mensaje || data.msg || "Error al preparar acceso");
+            }
+
+            await sendPasswordResetEmail(auth, data.email);
+
+            setUsuarios((prev) =>
+                prev.map((u) =>
+                    u.id_usuario === usuario.id_usuario ? data.usuario : u
+                )
+            );
+
+            setMensajeUsuarios(`Acceso enviado a ${data.email}`);
+        } catch (error) {
+            setErrorUsuarios(
+                obtenerMensajeAuth(error, "No se pudo enviar el acceso")
+            );
         }
     };
 
@@ -368,6 +398,14 @@ function AdminUsuariosPage() {
                 onClick={() => abrirEditarUsuario(usuario)}
             >
                 Editar
+            </button>
+
+            <button
+                type="button"
+                className="btn-accion btn-accion--detalle"
+                onClick={() => enviarAcceso(usuario)}
+            >
+                Enviar acceso
             </button>
         </div>
     );

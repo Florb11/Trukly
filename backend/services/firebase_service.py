@@ -41,3 +41,26 @@ class FirebaseAuthService:
     def verificar_token(id_token):
         FirebaseAuthService.inicializar()
         return auth.verify_id_token(id_token)
+
+    @staticmethod
+    def obtener_usuario_por_email(email):
+        FirebaseAuthService.inicializar()
+
+        try:
+            return auth.get_user_by_email(email)
+        except auth.UserNotFoundError:
+            return None
+
+    @staticmethod
+    def crear_o_obtener_usuario(email, display_name=None):
+        usuario = FirebaseAuthService.obtener_usuario_por_email(email)
+
+        if usuario:
+            return usuario
+
+        return auth.create_user(
+            email=email,
+            display_name=display_name,
+            email_verified=False,
+            disabled=False,
+        )
