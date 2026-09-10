@@ -3,12 +3,19 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   FaBolt,
   FaClipboardList,
+  FaGoogle,
   FaMapMarkerAlt,
   FaTools,
 } from "react-icons/fa";
+import {
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+} from "firebase/auth";
 import "./LoginPage.css";
 import logoTrukly from "../assets/logo-trukly.png";
 import { useAuth } from "../context/AuthContext";
+import { auth } from "../firebase";
 
 function LoginPage() {
   const { login } = useAuth();
@@ -19,12 +26,13 @@ function LoginPage() {
   const sesionExpirada = params.get("sesionExpirada");
 
   const [formulario, setFormulario] = useState({
-    username: "",
+    email: "",
     password: "",
   });
 
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
+  const googleProvider = new GoogleAuthProvider();
 
   const handleChange = (e) => {
     setFormulario({
@@ -47,6 +55,49 @@ function LoginPage() {
     }
   };
 
+  const loginBackendTradicional = async () => {
+    const respuesta = await fetch("http://localhost:5000/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: formulario.email,
+        password: formulario.password,
+      }),
+    });
+
+    const data = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || "No se pudo iniciar sesión");
+    }
+
+    login(data.token, data.usuario);
+    setMensaje("Inicio de sesión correcto");
+    redirigirPorRol(data.usuario.rol);
+  };
+
+  const loginConBackendFirebase = async (firebaseToken) => {
+    const respuesta = await fetch("http://localhost:5000/api/auth/firebase-login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token: firebaseToken }),
+    });
+
+    const data = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || "No se pudo iniciar sesión");
+    }
+
+    login(data.token, data.usuario);
+    setMensaje("Inicio de sesión correcto");
+    redirigirPorRol(data.usuario.rol);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -54,25 +105,34 @@ function LoginPage() {
     setError("");
 
     try {
-      const respuesta = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formulario),
-      });
+      const credencial = await signInWithEmailAndPassword(
+        auth,
+        formulario.email,
+        formulario.password
+      );
 
-      const data = await respuesta.json();
-
-      if (respuesta.ok) {
-        login(data.token, data.usuario);
-        setMensaje("Inicio de sesión correcto");
-        redirigirPorRol(data.usuario.rol);
-      } else {
-        setError(data.mensaje || "No se pudo iniciar sesión");
+      const firebaseToken = await credencial.user.getIdToken();
+      await loginConBackendFirebase(firebaseToken);
+    } catch {
+      try {
+        await loginBackendTradicional();
+      } catch {
+        setError("No se pudo iniciar sesión con Firebase o con el backend");
       }
-    } catch (error) {
-      setError("No se pudo conectar con el backend");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setMensaje("");
+    setError("");
+
+    try {
+      const credencial = await signInWithPopup(auth, googleProvider);
+      const firebaseToken = await credencial.user.getIdToken();
+
+      await loginConBackendFirebase(firebaseToken);
+    } catch {
+      setError("No se pudo iniciar sesión con Google");
     }
   };
 
@@ -134,15 +194,15 @@ function LoginPage() {
           </div>
 
           <form className="auth-form" onSubmit={handleSubmit}>
-            <label className="auth-field" htmlFor="username">
-              <span>Usuario</span>
+            <label className="auth-field" htmlFor="email">
+              <span>Email</span>
               <input
-                type="text"
-                id="username"
-                name="username"
-                value={formulario.username}
+                type="email"
+                id="email"
+                name="email"
+                value={formulario.email}
                 onChange={handleChange}
-                placeholder="tu.usuario"
+                placeholder="tu@email.com"
               />
             </label>
 
@@ -168,6 +228,19 @@ function LoginPage() {
 
             <button type="submit">Entrar</button>
           </form>
+
+          <div className="auth-divider">
+            <span>o</span>
+          </div>
+
+          <button
+            type="button"
+            className="auth-google-button"
+            onClick={handleGoogleLogin}
+          >
+            <FaGoogle />
+            Continuar con Google
+          </button>
 
           {sesionExpirada && (
             <p className="login-mensaje error">

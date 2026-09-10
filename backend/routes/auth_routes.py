@@ -9,6 +9,16 @@ def ruta_registrar_chofer():
     return AuthController.registrar_chofer()
 
 
+@auth_routes.route("/api/auth/registro-firebase", methods=["POST"])
+def ruta_registrar_chofer_firebase():
+    return AuthController.registrar_chofer_firebase()
+
+
 @auth_routes.route("/api/auth/login", methods=["POST"])
 def ruta_login():
     return AuthController.login()
+
+
+@auth_routes.route("/api/auth/firebase-login", methods=["POST"])
+def ruta_login_firebase():
+    return AuthController.login_firebase()

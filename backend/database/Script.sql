@@ -28,6 +28,7 @@ CREATE TABLE `usuario` (
   `id_usuario`   INT(11)      NOT NULL AUTO_INCREMENT,
   `username`     VARCHAR(30)  NOT NULL,
   `email`        VARCHAR(150) DEFAULT NULL,
+  `firebase_uid` VARCHAR(128) DEFAULT NULL,
   `password`     VARCHAR(255) NOT NULL,
   `nombre`       VARCHAR(30)  NOT NULL,
   `apellido`     VARCHAR(30)  NOT NULL,
@@ -35,7 +36,8 @@ CREATE TABLE `usuario` (
   `rol`          VARCHAR(50)  NOT NULL DEFAULT 'chofer',
   `foto_perfil`  VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`id_usuario`),
-  UNIQUE KEY `username` (`username`)
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `firebase_uid` (`firebase_uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  
 

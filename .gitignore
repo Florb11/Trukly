@@ -12,3 +12,5 @@ backend/uploads/perfiles/*
 backend/logs/*
 !backend/logs/.gitkeep
 *.log
+*firebase*service*account*.json
+*serviceAccount*.json

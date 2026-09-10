@@ -1,11 +1,13 @@
 from flask import jsonify, request
 from flask_jwt_extended import create_access_token
+from sqlalchemy import or_
 
 from db_instance import db
 from extensions import bcrypt
 
 from models.usuario_model import UsuarioModel
 from models.chofer_model import ChoferModel
+from services.firebase_service import FirebaseAuthService, FirebaseConfigError
 
 from src.Usuario import Usuario
 from src.Chofer import Chofer
@@ -36,6 +38,17 @@ class AuthController:
     CAMPOS_LOGIN = [
         "username",
         "password",
+    ]
+
+    CAMPOS_REGISTRO_FIREBASE_CHOFER = [
+        "firebaseToken",
+        "username",
+        "email",
+        "nombre",
+        "apellido",
+        "licencia",
+        "vencimientoLicencia",
+        "legajo",
     ]
 
     @staticmethod
@@ -90,6 +103,28 @@ class AuthController:
         return validador
 
     @staticmethod
+    def _crear_validador_registro_firebase_chofer():
+        validador = AuthController._crear_validador_campos_obligatorios(
+            AuthController.CAMPOS_REGISTRO_FIREBASE_CHOFER
+        )
+
+        validador.agregar(
+            ValidacionFuncion(
+                "licencia",
+                Chofer.validar_licencia
+            )
+        )
+
+        validador.agregar(
+            ValidacionFuncion(
+                "vencimientoLicencia",
+                Chofer.validar_vencimiento_licencia
+            )
+        )
+
+        return validador
+
+    @staticmethod
     def _crear_validador_login():
         # valida campos obligatorios de login
         return AuthController._crear_validador_campos_obligatorios(
@@ -111,6 +146,22 @@ class AuthController:
             ],
             campos_email=["email"],
             campos_password=["password"],
+        )
+
+    @staticmethod
+    def _sanitizar_datos_registro_firebase(datos):
+        return InputSanitizer.sanitizar_campos(
+            datos,
+            campos_texto=[
+                "firebaseToken",
+                "username",
+                "nombre",
+                "apellido",
+                "licencia",
+                "vencimientoLicencia",
+                "legajo",
+            ],
+            campos_email=["email"],
         )
 
     @staticmethod
@@ -188,6 +239,22 @@ class AuthController:
         )
 
     @staticmethod
+    def _crear_respuesta_login(usuario_clase):
+        token = create_access_token(
+            identity=str(usuario_clase.id_usuario),
+            additional_claims={
+                "username": usuario_clase.username,
+                "rol": usuario_clase.rol,
+            }
+        )
+
+        return jsonify({
+            "mensaje": "Login correcto",
+            "token": token,
+            "usuario": usuario_clase.to_dict(),
+        }), 200
+
+    @staticmethod
     def registrar_chofer():
         # recibe request de registro publico de chofer
         datos = AuthController._sanitizar_datos_registro(
@@ -262,6 +329,154 @@ class AuthController:
         }), 201
 
     @staticmethod
+    def registrar_chofer_firebase():
+        datos = AuthController._sanitizar_datos_registro_firebase(
+            request.get_json(silent=True) or {}
+        )
+
+        validador = AuthController._crear_validador_registro_firebase_chofer()
+        datos_validos, mensaje_error = validador.validar(datos)
+
+        if not datos_validos:
+            return jsonify({"mensaje": mensaje_error}), 400
+
+        try:
+            firebase_usuario = FirebaseAuthService.verificar_token(
+                datos["firebaseToken"]
+            )
+        except FirebaseConfigError as error:
+            logger.exception("Firebase Admin no está configurado")
+            return jsonify({"mensaje": str(error)}), 500
+        except Exception:
+            logger.exception("No se pudo verificar el token de Firebase")
+            return jsonify({"mensaje": "Token de Firebase inválido"}), 401
+
+        firebase_uid = firebase_usuario.get("uid")
+        firebase_email = firebase_usuario.get("email")
+
+        emails_coinciden = (
+            firebase_email
+            and firebase_email.lower() == datos["email"].lower()
+        )
+
+        if not firebase_uid or not emails_coinciden:
+            return jsonify({
+                "mensaje": "El email no coincide con la cuenta de Firebase"
+            }), 400
+
+        datos_disponibles, mensaje_error = (
+            AuthController._validar_username_email_disponibles(
+                datos["username"],
+                datos["email"]
+            )
+        )
+
+        if not datos_disponibles:
+            return jsonify({"mensaje": mensaje_error}), 409
+
+        firebase_uid_existente = UsuarioModel.query.filter_by(
+            firebase_uid=firebase_uid
+        ).first()
+
+        if firebase_uid_existente:
+            return jsonify({
+                "mensaje": "Ya existe un usuario vinculado a esa cuenta de Firebase"
+            }), 409
+
+        password_hash = bcrypt.generate_password_hash(
+            f"firebase:{firebase_uid}"
+        ).decode("utf-8")
+
+        chofer_clase = AuthController._crear_chofer_clase(
+            datos,
+            password_hash
+        )
+
+        if chofer_clase is None:
+            return jsonify({
+                "mensaje": "No se pudo registrar el chofer"
+            }), 400
+
+        nuevo_usuario = AuthController._crear_usuario_model_desde_chofer(
+            chofer_clase
+        )
+        nuevo_usuario.firebase_uid = firebase_uid
+
+        try:
+            db.session.add(nuevo_usuario)
+            db.session.flush()
+
+            chofer_clase.id_usuario = nuevo_usuario.id_usuario
+
+            nuevo_chofer = AuthController._crear_chofer_model_desde_chofer(
+                chofer_clase
+            )
+
+            db.session.add(nuevo_chofer)
+            db.session.commit()
+
+        except Exception:
+            db.session.rollback()
+            logger.exception("No se pudo registrar el chofer con Firebase")
+
+            return jsonify({
+                "mensaje": "No se pudo registrar el chofer"
+            }), 500
+
+        return jsonify({
+            "mensaje": "Solicitud de registro enviada correctamente",
+            "usuario": nuevo_usuario.to_dict(),
+            "chofer": nuevo_chofer.to_dict(),
+        }), 201
+
+    @staticmethod
+    def login_firebase():
+        datos = request.get_json(silent=True) or {}
+        firebase_token = datos.get("token")
+
+        if not firebase_token:
+            return jsonify({"mensaje": "Falta el token de Firebase"}), 400
+
+        try:
+            firebase_usuario = FirebaseAuthService.verificar_token(
+                firebase_token
+            )
+        except FirebaseConfigError as error:
+            logger.exception("Firebase Admin no está configurado")
+            return jsonify({"mensaje": str(error)}), 500
+        except Exception:
+            logger.exception("No se pudo verificar el token de Firebase")
+            return jsonify({"mensaje": "Token de Firebase inválido"}), 401
+
+        firebase_uid = firebase_usuario.get("uid")
+        firebase_email = firebase_usuario.get("email")
+
+        usuario = UsuarioModel.query.filter(
+            or_(
+                UsuarioModel.firebase_uid == firebase_uid,
+                UsuarioModel.email == firebase_email,
+            )
+        ).first()
+
+        if usuario is None:
+            return jsonify({
+                "mensaje": "No existe un usuario de Trukly para esa cuenta"
+            }), 404
+
+        if not usuario.firebase_uid:
+            usuario.firebase_uid = firebase_uid
+            db.session.commit()
+
+        usuario_clase = AuthController.crear_objeto_usuario(usuario)
+
+        if usuario_clase is None or not usuario_clase.esta_activo():
+            return jsonify({
+                "mensaje": "Tu cuenta se encuentra desactivada o pendiente de aprobación"
+            }), 403
+
+        return AuthController._crear_respuesta_login(usuario_clase)
+
+    @staticmethod
     def login():
         # recibe request de login
         datos = AuthController._sanitizar_datos_login(
@@ -277,8 +492,11 @@ class AuthController:
                 "mensaje": mensaje_error
             }), 400
 
-        usuario = UsuarioModel.query.filter_by(
-            username=datos["username"]
+        usuario = UsuarioModel.query.filter(
+            or_(
+                UsuarioModel.username == datos["username"],
+                UsuarioModel.email == datos["username"],
+            )
         ).first()
 
         if usuario is None:
@@ -323,17 +541,5 @@ class AuthController:
                 "mensaje": "Tu cuenta se encuentra desactivada. Contactá al administrador"
             }), 403
 
-        token = create_access_token(
-            identity=str(usuario_clase.id_usuario),
-            additional_claims={
-                "username": usuario_clase.username,
-                "rol": usuario_clase.rol,
-            }
-        )
-
-        return jsonify({
-            "mensaje": "Login correcto",
-            "token": token,
-            "usuario": usuario_clase.to_dict(),
-        }), 200
+        return AuthController._crear_respuesta_login(usuario_clase)
         

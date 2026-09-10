@@ -26,6 +26,12 @@ class UsuarioModel(db.Model):
         unique=True
     )
 
+    firebase_uid = db.Column(
+        db.String(128),
+        nullable=True,
+        unique=True
+    )
+
     nombre = db.Column(
         db.String(100),
         nullable=False
@@ -59,6 +65,7 @@ class UsuarioModel(db.Model):
             "id_usuario": self.id_usuario,
             "username": self.username,
             "email": self.email,
+            "firebase_uid": self.firebase_uid,
             "nombre": self.nombre,
             "apellido": self.apellido,
             "estado": self.estado,
