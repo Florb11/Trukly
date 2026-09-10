@@ -2,11 +2,20 @@ import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
+const obtenerStorageActivo = () => (
+  localStorage.getItem("token") ? localStorage : sessionStorage
+);
+
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [storageActivo, setStorageActivo] = useState(obtenerStorageActivo);
+  const [token, setToken] = useState(
+    localStorage.getItem("token") || sessionStorage.getItem("token")
+  );
 
   const [usuario, setUsuario] = useState(() => {
-    const usuarioGuardado = localStorage.getItem("usuario");
+    const usuarioGuardado = (
+      localStorage.getItem("usuario") || sessionStorage.getItem("usuario")
+    );
 
     if (!usuarioGuardado) {
       return null;
@@ -14,29 +23,41 @@ export function AuthProvider({ children }) {
 
     try {
       return JSON.parse(usuarioGuardado);
-    } catch (error) {
+    } catch {
       localStorage.removeItem("usuario");
+      sessionStorage.removeItem("usuario");
       return null;
     }
   });
 
-  const login = (tokenRecibido, usuarioRecibido) => {
-    localStorage.setItem("token", tokenRecibido);
-    localStorage.setItem("usuario", JSON.stringify(usuarioRecibido));
+  const login = (tokenRecibido, usuarioRecibido, recordar = true) => {
+    const storage = recordar ? localStorage : sessionStorage;
 
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("usuario");
+
+    storage.setItem("token", tokenRecibido);
+    storage.setItem("usuario", JSON.stringify(usuarioRecibido));
+
+    setStorageActivo(storage);
     setToken(tokenRecibido);
     setUsuario(usuarioRecibido);
   };
 
   const actualizarUsuario = (usuarioActualizado) => {
-    localStorage.setItem("usuario", JSON.stringify(usuarioActualizado));
+    storageActivo.setItem("usuario", JSON.stringify(usuarioActualizado));
     setUsuario(usuarioActualizado);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("usuario");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("usuario");
 
+    setStorageActivo(localStorage);
     setToken(null);
     setUsuario(null);
   };

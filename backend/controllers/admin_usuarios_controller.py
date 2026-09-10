@@ -8,6 +8,7 @@ from models.usuario_model import UsuarioModel
 from models.chofer_model import ChoferModel
 from models.mecanico_model import MecanicoModel
 from models.operador_model import OperadorModel
+from services.firebase_service import FirebaseAuthService, FirebaseConfigError
 
 from src.Chofer import Chofer
 from src.Usuario import Usuario
@@ -30,7 +31,6 @@ class AdminUsuariosController:
     CAMPOS_REGISTRO_USUARIO = [
         "username",
         "email",
-        "password",
         "nombre",
         "apellido",
         "estado",
@@ -56,7 +56,6 @@ class AdminUsuariosController:
                 "sector",
             ],
             campos_email=["email"],
-            campos_password=["password"],
         )
 
         if datos_limpios.get("estado") is not None:
@@ -135,13 +134,6 @@ class AdminUsuariosController:
                 "estado",
                 Usuario.ESTADOS_VALIDOS,
                 "Estado"
-            )
-        )
-
-        validador.agregar(
-            ValidacionFuncion(
-                "password",
-                Usuario.validar_password_registro
             )
         )
 
@@ -758,22 +750,6 @@ class AdminUsuariosController:
             usuario_clase
         )
 
-        if datos.get("password"):
-            password_valida, mensaje_error = (
-                Usuario.validar_password_registro(
-                    datos["password"]
-                )
-            )
-
-            if not password_valida:
-                return jsonify({
-                    "mensaje": mensaje_error
-                }), 400
-
-            usuario_db.password = bcrypt.generate_password_hash(
-                datos["password"]
-            ).decode("utf-8")
-
         datos_actualizados, mensaje_error = (
             AdminUsuariosController._actualizar_datos_especificos(
                 usuario_db,
@@ -842,17 +818,14 @@ class AdminUsuariosController:
                 "mensaje": mensaje_error
             }), 409
 
-        password_hash = bcrypt.generate_password_hash(
-            datos["password"]
-        ).decode("utf-8")
-
         datos_usuario = dict(datos)
         datos_usuario["username"] = username
         datos_usuario["email"] = email
+        datos_usuario["password"] = ""
 
         usuario_clase = admin.crear_usuario(
             datos_usuario,
-            password_hash
+            "firebase pendiente"
         )
 
         if usuario_clase is None:
@@ -860,14 +833,35 @@ class AdminUsuariosController:
                 "mensaje": "No se pudo registrar el usuario"
             }), 400
 
+        display_name = f"{usuario_clase.nombre} {usuario_clase.apellido}"
+
+        try:
+            firebase_usuario = FirebaseAuthService.crear_o_obtener_usuario(
+                usuario_clase.email,
+                display_name
+            )
+        except FirebaseConfigError as error:
+            logger.exception("Firebase Admin no está configurado")
+            return jsonify({"mensaje": str(error)}), 500
+        except Exception:
+            logger.exception("No se pudo crear el usuario en Firebase")
+            return jsonify({
+                "mensaje": "No se pudo crear la cuenta de acceso en Firebase"
+            }), 500
+
+        password_hash = bcrypt.generate_password_hash(
+            f"firebase:{firebase_usuario.uid}"
+        ).decode("utf-8")
+
         nuevo_usuario = UsuarioModel(
             username=usuario_clase.username,
             email=usuario_clase.email,
-            password=usuario_clase.password,
+            password=password_hash,
             nombre=usuario_clase.nombre,
             apellido=usuario_clase.apellido,
             estado=usuario_clase.estado,
             rol=usuario_clase.rol,
+            firebase_uid=firebase_usuario.uid,
         )
 
         try:
@@ -906,6 +900,56 @@ class AdminUsuariosController:
         )
 
         return jsonify({
-            "mensaje": "Usuario registrado correctamente",
+            "mensaje": "Usuario registrado correctamente. Ya podés enviarle el acceso.",
             "usuario": datos_usuario
         }), 201
+
+    @staticmethod
+    @admin_required
+    def preparar_acceso_firebase(id_usuario):
+        usuario_db = UsuarioModel.query.get(id_usuario)
+
+        if usuario_db is None:
+            return jsonify({
+                "mensaje": "Usuario no encontrado"
+            }), 404
+
+        if not usuario_db.email:
+            return jsonify({
+                "mensaje": "El usuario no tiene email configurado"
+            }), 400
+
+        display_name = f"{usuario_db.nombre} {usuario_db.apellido}"
+
+        try:
+            firebase_usuario = FirebaseAuthService.crear_o_obtener_usuario(
+                usuario_db.email,
+                display_name
+            )
+        except FirebaseConfigError as error:
+            logger.exception("Firebase Admin no está configurado")
+            return jsonify({"mensaje": str(error)}), 500
+        except Exception:
+            logger.exception("No se pudo preparar el acceso en Firebase")
+            return jsonify({
+                "mensaje": "No se pudo preparar el acceso en Firebase"
+            }), 500
+
+        usuario_db.firebase_uid = firebase_usuario.uid
+
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            logger.exception("No se pudo vincular el usuario con Firebase")
+            return jsonify({
+                "mensaje": "No se pudo vincular el usuario con Firebase"
+            }), 500
+
+        return jsonify({
+            "mensaje": "Acceso preparado correctamente",
+            "email": usuario_db.email,
+            "usuario": AdminUsuariosController._preparar_respuesta_usuario(
+                usuario_db
+            )
+        }), 200

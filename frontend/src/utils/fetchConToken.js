@@ -1,5 +1,5 @@
 export const fetchConToken = async (url, opciones = {}) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
   const respuesta = await fetch(url, {
     ...opciones,
@@ -27,6 +27,8 @@ export const fetchConToken = async (url, opciones = {}) => {
   if (respuesta.status === 401 || respuesta.status === 422) {
     localStorage.removeItem("token");
     localStorage.removeItem("usuario");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("usuario");
 
     window.location.href = "/login?sesionExpirada=true";
     return null;
