@@ -81,7 +81,7 @@ function DashboardMecanicoPage() {
       <div className="mecanico-dashboard__header">
         <div>
           <span>Panel de mecánico</span>
-          <p className="mecanico-dashboard__welcome">
+          <p className="mecanico-dashboard__welcome dashboard-welcome">
             Bienvenido, {nombreMecanico}
           </p>
           <h1>Mantenimiento</h1>
@@ -108,8 +108,8 @@ function DashboardMecanicoPage() {
             <FaClipboardList />
           </div>
 
-          <span>Reportes asignados</span>
           <strong>{reportesAsignados}</strong>
+          <span>Reportes asignados</span>
           <p>Total de fallas asignadas a tu usuario.</p>
         </article>
 
@@ -118,8 +118,8 @@ function DashboardMecanicoPage() {
             <FaExclamationTriangle />
           </div>
 
-          <span>Pendientes</span>
           <strong>{reportesPendientes}</strong>
+          <span>Pendientes</span>
           <p>Reportes que todavía necesitan revisión.</p>
         </article>
 
@@ -128,8 +128,8 @@ function DashboardMecanicoPage() {
             <FaCheckCircle />
           </div>
 
-          <span>Resueltos</span>
           <strong>{reportesResueltos}</strong>
+          <span>Resueltos</span>
           <p>Reparaciones finalizadas correctamente.</p>
         </article>
       </div>

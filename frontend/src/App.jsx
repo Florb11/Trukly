@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
-import { FaBars } from "react-icons/fa";
+import { FaBars, FaMoon, FaSun } from "react-icons/fa";
 
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import DashboardSidebar from "./components/DashboardSidebar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { useAuth } from "./context/AuthContext";
 
 import DashboardAdminPage from "./pages/DashboardAdminPage";
 import DashboardTruckerPage from "./pages/DashboardTruckerPage";
@@ -38,10 +39,39 @@ import ChoferEstadisticasPage from "./pages/ChoferEstadisticasPage";
 
 import "./App.css";
 import "./styles/dashboard-unified.css";
+import "./styles/dashboard-themes.css";
+
+const themeStorageKey = (userId) => `trukly-dashboard-theme:${userId || "default"}`;
+
+function getSavedTheme(userId) {
+  try {
+    return localStorage.getItem(themeStorageKey(userId)) === "dark" ? "dark" : "light";
+  } catch {
+    return "light";
+  }
+}
 
 function AppContent() {
+  const { usuario } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [themeSelection, setThemeSelection] = useState(() => ({
+    userId: usuario?.id_usuario,
+    value: getSavedTheme(usuario?.id_usuario),
+  }));
   const location = useLocation();
+  const theme = themeSelection.userId === usuario?.id_usuario
+    ? themeSelection.value
+    : getSavedTheme(usuario?.id_usuario);
+
+  const toggleTheme = () => {
+    const next = theme === "light" ? "dark" : "light";
+    setThemeSelection({ userId: usuario?.id_usuario, value: next });
+    try {
+      localStorage.setItem(themeStorageKey(usuario?.id_usuario), next);
+    } catch {
+      // The chosen theme still applies for this session.
+    }
+  };
 
   const esDashboardTrucker = location.pathname.startsWith("/dashboardTrucker");
   const esDashboardAdmin = location.pathname.startsWith("/dashboardAdmin");
@@ -79,7 +109,10 @@ function AppContent() {
             "app-shell--dashboard",
             esDashboardAdmin ? "app-shell--admin" : "",
             esDashboardMechanic ? "app-shell--mechanic" : "",
+            esDashboardOperator ? "app-shell--operator" : "",
+            esDashboardTrucker ? "app-shell--chofer" : "",
           ].filter(Boolean).join(" ")}
+          data-theme={theme}
         >
           <DashboardSidebar
             isOpen={sidebarOpen}
@@ -101,6 +134,16 @@ function AppContent() {
                 <span>Trukly</span>
                 <strong>{tituloPanel}</strong>
               </div>
+              <button
+                className="dashboard-theme-toggle"
+                type="button"
+                onClick={toggleTheme}
+                aria-label={theme === "light" ? "Activar modo oscuro" : "Activar modo claro"}
+                title={theme === "light" ? "Activar modo oscuro" : "Activar modo claro"}
+                aria-pressed={theme === "dark"}
+              >
+                {theme === "light" ? <FaMoon /> : <FaSun />}
+              </button>
             </header>
 
             <main className="dashboard-content">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaUsers } from "react-icons/fa";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { fetchConToken } from "../utils/fetchConToken";
 import NuevoUsuarioModal from "../components/NuevoUsuarioModal";
@@ -438,13 +439,18 @@ function AdminUsuariosPage() {
                     <h1>Gestión de usuarios</h1>
                 </div>
 
-                <button
-                    type="button"
-                    className="btn-nuevo-usuario"
-                    onClick={abrirNuevoUsuario}
-                >
-                    + Nuevo usuario
-                </button>
+                <div className="dashboard-heading-actions">
+                    <button
+                        type="button"
+                        className="btn-nuevo-usuario"
+                        onClick={abrirNuevoUsuario}
+                    >
+                        + Nuevo usuario
+                    </button>
+                    <div className="dashboard-heading-icon" aria-hidden="true">
+                        <FaUsers />
+                    </div>
+                </div>
             </div>
 
             <article className="usuarios-card">

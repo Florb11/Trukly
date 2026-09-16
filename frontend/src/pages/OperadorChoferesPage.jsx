@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaUsers } from "react-icons/fa";
 import { fetchConToken } from "../utils/fetchConToken";
 import "./OperadorChoferesPage.css";
 
@@ -54,6 +54,7 @@ function OperadorChoferesPage() {
           <h1>Choferes</h1>
           <p>Consultá el listado de choferes disponibles para asignar a viajes.</p>
         </div>
+        <div className="dashboard-heading-icon" aria-hidden="true"><FaUsers /></div>
       </div>
 
       <article className="operator-table-card">

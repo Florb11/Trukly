@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { FaClipboardList } from "react-icons/fa";
 import NuevoReporteModal from "../components/NuevoReporteModal";
 import DetalleReporteModal from "../components/DetalleReporteModal";
 import "./ChoferReportesPage.css";
@@ -154,13 +155,18 @@ function ChoferReportesPage() {
           <h1>Mis reportes de falla</h1>
         </div>
 
-        <button
-          type="button"
-          className="btn-nuevo-reporte"
-          onClick={abrirNuevoReporte}
-        >
-          Nuevo reporte
-        </button>
+        <div className="reportes-page__heading-actions">
+          <button
+            type="button"
+            className="btn-nuevo-reporte"
+            onClick={abrirNuevoReporte}
+          >
+            Nuevo reporte
+          </button>
+          <div className="dashboard-heading-icon" aria-hidden="true">
+            <FaClipboardList />
+          </div>
+        </div>
       </div>
 
       <article className="reportes-card">

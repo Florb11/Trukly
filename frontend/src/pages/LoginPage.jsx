@@ -85,6 +85,29 @@ function LoginPage() {
     redirigirPorRol(data.usuario.rol);
   };
 
+  const loginConBackendTradicional = async () => {
+    const respuesta = await fetch("http://localhost:5000/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: formulario.email,
+        password: formulario.password,
+      }),
+    });
+
+    const data = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || "No se pudo iniciar sesión");
+    }
+
+    login(data.token, data.usuario, recordarSesion);
+    setMensaje("Inicio de sesión correcto");
+    redirigirPorRol(data.usuario.rol);
+  };
+
   const aplicarPersistenciaFirebase = async () => {
     await setPersistence(
       auth,
@@ -110,7 +133,16 @@ function LoginPage() {
       const firebaseToken = await credencial.user.getIdToken();
       await loginConBackendFirebase(firebaseToken);
     } catch (error) {
-      setError(obtenerMensajeAuth(error, "No se pudo iniciar sesión"));
+      try {
+        await loginConBackendTradicional();
+      } catch (errorBackend) {
+        const mensajeFirebase = obtenerMensajeAuth(
+          error,
+          "No se pudo iniciar sesión"
+        );
+
+        setError(errorBackend.message || mensajeFirebase);
+      }
     }
   };
 

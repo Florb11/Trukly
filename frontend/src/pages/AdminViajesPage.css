@@ -59,7 +59,10 @@
 }
 
 .admin-viajes-stat {
+  position: relative;
   padding: 1.2rem;
+  padding-right: 4.5rem;
+  min-height: 114px;
   border-radius: 20px;
   background: #ffffff;
   border: 1px solid rgba(115, 75, 170, 0.14);
@@ -76,6 +79,23 @@
 .admin-viajes-stat strong {
   color: #2f2342;
   font-size: 2rem;
+}
+
+.admin-viajes-stat__icon {
+  position: absolute;
+  top: 22px;
+  right: 20px;
+  width: 30px;
+  height: 30px;
+  color: #6867e9;
+}
+
+.admin-viajes-stat:nth-child(2) .admin-viajes-stat__icon {
+  color: #14a79c;
+}
+
+.admin-viajes-stat:nth-child(3) .admin-viajes-stat__icon {
+  color: #dc6a61;
 }
 
 .admin-viajes-card {

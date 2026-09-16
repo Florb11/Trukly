@@ -54,6 +54,7 @@ function OperadorCamionesPage() {
           <h1>Camiones</h1>
           <p>Consultá el estado actual de la flota disponible.</p>
         </div>
+        <div className="dashboard-heading-icon" aria-hidden="true"><FaTruck /></div>
       </div>
 
       <article className="operator-table-card">

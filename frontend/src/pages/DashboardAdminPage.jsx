@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
   FaClipboardList,
   FaExclamationTriangle,
   FaTruck,
   FaUsers,
+  FaHome,
 } from "react-icons/fa";
 import DashboardBarChart from "../components/dashboard/DashboardBarChart";
 import NotificationPromptCard from "../components/NotificationPromptCard";
@@ -12,6 +14,7 @@ import "./DashboardAdminPage.css";
 import { fetchConToken } from "../utils/fetchConToken";
 
 function DashboardAdminPage({ title = "Panel de administrador" }) {
+  const { usuario } = useAuth();
   const [resumenDashboard, setResumenDashboard] = useState(null);
   const [usuariosPendientes, setUsuariosPendientes] = useState([]);
   const [cargandoResumen, setCargandoResumen] = useState(true);
@@ -170,12 +173,18 @@ function DashboardAdminPage({ title = "Panel de administrador" }) {
       <div className="admin-dashboard__heading">
         <div>
           <span>Administración</span>
+          <p className="dashboard-welcome">Bienvenido, {usuario?.nombre || usuario?.username || "administrador"}</p>
           <h1>{title}</h1>
         </div>
 
-        <Link to="/dashboardAdmin/usuarios" className="admin-dashboard__action">
-          Nuevo usuario
-        </Link>
+        <div className="dashboard-heading-actions">
+          <Link to="/dashboardAdmin/usuarios" className="admin-dashboard__action">
+            Nuevo usuario
+          </Link>
+          <div className="dashboard-heading-icon" aria-hidden="true">
+            <FaHome />
+          </div>
+        </div>
       </div>
 
       {cargandoResumen ? (

@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { FaClipboardList, FaClock, FaHome, FaRoute, FaCheckCircle } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 import "./DashboardOperatorPage.css";
 import { fetchConToken } from "../utils/fetchConToken";
 
 function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
+  const { usuario } = useAuth();
   const [viajes, setViajes] = useState([]);
   const [estadisticas, setEstadisticas] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -49,21 +52,21 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
       label: "Viajes totales",
       value: resumen.total_viajes ?? 0,
       detail: `${resumen.viajes_en_curso ?? 0} en curso`,
-
+      icon: <FaRoute />,
       tone: "info",
     },
     {
       label: "Finalizados",
       value: resumen.viajes_finalizados ?? 0,
       detail: `${resumen.viajes_cancelados ?? 0} cancelados`,
-
+      icon: <FaCheckCircle />,
       tone: "success",
     },
     {
       label: "Pendientes",
       value: resumen.viajes_pendientes ?? 0,
       detail: "Sin iniciar",
-
+      icon: <FaClock />,
       tone: "warning",
     },
     {
@@ -72,7 +75,7 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
         (resumen.reportes_pendientes ?? 0) +
         (resumen.reportes_en_revision ?? 0),
       detail: `${resumen.reportes_resueltos ?? 0} resueltos`,
-
+      icon: <FaClipboardList />,
       tone: "dark",
     },
   ];
@@ -107,8 +110,10 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
       <div className="operator-page__header">
         <div>
           <span>Operador logístico</span>
+          <p className="dashboard-welcome">Bienvenido, {usuario?.nombre || usuario?.username || "operador"}</p>
           <h1>{title}</h1>
         </div>
+        <div className="dashboard-heading-icon" aria-hidden="true"><FaHome /></div>
       </div>
 
       {cargando ? (

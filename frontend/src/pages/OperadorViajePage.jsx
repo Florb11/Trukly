@@ -240,6 +240,7 @@ function OperadorViajesPage() {
           >
             <FaPlus /> Nuevo viaje
           </button>
+          <div className="dashboard-heading-icon" aria-hidden="true"><FaRoute /></div>
         </div>
       </div>
 

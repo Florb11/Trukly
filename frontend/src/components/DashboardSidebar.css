@@ -46,13 +46,8 @@
 .sidebar__logo-icon {
   width: 36px;
   height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 9px;
-  color: #06111f;
-  background: #9be7ff;
-  font-size: 17px;
-  font-weight: 900;
+  flex: 0 0 auto;
+  object-fit: contain;
 }
 
 .sidebar__close-btn {
@@ -246,31 +241,58 @@
 /* Admin */
 
 .sidebar--admin {
-  background: linear-gradient(180deg, #2e1065, #111827);
-  border-right-color: rgba(167, 139, 250, 0.22);
+  width: 232px;
+  color: #25324a;
+  background: #ffffff;
+  border-right-color: #e3e9f2;
 }
 
 .sidebar--admin .sidebar__header,
 .sidebar--admin .sidebar__footer {
-  border-color: rgba(167, 139, 250, 0.18);
+  border-color: #e3e9f2;
+}
+
+.sidebar--admin .sidebar__logo,
+.sidebar--admin .sidebar__logo:hover {
+  color: #172033;
 }
 
 .sidebar--admin .sidebar__logo-icon {
-  color: #ffffff;
-  background: linear-gradient(135deg, #7c3aed, #4c1d95);
+  padding: 5px;
+  border-radius: 8px;
+  background: #192338;
+}
+
+.sidebar--admin .sidebar__close-btn {
+  color: #25324a;
+  border-color: #dfe5ef;
+  background: #f3f5fb;
+}
+
+.sidebar--admin .sidebar__group-label {
+  color: #8a96a9;
+}
+
+.sidebar--admin .sidebar__item,
+.sidebar--admin .sidebar__logout {
+  color: #4b5a70;
 }
 
 .sidebar--admin .sidebar__item-icon {
-  color: #c4b5fd;
+  color: #71829d;
 }
 
 .sidebar--admin .sidebar__item--active {
-  background-color: rgba(124, 58, 237, 0.22);
-  color: #ede9fe;
+  background-color: #eef0ff;
+  color: #343d9f;
+}
+
+.sidebar--admin .sidebar__item--active .sidebar__item-icon {
+  color: #5b61dc;
 }
 
 .sidebar--admin .sidebar__item-indicator {
-  background: #a78bfa;
+  background: #5b61dc;
 }
 
 .sidebar--admin .sidebar__notification-badge {
@@ -280,28 +302,36 @@
 }
 
 .sidebar--admin .sidebar__item:hover {
-  background-color: rgba(124, 58, 237, 0.14);
-  color: #ede9fe;
+  background-color: #f3f5fb;
+  color: #26324a;
 }
 
 .sidebar--admin .sidebar__logout:hover {
-  background-color: rgba(124, 58, 237, 0.14);
-  color: #c4b5fd;
+  background-color: #f3f5fb;
+  color: #343d9f;
+}
+
+.sidebar--admin .sidebar__user-name {
+  color: #172033;
+}
+
+.sidebar--admin .sidebar__user-role {
+  color: #71829d;
 }
 
 .sidebar--admin .sidebar__avatar {
   color: #ffffff;
-  background: linear-gradient(135deg, #7c3aed, #4c1d95);
+  background: linear-gradient(135deg, #6366f1, #38bdf8);
 }
 
 
 
 .app-shell--admin .dashboard-topbar {
-  background: linear-gradient(90deg, #2e1065, #5b21b6);
+  background: #ffffff;
 }
 
 .app-shell--admin .dashboard-menu-btn {
-  background-color: #7c3aed;
+  background-color: #6366f1;
   color: white;
 }
 .sidebar__avatar {
@@ -312,7 +342,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #7c3aed;
+  background: #6366f1;
   color: white;
   font-weight: 800;
   flex-shrink: 0;
@@ -339,7 +369,6 @@
   border-color: rgba(186, 243, 209, 0.18);
 }
 
-.sidebar--mecanico .sidebar__logo-icon,
 .sidebar--mecanico .sidebar__avatar {
   color: #052e27;
   background: #baf3d1;
