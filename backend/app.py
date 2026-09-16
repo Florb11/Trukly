@@ -18,6 +18,7 @@ from routes.viaje_routes import viaje_routes
 from routes.reporte_routes import reporte_routes
 from routes.perfil_routes import perfil_routes
 from routes.notificacion_routes import notificacion_routes
+from routes.contacto_routes import contacto_routes
 from routes.registro_ingreso_salida_routes import (
     registro_ingreso_salida_routes
 )
@@ -65,6 +66,7 @@ app.register_blueprint(viaje_routes)
 app.register_blueprint(reporte_routes)
 app.register_blueprint(perfil_routes)
 app.register_blueprint(notificacion_routes)
+app.register_blueprint(contacto_routes)
 app.register_blueprint(registro_ingreso_salida_routes)
 
 

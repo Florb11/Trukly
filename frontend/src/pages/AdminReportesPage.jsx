@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaClipboardList } from "react-icons/fa";
 import { fetchConToken } from "../utils/fetchConToken";
 import DetalleReporteModal from "../components/DetalleReporteModal";
 import CambiarEstadoReporteModal from "../components/CambiarEstadoReporteModal";
@@ -152,6 +153,9 @@ function AdminReportesPage() {
                 <div className="reportes-page__heading-text">
                     <span className="admin-page__label">Administración</span>
                     <h1>Reportes de falla</h1>
+                </div>
+                <div className="reportes-page__heading-icon" aria-hidden="true">
+                    <FaClipboardList />
                 </div>
             </div>
 

@@ -5,16 +5,15 @@ import {
   FaClock,
   FaTruck,
 } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 import "./DashboardTruckerPage.css";
 import { fetchConToken } from "../utils/fetchConToken";
 
 function DashboardTruckerPage({ title = "Panel del chofer" }) {
+  const { usuario } = useAuth();
   const [viajes, setViajes] = useState([]);
   const [cargandoViajes, setCargandoViajes] = useState(true);
   const [errorViajes, setErrorViajes] = useState("");
-
-  const usuario = JSON.parse(localStorage.getItem("usuario"));
-  const idChofer = usuario?.id_usuario;
 
   const cargarViajes = async () => {
     try {
@@ -124,7 +123,11 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
       <div className="admin-dashboard__heading">
         <div>
           <span>Dashboard</span>
+          <p className="dashboard-welcome">Bienvenido, {usuario?.nombre || usuario?.username || "chofer"}</p>
           <h1>{title}</h1>
+        </div>
+        <div className="dashboard-heading-icon" aria-hidden="true">
+          <FaTruck />
         </div>
       </div>
 

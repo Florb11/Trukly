@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaClipboardList, FaCheckCircle, FaClock } from "react-icons/fa";
+import { FaClipboardList, FaCheckCircle, FaClock, FaRoute } from "react-icons/fa";
 import "./ViajesTruckerPage.css";
 import { fetchConToken } from "../utils/fetchConToken";
 
@@ -84,12 +84,17 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
   return (
     <section className="chofer-page">
       <div className="chofer-page__header">
-        <span>Dashboard</span>
-        <h1>{title}</h1>
-        <p>
-          Bienvenido, {usuario?.nombre}. Aquí podés ver tus viajes asignados y
-          su estado actual.
-        </p>
+        <div>
+          <span>Dashboard</span>
+          <h1>{title}</h1>
+          <p>
+            Bienvenido, {usuario?.nombre}. Aquí podés ver tus viajes asignados y
+            su estado actual.
+          </p>
+        </div>
+        <div className="dashboard-heading-icon" aria-hidden="true">
+          <FaRoute />
+        </div>
       </div>
 
       <div className="chofer-page__grid">

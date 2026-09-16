@@ -172,6 +172,7 @@ function AdminViajesPage() {
         <article className="admin-viajes-stat">
           <span>Total viajes</span>
           <strong>{viajes.length}</strong>
+          <FaRoute className="admin-viajes-stat__icon" aria-hidden="true" />
         </article>
 
         <article className="admin-viajes-stat">
@@ -186,6 +187,7 @@ function AdminViajesPage() {
               ).length
             }
           </strong>
+          <FaTruck className="admin-viajes-stat__icon" aria-hidden="true" />
         </article>
 
         <article className="admin-viajes-stat">
@@ -197,6 +199,7 @@ function AdminViajesPage() {
               ).length
             }
           </strong>
+          <FaTimesCircle className="admin-viajes-stat__icon" aria-hidden="true" />
         </article>
       </div>
 

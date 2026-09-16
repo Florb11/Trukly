@@ -87,7 +87,7 @@ function OperadorEstadisticasPage() {
           <h1>Estadísticas</h1>
           <p>Resumen de tu actividad operativa, viajes gestionados y estado de la flota.</p>
         </div>
-        <div className="op-stats-heading__icon"><FaChartBar /></div>
+        <div className="op-stats-heading__icon dashboard-heading-icon" aria-hidden="true"><FaChartBar /></div>
       </div>
 
       <div className="op-stats-summary">

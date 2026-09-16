@@ -4,7 +4,6 @@ import {
   FaBell,
   FaChartLine,
   FaHome,
-  FaMapMarkedAlt,
   FaSignOutAlt,
   FaTruck,
   FaTruckLoading,
@@ -17,6 +16,7 @@ import {
 } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { fetchConToken } from "../utils/fetchConToken";
+import logoTrukly from "../assets/logo-truklynav.png";
 import "./DashboardSidebar.css";
 
 const menusPorRol = {
@@ -331,7 +331,7 @@ function DashboardSidebar({ isOpen, onClose }) {
             className="sidebar__logo"
             onClick={onClose}
           >
-            <span className="sidebar__logo-icon">T</span>
+            <img className="sidebar__logo-icon" src={logoTrukly} alt="" />
             <span className="sidebar__logo-text">Trukly</span>
           </NavLink>
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaTruck } from "react-icons/fa";
 import { fetchConToken } from "../utils/fetchConToken";
 import DetalleCamionModal from "../components/DetalleCamionModal";
 import NuevoCamionModal from "../components/NuevoCamionModal";
@@ -364,13 +365,18 @@ function AdminCamionesPage() {
                     <h1>Gestión de camiones</h1>
                 </div>
 
-                <button
-                    type="button"
-                    className="btn-nuevo-camion"
-                    onClick={abrirNuevoCamion}
-                >
-                    + Nuevo camión
-                </button>
+                <div className="dashboard-heading-actions">
+                    <button
+                        type="button"
+                        className="btn-nuevo-camion"
+                        onClick={abrirNuevoCamion}
+                    >
+                        + Nuevo camión
+                    </button>
+                    <div className="dashboard-heading-icon" aria-hidden="true">
+                        <FaTruck />
+                    </div>
+                </div>
             </div>
 
             <article className="camiones-card">

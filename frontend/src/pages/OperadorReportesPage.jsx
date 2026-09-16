@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaClipboardList } from "react-icons/fa";
 import { fetchConToken } from "../utils/fetchConToken";
 import DetalleReporteOperadorModal from "../components/DetalleReporteOperadorModal";
 import GestionarReporteModal from "../components/GestionarReporteModal";
@@ -59,6 +60,7 @@ function OperadorReportesPage() {
           <span>Operador logístico</span>
           <h1>Reportes de falla</h1>
         </div>
+        <div className="dashboard-heading-icon" aria-hidden="true"><FaClipboardList /></div>
       </div>
 
       <article className="op-reportes-card">

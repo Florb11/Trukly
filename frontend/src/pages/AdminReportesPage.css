@@ -35,6 +35,24 @@
     margin: 0;
 }
 
+.reportes-page__heading-icon {
+    width: 74px;
+    height: 74px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border-radius: 22px;
+    color: #7c3aed;
+    background: rgba(124, 58, 237, 0.12);
+    font-size: 2rem;
+}
+
+@media (max-width: 760px) {
+    .reportes-page__heading-icon {
+        display: none;
+    }
+}
+
 .reportes-card {
     background: #ffffff;
     border-radius: 14px;

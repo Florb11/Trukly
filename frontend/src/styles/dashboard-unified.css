@@ -85,3 +85,520 @@
   font-weight: 850;
   letter-spacing: 0;
 }
+
+.app-shell--admin {
+  --dash-bg: #f6f8fe;
+  --dash-surface: #ffffff;
+  --dash-surface-soft: #f8fbff;
+  --dash-border: #e4e9f5;
+  --dash-border-strong: #d7deee;
+  --dash-text: #172033;
+  --dash-muted: #6b7588;
+  --dash-primary: #6366f1;
+  --dash-primary-hover: #4f46e5;
+  --dash-primary-soft: #eef2ff;
+  --dash-accent: #14b8a6;
+  --dash-accent-soft: #ccfbf1;
+  --dash-info: #2563eb;
+  --dash-info-soft: #dbeafe;
+  --dash-success: #22c55e;
+  --dash-success-hover: #16a34a;
+  --dash-success-soft: #dcfce7;
+  --dash-warning: #f59e0b;
+  --dash-warning-hover: #d97706;
+  --dash-warning-soft: #fef3c7;
+  --dash-danger: #ef4444;
+  --dash-danger-hover: #dc2626;
+  --dash-danger-soft: #fee2e2;
+  color: var(--dash-text);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(99, 102, 241, 0.12), transparent 28%),
+    radial-gradient(circle at 94% 8%, rgba(20, 184, 166, 0.1), transparent 26%),
+    var(--dash-bg);
+}
+
+.app-shell--admin .dashboard-content {
+  color: var(--dash-text);
+}
+
+.app-shell--admin :is(
+  .admin-dashboard__heading,
+  .usuarios-page__heading,
+  .camiones-page__heading,
+  .reportes-page__heading,
+  .admin-viajes-header,
+  .mantenimiento-page__heading,
+  .estadisticas-page__heading
+) {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--dash-border);
+  border-radius: 12px;
+  box-shadow: 0 16px 34px rgba(80, 93, 135, 0.1);
+}
+
+.app-shell--admin :is(
+  .admin-dashboard__heading span,
+  .usuarios-page__heading-text span,
+  .camiones-page__heading-text span,
+  .reportes-page__heading-text span,
+  .admin-viajes-header span,
+  .mantenimiento-page__heading span,
+  .estadisticas-page__heading span
+) {
+  color: var(--dash-primary);
+}
+
+.app-shell--admin :is(
+  .admin-dashboard__heading h1,
+  .usuarios-page__heading-text h1,
+  .camiones-page__heading-text h1,
+  .reportes-page__heading-text h1,
+  .admin-viajes-header h1,
+  .mantenimiento-page__heading h1,
+  .estadisticas-page__heading h1
+) {
+  color: var(--dash-text);
+}
+
+.app-shell--admin :is(
+  .admin-viajes-header p,
+  .mantenimiento-page__heading p,
+  .estadisticas-page__heading p
+) {
+  color: var(--dash-muted);
+}
+
+.app-shell--admin :is(.admin-viajes-header__icon, .mantenimiento-page__icon, .estadisticas-page__heading-icon) {
+  background: linear-gradient(135deg, var(--dash-primary), #38bdf8);
+  box-shadow: 0 16px 32px rgba(99, 102, 241, 0.22);
+}
+
+.app-shell--admin :is(
+  .admin-card,
+  .reportes-card,
+  .camiones-card,
+  .usuarios-card,
+  .mantenimiento-card,
+  .estadisticas-card,
+  .admin-viajes-card,
+  .mantenimiento-stat,
+  .estadisticas-summary-card,
+  .admin-viajes-stat
+) {
+  border-color: var(--dash-border);
+  border-radius: 12px;
+  background: var(--dash-surface);
+  box-shadow: 0 14px 32px rgba(80, 93, 135, 0.09);
+}
+
+.app-shell--admin :is(.admin-card, .reportes-card, .camiones-card, .usuarios-card) {
+  border-top-color: var(--dash-primary);
+}
+
+.app-shell--admin :is(
+  .reportes-card__header,
+  .camiones-card__header,
+  .usuarios-card__header,
+  .admin-card__header,
+  .mantenimiento-card__header,
+  .estadisticas-card__header,
+  .admin-viajes-card__header,
+  .reportes-filtros,
+  .camiones-filtros,
+  .usuarios-filtros
+) {
+  background: var(--dash-surface-soft);
+  border-color: var(--dash-border);
+}
+
+.app-shell--admin :is(
+  .reportes-table thead tr,
+  .camiones-table thead tr,
+  .usuarios-table thead tr,
+  .admin-table th,
+  .admin-viajes-table th,
+  .mantenimiento-table th
+) {
+  background: var(--dash-primary-soft);
+  border-color: #dde4ff;
+}
+
+.app-shell--admin :is(
+  .reportes-table th,
+  .camiones-table th,
+  .usuarios-table th,
+  .admin-table th,
+  .admin-viajes-table th,
+  .mantenimiento-table th,
+  .mantenimiento-card-mobile__grid span,
+  .admin-viajes-table td::before
+) {
+  color: var(--dash-primary);
+}
+
+.app-shell--admin :is(
+  .reportes-table tbody tr:hover td,
+  .camiones-table tbody tr:hover td,
+  .usuarios-table tbody tr:hover td,
+  .admin-viajes-table tbody tr:hover,
+  .mantenimiento-table tbody tr:hover
+) {
+  background: #f7faff;
+}
+
+.app-shell--admin :is(
+  .reportes-filtro-busqueda input,
+  .reportes-filtro-select select,
+  .camiones-filtro-busqueda input,
+  .camiones-filtro-select select,
+  .usuarios-filtro-busqueda input,
+  .usuarios-filtro-select select,
+  .admin-viajes-field textarea
+) {
+  border-color: var(--dash-border-strong);
+  color: var(--dash-text);
+}
+
+.app-shell--admin :is(
+  .reportes-filtro-busqueda input:focus,
+  .reportes-filtro-select select:focus,
+  .camiones-filtro-busqueda input:focus,
+  .camiones-filtro-select select:focus,
+  .usuarios-filtro-busqueda input:focus,
+  .usuarios-filtro-select select:focus,
+  .admin-viajes-field textarea:focus
+) {
+  border-color: var(--dash-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14);
+}
+
+.app-shell--admin .admin-small-box {
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(80, 93, 135, 0.07);
+}
+
+.app-shell--admin .admin-small-box--danger {
+  color: #3730a3;
+  background: #eae9ff;
+}
+
+.app-shell--admin .admin-small-box--dark {
+  color: #334155;
+  background: #e8eef5;
+}
+
+.app-shell--admin .admin-small-box--warning {
+  color: #92400e;
+  background: #fff1db;
+}
+
+.app-shell--admin .admin-small-box--info {
+  color: #0f766e;
+  background: #def5f1;
+}
+
+.app-shell--admin .admin-small-box p {
+  color: inherit;
+}
+
+.app-shell--admin .admin-small-box__icon {
+  color: currentColor;
+  opacity: 0.25;
+}
+
+.app-shell--admin .admin-progress-list div div {
+  background: #e8ecf8;
+}
+
+.app-shell--admin .admin-progress-list i {
+  background: linear-gradient(90deg, var(--dash-primary), var(--dash-accent));
+}
+
+.app-shell--admin :is(.btn-nuevo-usuario, .btn-nuevo-camion, .admin-dashboard__action),
+.app-shell--admin :is(.btn-camion--activar, .admin-table__action, .admin-table__action--activar, .btn-accion--activar) {
+  background: var(--dash-success);
+  box-shadow: 0 8px 18px rgba(34, 197, 94, 0.22);
+}
+
+.app-shell--admin :is(.btn-nuevo-usuario, .btn-nuevo-camion, .admin-dashboard__action):hover,
+.app-shell--admin :is(.btn-camion--activar, .admin-table__action, .admin-table__action--activar, .btn-accion--activar):hover {
+  background: var(--dash-success-hover);
+  box-shadow: 0 10px 22px rgba(34, 197, 94, 0.26);
+}
+
+.app-shell--admin :is(.btn-reporte--detalle, .btn-camion--detalle, .admin-viajes-btn--view, .btn-accion--detalle) {
+  color: #ffffff;
+  background: var(--dash-info);
+}
+
+.app-shell--admin :is(.btn-reporte--detalle, .btn-camion--detalle, .admin-viajes-btn--view, .btn-accion--detalle):hover {
+  background: #1d4ed8;
+}
+
+.app-shell--admin :is(.btn-reporte--estado, .btn-camion--editar, .admin-table__action--editar, .btn-accion--editar) {
+  color: #ffffff;
+  background: var(--dash-warning);
+}
+
+.app-shell--admin :is(.btn-reporte--estado, .btn-camion--editar, .admin-table__action--editar, .btn-accion--editar):hover {
+  background: var(--dash-warning-hover);
+}
+
+.app-shell--admin :is(.btn-camion--desactivar, .admin-viajes-btn--cancel, .admin-table__action--desactivar, .btn-accion--desactivar) {
+  color: #ffffff;
+  background: var(--dash-danger);
+}
+
+.app-shell--admin :is(.btn-camion--desactivar, .admin-viajes-btn--cancel, .admin-table__action--desactivar, .btn-accion--desactivar):hover {
+  background: var(--dash-danger-hover);
+}
+
+.app-shell--admin :is(.estado-badge--activo, .camion-estado--disponible, .reporte-estado--resuelto, .mantenimiento-estado--resuelto, .admin-viajes-badge--aceptado, .admin-viajes-badge--activo, .estadisticas-badge--finalizado, .admin-badge--ok) {
+  color: #166534;
+  background: var(--dash-success-soft);
+}
+
+.app-shell--admin .estado-badge--activo::before,
+.app-shell--admin .camion-estado--disponible::before,
+.app-shell--admin .reporte-estado--resuelto::before {
+  background: var(--dash-success);
+}
+
+.app-shell--admin :is(.estado-badge--pendiente, .camion-estado--mantenimiento, .reporte-estado--pendiente, .mantenimiento-estado--pendiente, .admin-viajes-badge--pendiente, .estadisticas-badge--pendiente, .admin-badge--warn) {
+  color: #92400e;
+  background: var(--dash-warning-soft);
+}
+
+.app-shell--admin .estado-badge--pendiente::before,
+.app-shell--admin .camion-estado--mantenimiento::before,
+.app-shell--admin .reporte-estado--pendiente::before {
+  background: var(--dash-warning);
+}
+
+.app-shell--admin :is(.estado-badge--inactivo, .camion-estado--inactivo, .reporte-estado--cancelado, .mantenimiento-estado--cancelado, .admin-viajes-badge--cancelado, .estadisticas-badge--cancelado) {
+  color: #991b1b;
+  background: var(--dash-danger-soft);
+}
+
+.app-shell--admin .estado-badge--inactivo::before,
+.app-shell--admin .camion-estado--inactivo::before,
+.app-shell--admin .reporte-estado--cancelado::before {
+  background: var(--dash-danger);
+}
+
+.app-shell--admin :is(.camion-estado--viaje, .reporte-estado--revision, .mantenimiento-estado--revision, .admin-viajes-badge--en-curso, .estadisticas-badge--curso) {
+  color: #1d4ed8;
+  background: var(--dash-info-soft);
+}
+
+.app-shell--admin .camion-estado--viaje::before,
+.app-shell--admin .reporte-estado--revision::before {
+  background: var(--dash-info);
+}
+
+.app-shell--admin :is(.id-badge, .estadisticas-ranking__position, .estadisticas-history-item__icon, .estadisticas-summary-card--violet .estadisticas-summary-card__icon, .admin-viajes-modal__header button) {
+  color: var(--dash-primary);
+  background: var(--dash-primary-soft);
+}
+
+.app-shell--admin :is(.reportes-feedback, .camiones-feedback, .usuarios-feedback--loading) {
+  color: var(--dash-primary);
+  background: var(--dash-primary-soft);
+  border-left-color: var(--dash-primary);
+}
+
+.app-shell--admin *,
+.sidebar--admin * {
+  font-weight: 400 !important;
+}
+
+/* Admin dashboard: light workspace with compact color accents. */
+.app-shell--admin {
+  --dash-bg: #f4f7fb;
+  --dash-border: #e3e9f2;
+  --dash-primary: #5b61dc;
+  --dash-primary-hover: #484fc7;
+  --dash-primary-soft: #eef0ff;
+  --dash-success: #16a34a;
+  --dash-success-hover: #15803d;
+  --dash-warning: #d97706;
+  --dash-warning-hover: #b45309;
+  --dash-danger: #dc2626;
+  --dash-danger-hover: #b91c1c;
+  background: var(--dash-bg);
+}
+
+.app-shell--admin .dashboard-area {
+  margin-left: 232px;
+}
+
+.app-shell--admin .dashboard-topbar {
+  min-height: 64px;
+  padding: 0 28px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--dash-border);
+  backdrop-filter: none;
+}
+
+.app-shell--admin .dashboard-topbar span {
+  color: #69758a;
+}
+
+.app-shell--admin .dashboard-topbar strong {
+  color: #192338;
+  font-size: 16px;
+}
+
+.app-shell--admin .dashboard-content {
+  padding-top: 28px;
+}
+
+.app-shell--admin :is(
+  .admin-dashboard__heading,
+  .usuarios-page__heading,
+  .camiones-page__heading,
+  .reportes-page__heading,
+  .admin-viajes-header,
+  .mantenimiento-page__heading,
+  .estadisticas-page__heading
+) {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 4px 0;
+}
+
+.app-shell--admin .admin-dashboard__heading {
+  margin-bottom: 22px;
+}
+
+.app-shell--admin .admin-dashboard__heading h1 {
+  font-size: 26px;
+}
+
+.app-shell--admin .admin-dashboard__heading span {
+  color: #69758a;
+  letter-spacing: 0;
+}
+
+.app-shell--admin :is(
+  .admin-card,
+  .reportes-card,
+  .camiones-card,
+  .usuarios-card,
+  .mantenimiento-card,
+  .estadisticas-card,
+  .admin-viajes-card,
+  .mantenimiento-stat,
+  .estadisticas-summary-card,
+  .admin-viajes-stat,
+  .notificaciones-card
+) {
+  border: 1px solid var(--dash-border);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 3px 14px rgba(30, 48, 80, 0.04);
+}
+
+.app-shell--admin :is(.admin-card, .reportes-card, .camiones-card, .usuarios-card) {
+  border-top-color: var(--dash-border);
+}
+
+.app-shell--admin :is(
+  .reportes-card__header,
+  .camiones-card__header,
+  .usuarios-card__header,
+  .admin-card__header,
+  .mantenimiento-card__header,
+  .estadisticas-card__header,
+  .admin-viajes-card__header,
+  .reportes-filtros,
+  .camiones-filtros,
+  .usuarios-filtros
+) {
+  background: #ffffff;
+}
+
+.app-shell--admin .admin-small-boxes {
+  gap: 14px;
+}
+
+.app-shell--admin .admin-small-box {
+  min-height: 142px;
+  padding: 18px;
+  border: 1px solid var(--dash-border);
+  border-top: 3px solid var(--stat-accent);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 3px 14px rgba(30, 48, 80, 0.04);
+  color: #172033;
+}
+
+.app-shell--admin .admin-small-box--danger { --stat-accent: #7068e8; }
+.app-shell--admin .admin-small-box--dark { --stat-accent: #54a3e3; }
+.app-shell--admin .admin-small-box--warning { --stat-accent: #e7a448; }
+.app-shell--admin .admin-small-box--info { --stat-accent: #29b7ad; }
+
+.app-shell--admin .admin-small-box strong {
+  font-size: 32px;
+}
+
+.app-shell--admin .admin-small-box span {
+  font-size: 14px;
+}
+
+.app-shell--admin .admin-small-box p {
+  color: #64748b;
+}
+
+.app-shell--admin .admin-small-box__icon {
+  right: 17px;
+  bottom: 18px;
+  font-size: 35px;
+  color: var(--stat-accent);
+  opacity: 0.75;
+}
+
+.app-shell--admin .notification-prompt--admin {
+  border-color: var(--dash-border);
+  background: #ffffff;
+  box-shadow: 0 3px 14px rgba(30, 48, 80, 0.04);
+}
+
+.app-shell--admin .notification-prompt--admin .notification-prompt__icon {
+  color: var(--dash-primary);
+  background: var(--dash-primary-soft);
+}
+
+.app-shell--admin .notification-prompt--admin .notification-prompt__content span {
+  color: #69758a;
+}
+
+.app-shell--admin .notification-prompt--admin .notification-prompt__action {
+  background: var(--dash-primary);
+}
+
+.app-shell--admin .notification-prompt--admin .notification-prompt__action:hover {
+  background: var(--dash-primary-hover);
+}
+
+.app-shell--admin .admin-progress-list i {
+  background: #2db8ac;
+}
+
+.app-shell--admin .dashboard-bar-chart__bar {
+  background: #6867e9;
+}
+
+.app-shell--admin :is(.admin-dashboard__heading h1, .admin-small-box strong, .admin-small-box span, .notification-prompt__content h2, .admin-card__header h2, .admin-progress-list strong, .admin-table th, .dashboard-bar-chart__value, .dashboard-topbar strong),
+.sidebar--admin .sidebar__logo-text {
+  font-weight: 700 !important;
+}
+
+@media (max-width: 860px) {
+  .app-shell--admin .dashboard-area {
+    margin-left: 0;
+  }
+}
