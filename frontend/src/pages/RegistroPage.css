@@ -244,7 +244,43 @@
   background: #f5f9fc;
 }
 
-.registro-form button {
+.registro-password-field {
+  position: relative;
+}
+
+.registro-password-field input {
+  padding-right: 46px;
+}
+
+.registro-password-field .password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  color: #6b879b;
+  background: transparent;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.registro-password-field .password-toggle:hover,
+.registro-password-field .password-toggle:focus-visible {
+  color: #1683bd;
+  background: #e8f4fb;
+}
+
+.registro-password-field .password-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.registro-form > button[type="submit"] {
   width: 100%;
   min-height: 48px;
   border: none;
@@ -260,7 +296,7 @@
     transform 0.2s ease;
 }
 
-.registro-form button:hover {
+.registro-form > button[type="submit"]:hover {
   background: #0f6c9e;
   transform: translateY(-1px);
 }
