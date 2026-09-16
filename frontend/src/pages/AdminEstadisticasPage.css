@@ -190,7 +190,7 @@
   border-radius: 50%;
   background: #f3ecff;
   color: #6f42c1;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .estadisticas-ranking__user strong,
@@ -245,7 +245,7 @@
 
 .estadisticas-camion-card__position {
   color: #6f42c1;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .estadisticas-camion-card strong {

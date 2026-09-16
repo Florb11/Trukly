@@ -38,7 +38,7 @@
   border-radius: 8px;
   border: 0;
   font-size: 13px;
-  font-weight: 850;
+  font-weight: 700;
   line-height: 1;
   white-space: nowrap;
   text-decoration: none;
@@ -82,7 +82,7 @@
 .app-shell--mechanic :is(.mecanico-badge, .mecanico-estado, .mecanico-mantenimiento-status, .mecanico-mantenimiento-modal__badge) {
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 700;
   letter-spacing: 0;
 }
 

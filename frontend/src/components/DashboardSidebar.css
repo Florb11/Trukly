@@ -36,7 +36,7 @@
   color: #ffffff;
   text-decoration: none;
   font-size: 22px;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .sidebar__logo:hover {
@@ -76,7 +76,7 @@
   display: block;
   color: #7f9cb0;
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 700;
   text-transform: uppercase;
   padding: 0 10px;
   margin-bottom: 9px;
@@ -146,7 +146,7 @@
   background: #facc15;
   box-shadow: 0 8px 18px rgba(250, 204, 21, 0.28);
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1;
   padding: 0 6px;
 }
@@ -213,7 +213,7 @@
   color: #06111f;
   background: #ffffff;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .sidebar__user-info,
@@ -226,7 +226,7 @@
 .sidebar__user-name {
   color: #ffffff;
   font-size: 14px;
-  font-weight: 850;
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
