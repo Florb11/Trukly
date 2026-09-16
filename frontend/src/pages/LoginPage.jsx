@@ -3,6 +3,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   FaBolt,
   FaClipboardList,
+  FaEye,
+  FaEyeSlash,
   FaGoogle,
   FaMapMarkerAlt,
   FaTools,
@@ -41,6 +43,7 @@ function LoginPage() {
   const [recordarSesion, setRecordarSesion] = useState(true);
   const [emailRecuperacion, setEmailRecuperacion] = useState("");
   const [mostrarRecuperacion, setMostrarRecuperacion] = useState(false);
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const [enviandoRecuperacion, setEnviandoRecuperacion] = useState(false);
   const googleProvider = new GoogleAuthProvider();
 
@@ -261,14 +264,25 @@ function LoginPage() {
 
             <label className="auth-field" htmlFor="password">
               <span>Contraseña</span>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formulario.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-              />
+              <div className="auth-password-field">
+                <input
+                  type={mostrarPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={formulario.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setMostrarPassword((visible) => !visible)}
+                  aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  aria-pressed={mostrarPassword}
+                >
+                  {mostrarPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
             </label>
 
             <div className="auth-options">

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { FaGoogle, FaIdCard, FaShieldAlt, FaTruckMoving } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaGoogle, FaIdCard, FaShieldAlt, FaTruckMoving } from "react-icons/fa";
 import {
   createUserWithEmailAndPassword,
   deleteUser,
@@ -28,6 +28,7 @@ function RegistroPage() {
   const [error, setError] = useState("");
   const [firebaseTokenGoogle, setFirebaseTokenGoogle] = useState("");
   const [vinculandoGoogle, setVinculandoGoogle] = useState(false);
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const registroConGoogle = !!firebaseTokenGoogle;
   const googleProvider = new GoogleAuthProvider();
 
@@ -264,17 +265,28 @@ function RegistroPage() {
             {!registroConGoogle && (
               <label className="registro-field" htmlFor="password-registro">
                 <span>Contraseña</span>
-                <input
-                  type="password"
-                  id="password-registro"
-                  name="password"
-                  value={formulario.password}
-                  onChange={handleChange}
-                  placeholder="Creá una contraseña"
-                  pattern="(?=.*\d).{8,}"
-                  title="La contraseña debe tener mínimo 8 caracteres y al menos un número."
-                  aria-describedby="password-ayuda"
-                />
+                <div className="registro-password-field">
+                  <input
+                    type={mostrarPassword ? "text" : "password"}
+                    id="password-registro"
+                    name="password"
+                    value={formulario.password}
+                    onChange={handleChange}
+                    placeholder="Creá una contraseña"
+                    pattern="(?=.*\d).{8,}"
+                    title="La contraseña debe tener mínimo 8 caracteres y al menos un número."
+                    aria-describedby="password-ayuda"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setMostrarPassword((visible) => !visible)}
+                    aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    aria-pressed={mostrarPassword}
+                  >
+                    {mostrarPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
                 <small id="password-ayuda" className="registro-ayuda">
                   La contraseña debe tener mínimo 8 caracteres y al menos un número.
                 </small>
