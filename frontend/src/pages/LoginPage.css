@@ -46,7 +46,7 @@
   border-radius: 999px;
   padding: 8px 13px;
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 700;
   text-transform: uppercase;
   margin-bottom: 22px;
 }
@@ -134,7 +134,7 @@
 .auth-brand span {
   color: #0b2d4d;
   font-size: 24px;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .auth-header {
@@ -144,7 +144,7 @@
 .auth-header > span {
   color: #1683bd;
   font-size: 13px;
-  font-weight: 850;
+  font-weight: 700;
   text-transform: uppercase;
 }
 
@@ -260,7 +260,7 @@
   color: #ffffff;
   padding: 13px;
   font-size: 15px;
-  font-weight: 850;
+  font-weight: 700;
   cursor: pointer;
   margin-top: 4px;
   transition:
@@ -292,7 +292,7 @@
   color: #ffffff;
   padding: 12px;
   font-size: 14px;
-  font-weight: 850;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -332,7 +332,7 @@
   color: #284a62;
   padding: 13px;
   font-size: 15px;
-  font-weight: 850;
+  font-weight: 700;
   cursor: pointer;
   transition:
     border-color 0.2s ease,

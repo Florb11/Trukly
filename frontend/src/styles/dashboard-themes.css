@@ -1,4 +1,5 @@
 .app-shell--dashboard {
+  --font-ui: Manrope, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --ui-bg: #f4f7fb;
   --ui-surface: #ffffff;
   --ui-soft: #f7f9fc;
@@ -18,6 +19,7 @@
   --action-danger-hover: #b91c1c;
   color: var(--ui-text);
   background: var(--ui-bg);
+  font-family: var(--font-ui);
 }
 
 .app-shell--dashboard[data-theme="dark"] {
@@ -239,6 +241,27 @@
   opacity: 0.72;
 }
 
+.app-shell--dashboard :is(.operator-card, .mecanico-card) {
+  position: relative;
+}
+
+.app-shell--dashboard :is(.operator-card__icon, .mecanico-card__icon) {
+  position: absolute;
+  right: 18px;
+  bottom: 14px;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  display: block;
+  padding: 0;
+  color: var(--stat-accent, var(--ui-accent));
+  background: transparent;
+  border-radius: 0;
+  font-size: 62px;
+  opacity: 0.72;
+  transform: none;
+}
+
 .app-shell--dashboard :is(.operator-card--info, .chofer-card--info, .op-viajes-stat--info, .op-stats-card--blue, .ch-stats-card--blue) { --stat-accent: #54a3e3; }
 .app-shell--dashboard :is(.operator-card--success, .chofer-card--success, .op-viajes-stat--active, .op-stats-card--green, .ch-stats-card--green, .mecanico-card--resueltos) { --stat-accent: #29b7ad; }
 .app-shell--dashboard :is(.operator-card--warning, .chofer-card--warning, .op-viajes-stat--pending, .op-stats-card--orange, .ch-stats-card--orange, .mecanico-card--pendientes) { --stat-accent: #e7a448; }
@@ -339,10 +362,23 @@
   border-color: var(--ui-border);
 }
 
+.app-shell--dashboard .dashboard-content *,
+.app-shell--dashboard .sidebar * {
+  font-weight: 400 !important;
+}
+
 .app-shell--dashboard :is(h1, h2, h3, th, strong, label),
 .app-shell--dashboard :is(.admin-small-box span, .operator-card span, .chofer-card span, .mecanico-card span, .op-viajes-stat span, .mantenimiento-stat span, .estadisticas-summary-card span, .admin-viajes-stat span),
 .app-shell--dashboard .sidebar__logo-text {
   font-weight: 700 !important;
+}
+
+.app-shell--dashboard :is(p, td, input, select, textarea, small) {
+  font-weight: 400;
+}
+
+.app-shell--dashboard :is(.admin-page__label, .dashboard-content > section > div > span) {
+  font-weight: 600 !important;
 }
 
 .app-shell--dashboard :is(button, a, .sidebar__item-label):not(.sidebar__logo) {
@@ -355,6 +391,13 @@
   font-size: 20px;
   font-weight: 700;
   line-height: 1.2;
+}
+
+.app-shell--operator .op-reportes-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
 }
 
 .app-shell--dashboard[data-theme="dark"] :is(

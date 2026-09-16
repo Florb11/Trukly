@@ -108,8 +108,8 @@ function DashboardMecanicoPage() {
             <FaClipboardList />
           </div>
 
-          <strong>{reportesAsignados}</strong>
           <span>Reportes asignados</span>
+          <strong>{reportesAsignados}</strong>
           <p>Total de fallas asignadas a tu usuario.</p>
         </article>
 
@@ -118,8 +118,8 @@ function DashboardMecanicoPage() {
             <FaExclamationTriangle />
           </div>
 
-          <strong>{reportesPendientes}</strong>
           <span>Pendientes</span>
+          <strong>{reportesPendientes}</strong>
           <p>Reportes que todavía necesitan revisión.</p>
         </article>
 
@@ -128,8 +128,8 @@ function DashboardMecanicoPage() {
             <FaCheckCircle />
           </div>
 
-          <strong>{reportesResueltos}</strong>
           <span>Resueltos</span>
+          <strong>{reportesResueltos}</strong>
           <p>Reparaciones finalizadas correctamente.</p>
         </article>
       </div>

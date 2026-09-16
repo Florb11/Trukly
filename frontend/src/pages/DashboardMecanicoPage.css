@@ -29,7 +29,7 @@
   display: block;
   color: var(--mecanico-main);
   font-size: 13px;
-  font-weight: 850;
+  font-weight: 700;
   text-transform: uppercase;
 }
 
@@ -44,7 +44,7 @@
   margin: 8px 0 0;
   color: var(--mecanico-deep) !important;
   font-size: 20px !important;
-  font-weight: 850;
+  font-weight: 700;
   line-height: 1.2 !important;
 }
 
@@ -158,7 +158,7 @@
   max-width: calc(100% - 92px);
   color: #334155;
   font-size: 14px;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .mecanico-card strong {
@@ -216,7 +216,7 @@
 .mecanico-panel span {
   color: var(--mecanico-main);
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 700;
   text-transform: uppercase;
 }
 
@@ -238,7 +238,7 @@
   background: #078457;
   text-decoration: none;
   font-size: 13px;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .app-shell--mechanic .mecanico-dashboard .mecanico-panel__link,
@@ -299,7 +299,7 @@
   color: #92400e !important;
   background: #fef3c7;
   font-size: 12px !important;
-  font-weight: 850;
+  font-weight: 700;
   white-space: nowrap;
   text-transform: lowercase !important;
 }
