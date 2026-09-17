@@ -46,7 +46,7 @@ function AdminCamionesPage() {
             setErrorCamiones("");
 
             const resultado = await fetchConToken(
-                "http://localhost:5000/api/admin/camiones",
+                "https://trukly-production.up.railway.app/api/admin/camiones",
                 { method: "GET" }
             );
 
@@ -136,7 +136,7 @@ function AdminCamionesPage() {
             };
 
             const resultado = await fetchConToken(
-                "http://localhost:5000/api/admin/camiones",
+                "https://trukly-production.up.railway.app/api/admin/camiones",
                 {
                     method: "POST",
                     headers: {
@@ -213,7 +213,7 @@ function AdminCamionesPage() {
             };
 
             const resultado = await fetchConToken(
-                `http://localhost:5000/api/admin/camiones/${camionEditando.id_camion}`,
+                `https://trukly-production.up.railway.app/api/admin/camiones/${camionEditando.id_camion}`,
                 {
                     method: "PUT",
                     headers: {
@@ -250,7 +250,7 @@ function AdminCamionesPage() {
             setErrorCamiones("");
 
             const resultado = await fetchConToken(
-                `http://localhost:5000/api/admin/camiones/${idCamion}/estado`,
+                `https://trukly-production.up.railway.app/api/admin/camiones/${idCamion}/estado`,
                 {
                     method: "PUT",
                     headers: {

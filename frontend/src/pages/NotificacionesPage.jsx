@@ -15,7 +15,7 @@ function NotificacionesPage() {
       setError("");
 
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/notificaciones",
+        "https://trukly-production.up.railway.app/api/notificaciones",
         {
           method: "GET",
         }
@@ -49,7 +49,7 @@ function NotificacionesPage() {
       setError("");
 
       const resultado = await fetchConToken(
-        `http://localhost:5000/api/notificaciones/${idNotificacion}/leida`,
+        `https://trukly-production.up.railway.app/api/notificaciones/${idNotificacion}/leida`,
         {
           method: "PUT",
         }

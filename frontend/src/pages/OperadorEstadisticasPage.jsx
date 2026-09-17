@@ -28,7 +28,7 @@ function OperadorEstadisticasPage() {
       setCargando(true);
       setError("");
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/operador/estadisticas",
+        "https://trukly-production.up.railway.app/api/operador/estadisticas",
         { method: "GET" }
       );
       if (!resultado) return;

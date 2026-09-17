@@ -22,7 +22,7 @@ function OperadorReportesPage() {
     try {
       setCargando(true);
       setError("");
-      const resultado = await fetchConToken("http://localhost:5000/api/reportes", { method: "GET" });
+      const resultado = await fetchConToken("https://trukly-production.up.railway.app/api/reportes", { method: "GET" });
       if (!resultado) return;
       const { respuesta, data } = resultado;
       if (!respuesta.ok) throw new Error(data.mensaje || "Error al cargar reportes");

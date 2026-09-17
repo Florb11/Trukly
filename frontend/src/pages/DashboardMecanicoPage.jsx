@@ -18,7 +18,7 @@ function DashboardMecanicoPage() {
       setError("");
 
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/mecanico/reportes",
+        "https://trukly-production.up.railway.app/api/mecanico/reportes",
         {
           method: "GET",
         }

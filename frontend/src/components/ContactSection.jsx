@@ -25,7 +25,7 @@ function ContactSection() {
     setEnviando(true);
 
     try {
-      const resultado = await fetch("http://localhost:5000/api/contacto", {
+      const resultado = await fetch("https://trukly-production.up.railway.app/api/contacto", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -23,7 +23,7 @@ function ChoferEstadisticasPage() {
       setCargando(true);
       setError("");
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/choferes/estadisticas",
+        "https://trukly-production.up.railway.app/api/choferes/estadisticas",
         { method: "GET" }
       );
       if (!resultado) return;

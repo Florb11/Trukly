@@ -21,7 +21,7 @@ function NotificationPromptCard({
         setError("");
 
         const resultado = await fetchConToken(
-          "http://localhost:5000/api/notificaciones",
+          "https://trukly-production.up.railway.app/api/notificaciones",
           { method: "GET" }
         );
 

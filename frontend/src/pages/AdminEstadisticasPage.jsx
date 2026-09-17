@@ -23,7 +23,7 @@ function AdminEstadisticasPage() {
       setError("");
 
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/admin/estadisticas",
+        "https://trukly-production.up.railway.app/api/admin/estadisticas",
         {
           method: "GET",
         }

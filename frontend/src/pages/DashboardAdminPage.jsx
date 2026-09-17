@@ -27,7 +27,7 @@ function DashboardAdminPage({ title = "Panel de administrador" }) {
       setErrorResumen("");
 
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/admin/dashboard/resumen",
+        "https://trukly-production.up.railway.app/api/admin/dashboard/resumen",
         {
           method: "GET",
         }
@@ -60,7 +60,7 @@ function DashboardAdminPage({ title = "Panel de administrador" }) {
       setErrorResumen("");
 
       const resultado = await fetchConToken(
-        `http://localhost:5000/api/admin/usuarios/${idUsuario}/activar`,
+        `https://trukly-production.up.railway.app/api/admin/usuarios/${idUsuario}/activar`,
         {
           method: "PUT",
         }

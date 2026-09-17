@@ -43,7 +43,7 @@ function RegistroPage() {
     const datosPerfil = { ...formulario };
     delete datosPerfil.password;
 
-    const respuesta = await fetch("http://localhost:5000/api/auth/registro-firebase", {
+    const respuesta = await fetch("https://trukly-production.up.railway.app/api/auth/registro-firebase", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -60,7 +60,7 @@ function AdminUsuariosPage() {
             setErrorUsuarios("");
 
             const resultado = await fetchConToken(
-                "http://localhost:5000/api/admin/usuarios",
+                "https://trukly-production.up.railway.app/api/admin/usuarios",
                 { method: "GET" }
             );
 
@@ -87,7 +87,7 @@ function AdminUsuariosPage() {
             setErrorUsuarios("");
 
             const resultado = await fetchConToken(
-                `http://localhost:5000/api/admin/usuarios/${idUsuario}/activar`,
+                `https://trukly-production.up.railway.app/api/admin/usuarios/${idUsuario}/activar`,
                 { method: "PUT" }
             );
 
@@ -117,7 +117,7 @@ function AdminUsuariosPage() {
             setErrorUsuarios("");
 
             const resultado = await fetchConToken(
-                `http://localhost:5000/api/admin/usuarios/${idUsuario}/desactivar`,
+                `https://trukly-production.up.railway.app/api/admin/usuarios/${idUsuario}/desactivar`,
                 { method: "PUT" }
             );
 
@@ -207,7 +207,7 @@ function AdminUsuariosPage() {
             setErrorEditar("");
 
             const resultado = await fetchConToken(
-                `http://localhost:5000/api/admin/usuarios/${usuarioEditando.id_usuario}`,
+                `https://trukly-production.up.railway.app/api/admin/usuarios/${usuarioEditando.id_usuario}`,
                 {
                     method: "PUT",
                     headers: {
@@ -285,7 +285,7 @@ function AdminUsuariosPage() {
             setErrorUsuarios("");
 
             const resultado = await fetchConToken(
-                "http://localhost:5000/api/admin/usuarios",
+                "https://trukly-production.up.railway.app/api/admin/usuarios",
                 {
                     method: "POST",
                     headers: {
@@ -317,7 +317,7 @@ function AdminUsuariosPage() {
             setErrorUsuarios("");
 
             const resultado = await fetchConToken(
-                `http://localhost:5000/api/admin/usuarios/${usuario.id_usuario}/preparar-acceso`,
+                `https://trukly-production.up.railway.app/api/admin/usuarios/${usuario.id_usuario}/preparar-acceso`,
                 { method: "POST" }
             );
 

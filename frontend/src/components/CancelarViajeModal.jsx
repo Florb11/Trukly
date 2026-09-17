@@ -14,7 +14,7 @@ function CancelarViajeModal({ viaje, onClose, onActualizado }) {
     setError("");
     try {
       const resultado = await fetchConToken(
-        `http://localhost:5000/api/operador/viajes/${viaje.id_viaje}/cancelar`,
+        `https://trukly-production.up.railway.app/api/operador/viajes/${viaje.id_viaje}/cancelar`,
         {
           method: "PUT",
           body: JSON.stringify({ motivo }),

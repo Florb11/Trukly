@@ -25,7 +25,7 @@ function AdminReportesPage() {
             setErrorReportes("");
 
             const resultado = await fetchConToken(
-                "http://localhost:5000/api/reportes",
+                "https://trukly-production.up.railway.app/api/reportes",
                 { method: "GET" }
             );
 
@@ -92,7 +92,7 @@ function AdminReportesPage() {
             setErrorReportes("");
 
             const resultado = await fetchConToken(
-                `http://localhost:5000/api/reportes/${reporteCambiandoEstado.id_reporte}/estado`,
+                `https://trukly-production.up.railway.app/api/reportes/${reporteCambiandoEstado.id_reporte}/estado`,
                 {
                     method: "PUT",
                     headers: {

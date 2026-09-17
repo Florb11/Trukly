@@ -245,7 +245,7 @@ function DashboardSidebar({ isOpen, onClose }) {
   const rol = usuario?.rol || "chofer";
   const menu = menusPorRol[rol] || menusPorRol.chofer;
 
-  const API_URL = "http://localhost:5000";
+  const API_URL = "https://trukly-production.up.railway.app";
 
   const fotoPerfil = usuario?.foto_perfil
     ? `${API_URL}${usuario.foto_perfil}`

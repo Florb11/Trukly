@@ -27,7 +27,7 @@ function AdminViajesPage() {
       setMensaje("");
 
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/admin/viajes",
+        "https://trukly-production.up.railway.app/api/admin/viajes",
         { method: "GET" }
       );
 
@@ -58,7 +58,7 @@ function AdminViajesPage() {
       setMensaje("");
 
       const resultado = await fetchConToken(
-        `http://localhost:5000/api/admin/viajes/${idViaje}`,
+        `https://trukly-production.up.railway.app/api/admin/viajes/${idViaje}`,
         { method: "GET" }
       );
 
@@ -101,7 +101,7 @@ function AdminViajesPage() {
       setMensaje("");
 
       const resultado = await fetchConToken(
-        `http://localhost:5000/api/admin/viajes/${viajeCancelar.id_viaje}/cancelar`,
+        `https://trukly-production.up.railway.app/api/admin/viajes/${viajeCancelar.id_viaje}/cancelar`,
         {
           method: "PUT",
           body: JSON.stringify({

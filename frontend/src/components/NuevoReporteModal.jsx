@@ -12,7 +12,7 @@ function NuevoReporteModal({
   const [camiones, setCamiones] = useState([]);
 
 useEffect(() => {
-    fetchConToken("http://localhost:5000/api/choferes/camiones")
+    fetchConToken("https://trukly-production.up.railway.app/api/choferes/camiones")
       .then(({ data }) => {
         console.log("respuesta camiones:", data);
         setCamiones(data.camiones || []);
