@@ -116,22 +116,36 @@
   padding: 14px;
   background: #1683bd;
   color: #ffffff;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   transition:
     transform 0.2s ease,
     background-color 0.2s ease;
+  box-shadow: 0 4px 0 #0f739b;
 }
 
 .contact-form button:hover {
   background: #0f6c9e;
+  box-shadow: 0 5px 0 #084e73;
   transform: translateY(-1px);
+}
+
+.contact-form button:active {
+  background: #0b587e;
+  box-shadow: 0 1px 0 #063a55;
+  transform: translateY(2px);
+}
+
+.contact-form button:focus-visible {
+  outline: 2px solid #1683bd;
+  outline-offset: 3px;
 }
 
 .contact-form button:disabled {
   cursor: not-allowed;
   opacity: 0.7;
   transform: none;
+  box-shadow: none;
 }
 
 .contact-message {

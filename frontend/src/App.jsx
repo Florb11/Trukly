@@ -40,6 +40,7 @@ import ChoferEstadisticasPage from "./pages/ChoferEstadisticasPage";
 import "./App.css";
 import "./styles/dashboard-unified.css";
 import "./styles/dashboard-themes.css";
+import "./styles/admin-dashboard-system.css";
 
 const themeStorageKey = (userId) => `trukly-dashboard-theme:${userId || "default"}`;
 

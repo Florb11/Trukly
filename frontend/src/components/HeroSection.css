@@ -64,7 +64,7 @@
   text-decoration: none;
   padding: 13px 24px;
   border-radius: 10px;
-  font-weight: 800;
+  font-weight: 600;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
@@ -74,19 +74,47 @@
 .hero-primary {
   background: #18a4d8;
   color: #ffffff;
-  box-shadow: 0 14px 30px rgba(24, 164, 216, 0.28);
+  box-shadow: 0 4px 0 #0f739b, 0 14px 30px rgba(24, 164, 216, 0.22);
 }
 
-.hero-primary:hover,
-.hero-secondary:hover {
+.hero-primary:hover {
   color: #ffffff;
+  background: #0f8fc1;
+  box-shadow: 0 5px 0 #0a6387, 0 16px 32px rgba(24, 164, 216, 0.26);
   transform: translateY(-2px);
+}
+
+.hero-primary:active {
+  background: #0b789f;
+  box-shadow: 0 1px 0 #07516d;
+  transform: translateY(2px);
 }
 
 .hero-secondary {
   border: 1px solid rgba(255, 255, 255, 0.28);
   color: #ffffff;
   background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px transparent;
+}
+
+.hero-secondary:hover {
+  color: #06111f;
+  background-color: #ffffff;
+  border-color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.hero-secondary:active {
+  color: #06111f;
+  background-color: #dcecf7;
+  border-color: #dcecf7;
+  transform: translateY(1px);
+}
+
+.hero-primary:focus-visible,
+.hero-secondary:focus-visible {
+  outline: 2px solid #9be7ff;
+  outline-offset: 4px;
 }
 
 .hero-stats {
