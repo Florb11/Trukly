@@ -21,10 +21,10 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
       setError("");
 
       const [resViajes, resStats] = await Promise.all([
-        fetchConToken("https://trukly-production.up.railway.app/api/operador/viajes", {
+        fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/viajes`, {
           method: "GET",
         }),
-        fetchConToken("https://trukly-production.up.railway.app/api/operador/estadisticas", {
+        fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/estadisticas`, {
           method: "GET",
         }),
       ]);

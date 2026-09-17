@@ -15,7 +15,7 @@ function NotificacionesPage() {
       setError("");
 
       const resultado = await fetchConToken(
-        "https://trukly-production.up.railway.app/api/notificaciones",
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/notificaciones`,
         {
           method: "GET",
         }
@@ -49,7 +49,7 @@ function NotificacionesPage() {
       setError("");
 
       const resultado = await fetchConToken(
-        `https://trukly-production.up.railway.app/api/notificaciones/${idNotificacion}/leida`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/notificaciones/${idNotificacion}/leida`,
         {
           method: "PUT",
         }

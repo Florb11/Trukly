@@ -65,7 +65,7 @@ function PerfilPage() {
       setCargando(true);
       setError("");
 
-      const resultado = await fetchConToken("https://trukly-production.up.railway.app/api/perfil", {
+      const resultado = await fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/perfil`, {
         method: "GET",
       });
 
@@ -126,7 +126,7 @@ function PerfilPage() {
       setMensaje("");
       setError("");
 
-      const resultado = await fetchConToken("https://trukly-production.up.railway.app/api/perfil", {
+      const resultado = await fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/perfil`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -163,7 +163,7 @@ function PerfilPage() {
       setError("");
 
       const resultado = await fetchConToken(
-        "https://trukly-production.up.railway.app/api/perfil/password",
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/perfil/password`,
         {
           method: "PUT",
           headers: {
@@ -216,7 +216,7 @@ function PerfilPage() {
 
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
-      const respuesta = await fetch("https://trukly-production.up.railway.app/api/perfil/foto", {
+      const respuesta = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/perfil/foto`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -253,7 +253,7 @@ function PerfilPage() {
   const obtenerFotoPerfil = () => {
     if (!perfil?.foto_perfil) return null;
 
-    return `https://trukly-production.up.railway.app${perfil.foto_perfil}`;
+    return `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${perfil.foto_perfil}`;
   };
 
   const esChofer = perfil?.rol === "chofer";

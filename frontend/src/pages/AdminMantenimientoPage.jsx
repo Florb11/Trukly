@@ -21,7 +21,7 @@ function AdminMantenimientoPage() {
       setError("");
 
       const resultado = await fetchConToken(
-        "https://trukly-production.up.railway.app/api/reportes",
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/reportes`,
         { method: "GET" }
       );
 

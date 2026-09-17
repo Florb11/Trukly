@@ -16,7 +16,7 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
       setCargandoViajes(true);
       setErrorViajes("");
 
-      const resultado = await fetchConToken("https://trukly-production.up.railway.app/api/choferes/mis-viajes", {
+      const resultado = await fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/choferes/mis-viajes`, {
         method: "GET",
       });
 
@@ -45,7 +45,7 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
     setAccionando(idViaje);
     try {
       const resultado = await fetchConToken(
-        `https://trukly-production.up.railway.app/api/choferes/viajes/${idViaje}/iniciar`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/choferes/viajes/${idViaje}/iniciar`,
         { method: "PUT" }
       );
       if (!resultado) return;
@@ -63,7 +63,7 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
     setAccionando(idViaje);
     try {
       const resultado = await fetchConToken(
-        `https://trukly-production.up.railway.app/api/choferes/viajes/${idViaje}/finalizar`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/choferes/viajes/${idViaje}/finalizar`,
         { method: "PUT" }
       );
       if (!resultado) return;

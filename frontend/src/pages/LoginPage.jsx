@@ -69,7 +69,7 @@ function LoginPage() {
   };
 
   const loginConBackendFirebase = async (firebaseToken) => {
-    const respuesta = await fetch("https://trukly-production.up.railway.app/api/auth/firebase-login", {
+    const respuesta = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/auth/firebase-login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -89,7 +89,7 @@ function LoginPage() {
   };
 
   const loginConBackendTradicional = async () => {
-    const respuesta = await fetch("https://trukly-production.up.railway.app/api/auth/login", {
+    const respuesta = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

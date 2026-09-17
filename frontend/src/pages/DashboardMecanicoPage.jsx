@@ -18,7 +18,7 @@ function DashboardMecanicoPage() {
       setError("");
 
       const resultado = await fetchConToken(
-        "https://trukly-production.up.railway.app/api/mecanico/reportes",
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/mecanico/reportes`,
         {
           method: "GET",
         }

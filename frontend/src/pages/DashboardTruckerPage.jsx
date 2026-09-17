@@ -21,7 +21,7 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
       setErrorViajes("");
 
       const resultado = await fetchConToken(
-        "https://trukly-production.up.railway.app/api/choferes/mis-viajes",
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/choferes/mis-viajes`,
         {
           method: "GET",
         },

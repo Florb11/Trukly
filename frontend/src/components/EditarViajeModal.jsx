@@ -28,7 +28,7 @@ function EditarViajeModal({ viaje, onClose, onActualizado }) {
     setError("");
     try {
       const resultado = await fetchConToken(
-        `https://trukly-production.up.railway.app/api/operador/viajes/${viaje.id_viaje}`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/viajes/${viaje.id_viaje}`,
         {
           method: "PUT",
           body: JSON.stringify({
