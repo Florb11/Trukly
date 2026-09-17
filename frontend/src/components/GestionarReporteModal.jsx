@@ -15,7 +15,7 @@ function GestionarReporteModal({ reporte, onClose, onActualizado }) {
 
   const cargarMecanicos = async () => {
     try {
-      const resultado = await fetchConToken("http://localhost:5000/api/operador/mecanicos", { method: "GET" });
+      const resultado = await fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/mecanicos`, { method: "GET" });
       if (!resultado) return;
       const { respuesta, data } = resultado;
       if (!respuesta.ok) return;
@@ -29,7 +29,7 @@ function GestionarReporteModal({ reporte, onClose, onActualizado }) {
     setError("");
     try {
       const resultado = await fetchConToken(
-        `http://localhost:5000/api/reportes/${reporte.id_reporte}/estado`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/reportes/${reporte.id_reporte}/estado`,
         {
           method: "PUT",
           body: JSON.stringify({ estado: nuevoEstado }),
@@ -52,7 +52,7 @@ function GestionarReporteModal({ reporte, onClose, onActualizado }) {
     setError("");
     try {
       const resultado = await fetchConToken(
-        `http://localhost:5000/api/reportes/${reporte.id_reporte}/asignar-mecanico`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/reportes/${reporte.id_reporte}/asignar-mecanico`,
         {
           method: "PUT",
           body: JSON.stringify({ Mecanico_Usuario_idUsuario: Number(idMecanico) }),

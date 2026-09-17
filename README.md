@@ -197,7 +197,7 @@ SECRET_KEY=clave_secreta_aqui
 python app.py
 ```
 
-El backend queda corriendo en: `http://localhost:5000`
+El backend queda corriendo en: `https://trukly-production.up.railway.app`
 
 ---
 

@@ -55,7 +55,7 @@ function OperadorViajesPage() {
   const cargarViajes = async () => {
     try {
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/operador/viajes",
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/viajes`,
         { method: "GET" },
       );
 
@@ -76,7 +76,7 @@ function OperadorViajesPage() {
   const cargarChoferes = async () => {
     try {
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/operador/choferes",
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/choferes`,
         { method: "GET" },
       );
 
@@ -98,7 +98,7 @@ function OperadorViajesPage() {
   const cargarCamiones = async () => {
     try {
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/operador/camiones",
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/camiones`,
         { method: "GET" },
       );
 
@@ -187,7 +187,7 @@ function OperadorViajesPage() {
 
     try {
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/operador/viajes",
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/viajes`,
         {
           method: "POST",
           body: JSON.stringify({

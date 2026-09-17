@@ -26,7 +26,7 @@ function MecanicoMantenimientoPage() {
       setError("");
 
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/mecanico/camiones-mantenimiento",
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/mecanico/camiones-mantenimiento`,
         {
           method: "GET",
         }
@@ -80,7 +80,7 @@ function MecanicoMantenimientoPage() {
       setDetalleMantenimiento(null);
 
       const resultado = await fetchConToken(
-        `http://localhost:5000/api/mecanico/camiones/${idCamion}/mantenimiento`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/mecanico/camiones/${idCamion}/mantenimiento`,
         {
           method: "GET",
         }

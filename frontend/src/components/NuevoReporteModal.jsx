@@ -12,7 +12,7 @@ function NuevoReporteModal({
   const [camiones, setCamiones] = useState([]);
 
 useEffect(() => {
-    fetchConToken("http://localhost:5000/api/choferes/camiones")
+    fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/choferes/camiones`)
       .then(({ data }) => {
         console.log("respuesta camiones:", data);
         setCamiones(data.camiones || []);

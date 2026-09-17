@@ -23,7 +23,7 @@ function MecanicoReportesPage() {
       setError("");
 
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/mecanico/reportes",
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/mecanico/reportes`,
         {
           method: "GET",
         }
@@ -116,7 +116,7 @@ function MecanicoReportesPage() {
       setError("");
 
       const resultado = await fetchConToken(
-        `http://localhost:5000/api/mecanico/reportes/${reporteSeleccionado.id_reporte}/resolver`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/mecanico/reportes/${reporteSeleccionado.id_reporte}/resolver`,
         {
           method: "PUT",
           headers: {

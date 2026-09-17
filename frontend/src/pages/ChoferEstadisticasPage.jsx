@@ -23,7 +23,7 @@ function ChoferEstadisticasPage() {
       setCargando(true);
       setError("");
       const resultado = await fetchConToken(
-        "http://localhost:5000/api/choferes/estadisticas",
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/choferes/estadisticas`,
         { method: "GET" }
       );
       if (!resultado) return;

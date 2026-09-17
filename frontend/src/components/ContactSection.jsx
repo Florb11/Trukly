@@ -25,7 +25,7 @@ function ContactSection() {
     setEnviando(true);
 
     try {
-      const resultado = await fetch("http://localhost:5000/api/contacto", {
+      const resultado = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/contacto`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
