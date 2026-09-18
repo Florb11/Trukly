@@ -157,6 +157,12 @@ class OperadorController:
             return jsonify({"mensaje": "El camión no existe"}), 400
         if camion_model.estado != Camion.ESTADO_DISPONIBLE:
             return jsonify({"mensaje": "El camión no está disponible"}), 400
+        viaje_camion_activo = ViajeModel.query.filter(
+            ViajeModel.Camion_id_camion == id_camion,
+            ViajeModel.estado.in_(ESTADOS_VIAJE_OCUPADO),
+        ).first()
+        if viaje_camion_activo:
+            return jsonify({"mensaje": "El camión ya tiene un viaje activo"}), 400
 
         # crea el viaje de dominio
         viaje = Viaje.crear_desde_datos(datos)
@@ -310,7 +316,14 @@ class OperadorController:
         try:
             consulta = CamionModel.query
             if request.args.get("disponibles") == "1":
-                consulta = consulta.filter_by(estado=Camion.ESTADO_DISPONIBLE)
+                consulta = consulta.filter(
+                    CamionModel.estado == Camion.ESTADO_DISPONIBLE,
+                    ~CamionModel.id_camion.in_(
+                        db.session.query(ViajeModel.Camion_id_camion).filter(
+                            ViajeModel.estado.in_(ESTADOS_VIAJE_OCUPADO)
+                        )
+                    ),
+                )
             camiones = consulta.all()
             return jsonify([c.to_dict() for c in camiones]), 200
         except Exception:
