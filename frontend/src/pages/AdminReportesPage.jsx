@@ -153,6 +153,7 @@ function AdminReportesPage() {
                 <div className="reportes-page__heading-text">
                     <span className="admin-page__label">Administración</span>
                     <h1>Reportes de falla</h1>
+                    <p>Revisá las fallas informadas y seguí el estado de cada reporte.</p>
                 </div>
                 <div className="reportes-page__heading-icon" aria-hidden="true">
                     <FaClipboardList />

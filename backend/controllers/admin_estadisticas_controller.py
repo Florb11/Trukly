@@ -1,4 +1,6 @@
-from flask import jsonify
+from datetime import date, datetime
+
+from flask import jsonify, request
 from sqlalchemy import case, func
 
 from db_instance import db
@@ -15,6 +17,25 @@ from utils.auth_decorators import admin_required
 #Consulta estadistica
 
 class AdminEstadisticasController:
+
+    @staticmethod
+    def _limites_mes(valor):
+        if not valor or len(valor) != 7:
+            raise ValueError("El mes debe tener el formato AAAA-MM")
+        try:
+            inicio = datetime.strptime(valor, "%Y-%m").date()
+        except ValueError as error:
+            raise ValueError("El mes debe tener el formato AAAA-MM") from error
+        if inicio.strftime("%Y-%m") != valor:
+            raise ValueError("El mes debe tener el formato AAAA-MM")
+        if inicio.year == 9999 and inicio.month == 12:
+            raise ValueError("El mes está fuera de rango")
+        fin = (
+            date(inicio.year + 1, 1, 1)
+            if inicio.month == 12
+            else date(inicio.year, inicio.month + 1, 1)
+        )
+        return inicio, fin
 
     @staticmethod
     def _convertir_modelos_a_diccionario(modelos):
@@ -130,32 +151,40 @@ class AdminEstadisticasController:
         }
 
     @staticmethod
-    def _obtener_resumen():
-        total_viajes = ViajeModel.query.count()
+    def _obtener_resumen(inicio, fin):
+        viajes_mes = ViajeModel.query.filter(
+            ViajeModel.fecha_salida >= inicio,
+            ViajeModel.fecha_salida < fin,
+        )
+        reportes_mes = ReporteModel.query.filter(
+            ReporteModel.fecha_hora >= inicio,
+            ReporteModel.fecha_hora < fin,
+        )
+        total_viajes = viajes_mes.count()
 
-        viajes_finalizados = ViajeModel.query.filter_by(
+        viajes_finalizados = viajes_mes.filter_by(
             estado=Viaje.ESTADO_FINALIZADO
         ).count()
 
-        viajes_cancelados = ViajeModel.query.filter_by(
+        viajes_cancelados = viajes_mes.filter_by(
             estado=Viaje.ESTADO_CANCELADO
         ).count()
 
-        viajes_en_curso = ViajeModel.query.filter(
+        viajes_en_curso = viajes_mes.filter(
             ViajeModel.estado.in_(
                 Viaje.ESTADOS_EN_CURSO
             )
         ).count()
 
-        total_reportes = ReporteModel.query.count()
+        total_reportes = reportes_mes.count()
 
-        reportes_activos = ReporteModel.query.filter(
+        reportes_activos = reportes_mes.filter(
             ReporteModel.estado.in_(
                 ReporteFalla.ESTADOS_ACTIVOS
             )
         ).count()
 
-        reportes_resueltos = ReporteModel.query.filter_by(
+        reportes_resueltos = reportes_mes.filter_by(
             estado=ReporteFalla.ESTADO_RESUELTO
         ).count()
 
@@ -170,7 +199,7 @@ class AdminEstadisticasController:
         )
 
     @staticmethod
-    def _obtener_ranking_viajes_por_usuario(columna_usuario):
+    def _obtener_ranking_viajes_por_usuario(columna_usuario, inicio, fin):
         viajes_db = (
             db.session.query(
                 columna_usuario.label("id_usuario"),
@@ -204,6 +233,7 @@ class AdminEstadisticasController:
                 UsuarioModel,
                 UsuarioModel.id_usuario == columna_usuario
             )
+            .filter(ViajeModel.fecha_salida >= inicio, ViajeModel.fecha_salida < fin)
             .group_by(
                 columna_usuario,
                 UsuarioModel.nombre,
@@ -219,7 +249,7 @@ class AdminEstadisticasController:
         return AdminEstadisticasController._armar_ranking_viajes(viajes_db)
 
     @staticmethod
-    def _obtener_choferes_mas_reportes():
+    def _obtener_choferes_mas_reportes(inicio, fin):
         reportes_db = (
             db.session.query(
                 ReporteModel
@@ -246,6 +276,7 @@ class AdminEstadisticasController:
                 UsuarioModel.id_usuario
                 == ReporteModel.Chofer_Usuario_idUsuario
             )
+            .filter(ReporteModel.fecha_hora >= inicio, ReporteModel.fecha_hora < fin)
             .group_by(
                 ReporteModel.Chofer_Usuario_idUsuario,
                 UsuarioModel.nombre,
@@ -264,7 +295,7 @@ class AdminEstadisticasController:
         )
 
     @staticmethod
-    def _obtener_mecanicos_mas_reparaciones():
+    def _obtener_mecanicos_mas_reparaciones(inicio, fin):
         reparaciones_db = (
             db.session.query(
                 ReporteModel
@@ -306,6 +337,7 @@ class AdminEstadisticasController:
                 .Mecanico_Usuario_idUsuario
                 .isnot(None)
             )
+            .filter(ReporteModel.fecha_hora >= inicio, ReporteModel.fecha_hora < fin)
             .group_by(
                 ReporteModel.Mecanico_Usuario_idUsuario,
                 UsuarioModel.nombre,
@@ -323,7 +355,7 @@ class AdminEstadisticasController:
         )
 
     @staticmethod
-    def _obtener_camiones_mas_reportes():
+    def _obtener_camiones_mas_reportes(inicio, fin):
         reportes_db = (
             db.session.query(
                 ReporteModel.Camion_id_camion.label(
@@ -341,6 +373,7 @@ class AdminEstadisticasController:
                 CamionModel.id_camion
                 == ReporteModel.Camion_id_camion
             )
+            .filter(ReporteModel.fecha_hora >= inicio, ReporteModel.fecha_hora < fin)
             .group_by(
                 ReporteModel.Camion_id_camion,
                 CamionModel.matricula,
@@ -360,18 +393,18 @@ class AdminEstadisticasController:
         )
 
     @staticmethod
-    def _obtener_ultimos_movimientos():
+    def _obtener_ultimos_movimientos(inicio, fin):
         ultimos_viajes = (
             ViajeModel.query
-            .order_by(ViajeModel.id_viaje.desc())
-            .limit(10)
+            .filter(ViajeModel.fecha_salida >= inicio, ViajeModel.fecha_salida < fin)
+            .order_by(ViajeModel.fecha_salida.desc(), ViajeModel.id_viaje.desc())
             .all()
         )
 
         ultimos_reportes = (
             ReporteModel.query
-            .order_by(ReporteModel.fecha_hora.desc())
-            .limit(10)
+            .filter(ReporteModel.fecha_hora >= inicio, ReporteModel.fecha_hora < fin)
+            .order_by(ReporteModel.fecha_hora.desc(), ReporteModel.id_reporte.desc())
             .all()
         )
 
@@ -380,38 +413,48 @@ class AdminEstadisticasController:
     @staticmethod
     @admin_required
     def obtener_estadisticas():
-        resumen = AdminEstadisticasController._obtener_resumen()
+        mes = request.args.get("mes", date.today().strftime("%Y-%m"))
+        try:
+            inicio, fin = AdminEstadisticasController._limites_mes(mes)
+        except ValueError as error:
+            return jsonify({"mensaje": str(error)}), 400
+
+        resumen = AdminEstadisticasController._obtener_resumen(inicio, fin)
 
         choferes_mas_viajes = (
             AdminEstadisticasController
             ._obtener_ranking_viajes_por_usuario(
-                ViajeModel.Chofer_Usuario_idUsuario
+                ViajeModel.Chofer_Usuario_idUsuario,
+                inicio,
+                fin,
             )
         )
 
         operadores_mas_viajes = (
             AdminEstadisticasController
             ._obtener_ranking_viajes_por_usuario(
-                ViajeModel.OperadorLogistico_Usuario_idUsuario
+                ViajeModel.OperadorLogistico_Usuario_idUsuario,
+                inicio,
+                fin,
             )
         )
 
         choferes_mas_reportes = (
-            AdminEstadisticasController._obtener_choferes_mas_reportes()
+            AdminEstadisticasController._obtener_choferes_mas_reportes(inicio, fin)
         )
 
         mecanicos_mas_reparaciones = (
             AdminEstadisticasController
-            ._obtener_mecanicos_mas_reparaciones()
+            ._obtener_mecanicos_mas_reparaciones(inicio, fin)
         )
 
         camiones_mas_reportes = (
-            AdminEstadisticasController._obtener_camiones_mas_reportes()
+            AdminEstadisticasController._obtener_camiones_mas_reportes(inicio, fin)
         )
 
         ultimos_viajes_db, ultimos_reportes_db = (
             AdminEstadisticasController
-            ._obtener_ultimos_movimientos()
+            ._obtener_ultimos_movimientos(inicio, fin)
         )
         ultimos_viajes = (
             AdminEstadisticasController._convertir_modelos_a_diccionario(
@@ -434,5 +477,6 @@ class AdminEstadisticasController:
             ultimos_viajes=ultimos_viajes,
             ultimos_reportes=ultimos_reportes,
         )
+        respuesta["mes"] = mes
 
         return jsonify(respuesta), 200

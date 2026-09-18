@@ -81,22 +81,9 @@
   font-size: 2rem;
 }
 
-.admin-viajes-stat__icon {
-  position: absolute;
-  top: 22px;
-  right: 20px;
-  width: 30px;
-  height: 30px;
-  color: #6867e9;
-}
-
-.admin-viajes-stat:nth-child(2) .admin-viajes-stat__icon {
-  color: #14a79c;
-}
-
-.admin-viajes-stat:nth-child(3) .admin-viajes-stat__icon {
-  color: #dc6a61;
-}
+.admin-viajes-stat--total { --stat-accent: #7068e8; }
+.admin-viajes-stat--active { --stat-accent: #29b7ad; }
+.admin-viajes-stat--cancelled { --stat-accent: #dc6a61; }
 
 .admin-viajes-card {
   background: #ffffff;

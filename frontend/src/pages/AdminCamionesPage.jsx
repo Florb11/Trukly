@@ -363,6 +363,7 @@ function AdminCamionesPage() {
                 <div className="camiones-page__heading-text">
                     <span>Administración</span>
                     <h1>Gestión de camiones</h1>
+                    <p>Consultá la flota y mantené actualizado el estado de cada camión.</p>
                 </div>
 
                 <div className="dashboard-heading-actions">
