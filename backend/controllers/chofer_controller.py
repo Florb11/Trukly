@@ -1,6 +1,8 @@
 import datetime
 
 from flask import g, jsonify, request
+from src.Camion import Camion
+from src.ReporteFalla import ReporteFalla
 from src.Viaje import Viaje
 from db_instance import db
 from utils.app_logger import get_app_logger
@@ -221,9 +223,25 @@ class ChoferController:
 
         viaje_model.estado = viaje.estado
         if not viaje_model.fecha_llegada:
-            viaje_model.fecha_llegada = datetime.now().date()
+            viaje_model.fecha_llegada = datetime.datetime.now().date()
 
         try:
+            camion_model = CamionModel.query.get(viaje_model.Camion_id_camion)
+            if camion_model is None:
+                db.session.rollback()
+                return jsonify({"mensaje": "Camión del viaje no encontrado"}), 404
+
+            if camion_model.estado == Camion.ESTADO_EN_VIAJE:
+                tiene_reportes_activos = ReporteModel.query.filter(
+                    ReporteModel.Camion_id_camion == camion_model.id_camion,
+                    ReporteModel.estado.in_(ReporteFalla.ESTADOS_ACTIVOS),
+                ).first() is not None
+                camion_model.estado = (
+                    Camion.ESTADO_EN_MANTENIMIENTO
+                    if tiene_reportes_activos
+                    else Camion.ESTADO_DISPONIBLE
+                )
+
             db.session.commit()
             return jsonify({"mensaje": "Viaje finalizado correctamente", "viaje": viaje_model.to_dict()}), 200
         except Exception:

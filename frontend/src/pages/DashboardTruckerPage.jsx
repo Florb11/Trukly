@@ -6,8 +6,10 @@ import {
   FaTruck,
 } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
+import DashboardBarChart from "../components/dashboard/DashboardBarChart";
 import "./DashboardTruckerPage.css";
 import { fetchConToken } from "../utils/fetchConToken";
+import { buildWeeklyActivityFromItems } from "../utils/activityChart";
 
 function DashboardTruckerPage({ title = "Panel del chofer" }) {
   const { usuario } = useAuth();
@@ -96,23 +98,10 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
     },
   ];
 
-  const getActividadViajes = () => {
-    const dias = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - (6 - i));
-      return d.toISOString().slice(0, 10);
-    });
-
-    const conteos = dias.map(
-      (dia) =>
-        viajes.filter((v) => v.fecha_salida?.slice(0, 10) === dia).length,
-    );
-
-    const maximo = Math.max(...conteos, 1);
-    return conteos.map((v) =>
-      v === 0 ? "8%" : `${Math.round((v / maximo) * 100)}%`,
-    );
-  };
+  const actividadViajes = buildWeeklyActivityFromItems(
+    viajes,
+    (viaje) => viaje.fecha_salida,
+  );
 
   const ultimosViajes = [...viajes]
     .sort((a, b) => new Date(b.fecha_salida) - new Date(a.fecha_salida))
@@ -157,11 +146,7 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
                 <h2>Actividad de viajes</h2>
                 <span>Últimos 7 días</span>
               </div>
-              <div className="admin-chart">
-                {getActividadViajes().map((altura, index) => (
-                  <span key={index} style={{ height: altura }} />
-                ))}
-              </div>
+              <DashboardBarChart data={actividadViajes} />
             </article>
 
             <article className="admin-card">

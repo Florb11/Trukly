@@ -11,7 +11,7 @@
 }
 
 .viaje-modal {
-  width: min(640px, 100%);
+  width: min(800px, 100%);
   max-height: 90vh;
   overflow-y: auto;
   background: #ffffff;
@@ -89,6 +89,103 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.viaje-modal__place-field {
+  position: relative;
+  min-width: 0;
+}
+
+.viaje-modal__suggestions {
+  position: absolute;
+  z-index: 1000;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid #dceaf3;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(11, 45, 77, 0.16);
+}
+
+.viaje-modal__suggestions button {
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #0b2d4d;
+  text-align: left;
+  cursor: pointer;
+}
+
+.viaje-modal__suggestions button:hover,
+.viaje-modal__suggestions button:focus-visible {
+  background: #e8f4fd;
+}
+
+.viaje-modal__place-status,
+.viaje-modal__route-status {
+  color: #527086;
+  font-size: 12px;
+}
+
+.viaje-modal__place-status--error,
+.viaje-modal__route-status--error {
+  color: #991b1b;
+}
+
+.viaje-modal__route {
+  min-width: 0;
+}
+
+.viaje-modal__route-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.viaje-modal__map-mode {
+  display: flex;
+  border: 1px solid #dceaf3;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.viaje-modal__map-mode button {
+  border: 0;
+  background: #fff;
+  color: #527086;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.viaje-modal__map-mode button.is-active {
+  background: #1683bd;
+  color: #fff;
+}
+
+.viaje-modal__map {
+  height: 280px;
+  width: 100%;
+  border: 1px solid #dceaf3;
+  border-radius: 6px;
+  z-index: 0;
+}
+
+.viaje-modal__route-status {
+  margin: 6px 0 0;
 }
 
 .viaje-modal__field label {
@@ -202,4 +299,10 @@
     width: 100%;
     text-align: center;
   }
+}
+
+.viaje-modal__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
 }

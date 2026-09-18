@@ -6,6 +6,7 @@ import CrearViajeModal from "../components/CrearViajeModal";
 import { fetchConToken } from "../utils/fetchConToken";
 import EditarViajeModal from "../components/EditarViajeModal";
 import CancelarViajeModal from "../components/CancelarViajeModal";
+import { getTruckRoute, hasGeoapifyKey, reversePlace } from "../utils/geoapify";
 
 const camposVaciosCrear = {
   origen: "",
@@ -47,12 +48,43 @@ function OperadorViajesPage() {
 
   const [choferes, setChoferes] = useState([]);
   const [camiones, setCamiones] = useState([]);
+  const [cargandoRecursos, setCargandoRecursos] = useState(false);
+  const [errorRecursos, setErrorRecursos] = useState("");
+  const [lugares, setLugares] = useState({ origen: null, destino: null });
+  const [ruta, setRuta] = useState(null);
+  const [cargandoRuta, setCargandoRuta] = useState(false);
+  const [errorRuta, setErrorRuta] = useState("");
+  const [puntoMapa, setPuntoMapa] = useState("origen");
+  const [cargandoLugarMapa, setCargandoLugarMapa] = useState(false);
+  const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
     cargarViajes();
   }, []);
 
-  const cargarViajes = async () => {
+  useEffect(() => {
+    if (!lugares.origen || !lugares.destino) return undefined;
+
+    const controller = new AbortController();
+    const calcular = async () => {
+      try {
+        setCargandoRuta(true);
+        setErrorRuta("");
+        const resultado = await getTruckRoute(lugares.origen, lugares.destino, controller.signal);
+        if (controller.signal.aborted) return;
+        setRuta(resultado.feature);
+        setForm((prev) => ({ ...prev, recorrido: String(resultado.kilometers) }));
+      } catch (error) {
+        if (error.name !== "AbortError") setErrorRuta(error.message);
+      } finally {
+        if (!controller.signal.aborted) setCargandoRuta(false);
+      }
+    };
+    calcular();
+    return () => controller.abort();
+  }, [lugares.origen, lugares.destino]);
+
+  async function cargarViajes() {
     try {
       const resultado = await fetchConToken(
         `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/viajes`,
@@ -76,7 +108,7 @@ function OperadorViajesPage() {
   const cargarChoferes = async () => {
     try {
       const resultado = await fetchConToken(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/choferes`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/choferes?disponibles=1`,
         { method: "GET" },
       );
 
@@ -90,15 +122,15 @@ function OperadorViajesPage() {
 
       setChoferes(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error cargando choferes:", error);
       setChoferes([]);
+      throw error;
     }
   };
 
   const cargarCamiones = async () => {
     try {
       const resultado = await fetchConToken(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/camiones`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/camiones?disponibles=1`,
         { method: "GET" },
       );
 
@@ -112,8 +144,8 @@ function OperadorViajesPage() {
 
       setCamiones(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error cargando camiones:", error);
       setCamiones([]);
+      throw error;
     }
   };
 
@@ -152,9 +184,21 @@ function OperadorViajesPage() {
   const abrirCrear = () => {
     setForm(camposVaciosCrear);
     setErrorForm("");
+    setLugares({ origen: null, destino: null });
+    setRuta(null);
+    setErrorRuta("");
+    setPuntoMapa("origen");
+    setErrorRecursos("");
+    setChoferes([]);
+    setCamiones([]);
+    setCargandoRecursos(true);
     setModalCrear(true);
-    cargarChoferes();
-    cargarCamiones();
+    Promise.allSettled([cargarChoferes(), cargarCamiones()]).then((resultados) => {
+      if (resultados.some((resultado) => resultado.status === "rejected")) {
+        setErrorRecursos("No se pudieron cargar los recursos disponibles.");
+      }
+      setCargandoRecursos(false);
+    });
   };
 
   const cerrarCrear = () => {
@@ -165,10 +209,43 @@ function OperadorViajesPage() {
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  const cambiarLugar = (campo, texto) => {
+    setForm((prev) => ({ ...prev, [campo]: texto, recorrido: "" }));
+    setLugares((prev) => ({ ...prev, [campo]: null }));
+    setRuta(null);
+    setErrorRuta("");
+  };
+
+  const seleccionarLugar = (campo, lugar) => {
+    setForm((prev) => ({ ...prev, [campo]: lugar.label, recorrido: "" }));
+    setLugares((prev) => ({ ...prev, [campo]: lugar }));
+    setRuta(null);
+    setErrorRuta("");
+  };
+
+  const elegirEnMapa = async ({ lat, lng }) => {
+    if (!hasGeoapifyKey || cargandoLugarMapa) return;
+    try {
+      setCargandoLugarMapa(true);
+      setErrorRuta("");
+      const label = await reversePlace(lat, lng);
+      seleccionarLugar(puntoMapa, { label, lat, lon: lng });
+    } catch (error) {
+      setErrorRuta(error.message);
+    } finally {
+      setCargandoLugarMapa(false);
+    }
   };
 
   const crearViaje = async (e) => {
     e.preventDefault();
+
+    if (!lugares.origen || !lugares.destino || !ruta || cargandoRuta || cargandoLugarMapa) {
+      setErrorForm("Elegí dos ubicaciones y esperá a que se calcule la ruta.");
+      return;
+    }
 
     const requeridos = [
       "origen",
@@ -186,6 +263,7 @@ function OperadorViajesPage() {
     }
 
     try {
+      setGuardando(true);
       const resultado = await fetchConToken(
         `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/viajes`,
         {
@@ -193,6 +271,10 @@ function OperadorViajesPage() {
           body: JSON.stringify({
             origen: form.origen,
             destino: form.destino,
+            origen_lat: lugares.origen.lat,
+            origen_lon: lugares.origen.lon,
+            destino_lat: lugares.destino.lat,
+            destino_lon: lugares.destino.lon,
             fecha_salida: form.fecha_salida,
             fecha_llegada: form.fecha_llegada || null,
             Chofer_Usuario_idUsuario: Number(form.Chofer_Usuario_idUsuario),
@@ -217,6 +299,8 @@ function OperadorViajesPage() {
       setTimeout(() => setMensajeOk(""), 3500);
     } catch (error) {
       setErrorForm(error.message);
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -397,6 +481,20 @@ function OperadorViajesPage() {
         <CrearViajeModal
           form={form}
           error={errorForm}
+          errorRecursos={errorRecursos}
+          cargandoRecursos={cargandoRecursos}
+          geoapifyConfigurado={hasGeoapifyKey}
+          lugares={lugares}
+          ruta={ruta}
+          cargandoRuta={cargandoRuta}
+          cargandoLugarMapa={cargandoLugarMapa}
+          errorRuta={errorRuta}
+          puntoMapa={puntoMapa}
+          onPuntoMapaChange={setPuntoMapa}
+          onLugarChange={cambiarLugar}
+          onLugarSelect={seleccionarLugar}
+          onMapPick={elegirEnMapa}
+          guardando={guardando}
           onChange={handleFormChange}
           onSubmit={crearViaje}
           onClose={cerrarCrear}

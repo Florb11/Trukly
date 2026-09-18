@@ -14,6 +14,7 @@ from src.Usuario import Usuario
 from src.Viaje import Viaje
 
 from services.auth_service import AuthService
+from services.camion_disponibilidad_service import actualizar_camion_tras_cancelacion
 from utils.auth_decorators import roles_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
@@ -478,6 +479,7 @@ class ViajeController:
         ViajeController.actualizar_modelo_viaje(viaje_model, viaje)
 
         try:
+            actualizar_camion_tras_cancelacion(viaje_model)
             db.session.commit()
         except Exception:
             db.session.rollback()
