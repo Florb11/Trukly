@@ -1,9 +1,12 @@
+import math
+
 from flask import g, jsonify, request
 from models.mecanico_model import MecanicoModel
 from db_instance import db
 from utils.app_logger import get_app_logger
 
 from src.Camion import Camion
+from src.Usuario import Usuario
 from src.Viaje import Viaje
 from models.chofer_model import ChoferModel
 from models.camion_model import CamionModel
@@ -14,14 +17,37 @@ from models.chofer_model import ChoferModel
 from models.camion_model import CamionModel
 from utils.input_sanitizer import InputSanitizer
 from utils.auth_decorators import operador_required
+from services.camion_disponibilidad_service import actualizar_camion_tras_cancelacion
 
 from models.usuario_model import UsuarioModel
 from src.Viaje import Viaje
 
 logger = get_app_logger()
 
+ESTADOS_VIAJE_OCUPADO = (
+    Viaje.ESTADO_PENDIENTE,
+    Viaje.ESTADO_ACEPTADO,
+    Viaje.ESTADO_EN_CURSO,
+)
+
 
 class OperadorController:
+
+    @staticmethod
+    def _ubicaciones_validas(datos):
+        for prefijo in ("origen", "destino"):
+            lat_key = f"{prefijo}_lat"
+            lon_key = f"{prefijo}_lon"
+            if lat_key not in datos and lon_key not in datos:
+                continue
+            lat = datos.get(lat_key)
+            lon = datos.get(lon_key)
+            if lat is None or lon is None or not (
+                math.isfinite(lat) and math.isfinite(lon)
+                and -90 <= lat <= 90 and -180 <= lon <= 180
+            ):
+                return False
+        return True
 
     @staticmethod
     def listar_operadores():
@@ -83,7 +109,7 @@ class OperadorController:
             request.get_json(silent=True) or {},
             campos_texto=["origen", "destino", "observaciones"],
             campos_enteros=["Chofer_Usuario_idUsuario", "Camion_id_camion"],
-            campos_decimales=["recorrido"],
+            campos_decimales=["recorrido", "origen_lat", "origen_lon", "destino_lat", "destino_lon"],
         )
 
         origen = datos.get("origen")
@@ -102,6 +128,11 @@ class OperadorController:
         ):
             return jsonify({"mensaje": "Faltan campos obligatorios"}), 400
 
+        if len(origen) > 255 or len(destino) > 255:
+            return jsonify({"mensaje": "La dirección supera los 255 caracteres"}), 400
+        if not OperadorController._ubicaciones_validas(datos):
+            return jsonify({"mensaje": "Coordenadas de origen o destino inválidas"}), 400
+
         valido, error = Viaje.validar_datos_viaje(datos)
         if not valido:
             return jsonify({"mensaje": error}), 400
@@ -110,9 +141,22 @@ class OperadorController:
         if not chofer_model:
             return jsonify({"mensaje": "El chofer no existe"}), 400
 
+        usuario_chofer = UsuarioModel.query.get(id_chofer)
+        if not usuario_chofer or usuario_chofer.estado != Usuario.ESTADO_ACTIVO:
+            return jsonify({"mensaje": "El chofer no está disponible"}), 400
+
+        viaje_chofer_activo = ViajeModel.query.filter(
+            ViajeModel.Chofer_Usuario_idUsuario == id_chofer,
+            ViajeModel.estado.in_(ESTADOS_VIAJE_OCUPADO),
+        ).first()
+        if viaje_chofer_activo:
+            return jsonify({"mensaje": "El chofer ya tiene un viaje activo"}), 400
+
         camion_model = CamionModel.query.get(id_camion)
         if not camion_model:
             return jsonify({"mensaje": "El camión no existe"}), 400
+        if camion_model.estado != Camion.ESTADO_DISPONIBLE:
+            return jsonify({"mensaje": "El camión no está disponible"}), 400
 
         # crea el viaje de dominio
         viaje = Viaje.crear_desde_datos(datos)
@@ -137,6 +181,10 @@ class OperadorController:
                 fecha_llegada=fecha_llegada,
                 origen=origen,
                 destino=destino,
+                origen_lat=datos.get("origen_lat"),
+                origen_lon=datos.get("origen_lon"),
+                destino_lat=datos.get("destino_lat"),
+                destino_lon=datos.get("destino_lon"),
                 estado=viaje.estado,
                 observaciones=datos.get("observaciones"),
                 recorrido=datos.get("recorrido", 0),
@@ -183,6 +231,7 @@ class OperadorController:
         try:
             viaje_model.estado = viaje.estado
             viaje_model.observaciones = viaje.observaciones
+            actualizar_camion_tras_cancelacion(viaje_model)
             db.session.commit()
             return jsonify({"mensaje": "Viaje cancelado correctamente"}), 200
 
@@ -201,8 +250,13 @@ class OperadorController:
             request.get_json(silent=True) or {},
             campos_texto=["origen", "destino", "observaciones"],
             campos_enteros=["Chofer_Usuario_idUsuario", "Camion_id_camion"],
-            campos_decimales=["recorrido"],
+            campos_decimales=["recorrido", "origen_lat", "origen_lon", "destino_lat", "destino_lon"],
         )
+
+        if not OperadorController._ubicaciones_validas(datos):
+            return jsonify({"mensaje": "Coordenadas de origen o destino inválidas"}), 400
+        if any(len(datos.get(campo) or "") > 255 for campo in ("origen", "destino")):
+            return jsonify({"mensaje": "La dirección supera los 255 caracteres"}), 400
 
         viaje_model = ViajeModel.query.get(id_viaje)
         if viaje_model is None:
@@ -228,6 +282,11 @@ class OperadorController:
         if not editado:
             return jsonify({"mensaje": mensaje_error}), 400
 
+        for prefijo in ("origen", "destino"):
+            if datos.get(prefijo) != getattr(viaje_model, prefijo):
+                setattr(viaje_model, f"{prefijo}_lat", datos.get(f"{prefijo}_lat"))
+                setattr(viaje_model, f"{prefijo}_lon", datos.get(f"{prefijo}_lon"))
+
         viaje_model.origen = viaje.origen
         viaje_model.destino = viaje.destino
         viaje_model.fecha_salida = viaje.fecha_salida
@@ -249,7 +308,10 @@ class OperadorController:
     @operador_required
     def listar_camiones():
         try:
-            camiones = CamionModel.query.all()
+            consulta = CamionModel.query
+            if request.args.get("disponibles") == "1":
+                consulta = consulta.filter_by(estado=Camion.ESTADO_DISPONIBLE)
+            camiones = consulta.all()
             return jsonify([c.to_dict() for c in camiones]), 200
         except Exception:
             logger.exception("Error al listar camiones")
@@ -259,14 +321,23 @@ class OperadorController:
     @operador_required
     def listar_choferes():
         try:
+            solo_disponibles = request.args.get("disponibles") == "1"
             choferes = (
                 db.session.query(ChoferModel, UsuarioModel)
                 .join(
                     UsuarioModel,
                     ChoferModel.Usuario_idUsuario == UsuarioModel.id_usuario,
                 )
-                .all()
             )
+            if solo_disponibles:
+                choferes = choferes.filter(
+                    UsuarioModel.estado == Usuario.ESTADO_ACTIVO,
+                    ~ChoferModel.Usuario_idUsuario.in_(
+                        db.session.query(ViajeModel.Chofer_Usuario_idUsuario)
+                        .filter(ViajeModel.estado.in_(ESTADOS_VIAJE_OCUPADO))
+                    ),
+                )
+            choferes = choferes.all()
 
             resultado = []
             for chofer, usuario in choferes:

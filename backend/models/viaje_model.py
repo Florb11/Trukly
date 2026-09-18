@@ -27,8 +27,12 @@ class ViajeModel(db.Model):
     fecha_salida = db.Column(db.Date, nullable=False)
     fecha_llegada = db.Column(db.Date, nullable=True)
 
-    origen = db.Column(db.String(45), nullable=False)
-    destino = db.Column(db.String(45), nullable=False)
+    origen = db.Column(db.String(255), nullable=False)
+    destino = db.Column(db.String(255), nullable=False)
+    origen_lat = db.Column(db.Float, nullable=True)
+    origen_lon = db.Column(db.Float, nullable=True)
+    destino_lat = db.Column(db.Float, nullable=True)
+    destino_lon = db.Column(db.Float, nullable=True)
 
     estado = db.Column(db.String(45), nullable=False)
     observaciones = db.Column(db.String(200), nullable=True)
@@ -46,6 +50,10 @@ class ViajeModel(db.Model):
             "fecha_llegada": self.fecha_llegada.isoformat() if self.fecha_llegada else None,
             "origen": self.origen,
             "destino": self.destino,
+            "origen_lat": self.origen_lat,
+            "origen_lon": self.origen_lon,
+            "destino_lat": self.destino_lat,
+            "destino_lon": self.destino_lon,
             "estado": self.estado,
             "observaciones": self.observaciones,
             "recorrido": self.recorrido,

@@ -1,5 +1,18 @@
 .dashboard-bar-chart {
   padding: 22px 20px 18px;
+  position: relative;
+}
+
+.dashboard-bar-chart__empty {
+  position: absolute;
+  top: 42%;
+  left: 0;
+  right: 0;
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+  pointer-events: none;
 }
 
 .dashboard-bar-chart__plot {
@@ -35,9 +48,23 @@
 
 .dashboard-bar-chart__bar {
   width: min(100%, 44px);
-  min-height: 6px;
   border-radius: 6px 6px 0 0;
   background: #6d5dfc;
+  transform-origin: bottom;
+  animation: dashboard-bar-enter 450ms ease-out both;
+  transition: height 450ms ease;
+}
+
+@keyframes dashboard-bar-enter {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-bar-chart__bar {
+    animation: none;
+    transition: none;
+  }
 }
 
 .dashboard-bar-chart__label {

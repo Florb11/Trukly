@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { FaClipboardList, FaClock, FaHome, FaRoute, FaCheckCircle } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
+import DashboardBarChart from "../components/dashboard/DashboardBarChart";
 import "./DashboardOperatorPage.css";
 import { fetchConToken } from "../utils/fetchConToken";
+import { buildWeeklyActivityFromItems } from "../utils/activityChart";
 
 function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
   const { usuario } = useAuth();
@@ -105,6 +107,11 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
     return `chofer-badge chofer-badge--${e}`;
   };
 
+  const actividadSemanal = buildWeeklyActivityFromItems(
+    viajes,
+    (viaje) => viaje.fecha_salida,
+  );
+
   return (
     <section className="operator-page">
       <div className="operator-page__header">
@@ -144,37 +151,7 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
                 <h2>Actividad semanal</h2>
                 <span>Últimos 7 días</span>
               </div>
-              <div className="operator-chart">
-                <div className="operator-chart__bars">
-                  {(() => {
-                    const dias = Array.from({ length: 7 }, (_, i) => {
-                      const d = new Date();
-                      d.setDate(d.getDate() - (6 - i));
-                      return d.toISOString().slice(0, 10);
-                    });
-                    const conteos = dias.map(
-                      (dia) =>
-                        viajes.filter(
-                          (v) => v.fecha_salida?.slice(0, 10) === dia,
-                        ).length,
-                    );
-                    const maximo = Math.max(...conteos, 1);
-                    return conteos.map((v, i) => (
-                      <div key={i} className="operator-chart__bar-wrap">
-                        <div
-                          className="operator-chart__bar"
-                          style={{
-                            height: `${Math.round((v / maximo) * 100)}%`,
-                          }}
-                        />
-                        <span className="operator-chart__label">
-                          {["L", "M", "X", "J", "V", "S", "D"][i]}
-                        </span>
-                      </div>
-                    ));
-                  })()}
-                </div>
-              </div>
+              <DashboardBarChart data={actividadSemanal} />
             </article>
 
             <article className="operator-table-card">

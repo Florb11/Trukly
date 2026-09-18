@@ -1,8 +1,26 @@
+import { lazy, Suspense } from "react";
 import "./CrearViajeModal.css";
+import GeoapifyPlaceField from "./GeoapifyPlaceField";
+
+const ViajeRouteMap = lazy(() => import("./ViajeRouteMap"));
 
 function CrearViajeModal({
   form,
   error,
+  errorRecursos,
+  cargandoRecursos,
+  geoapifyConfigurado,
+  lugares,
+  ruta,
+  cargandoRuta,
+  cargandoLugarMapa,
+  errorRuta,
+  puntoMapa,
+  onPuntoMapaChange,
+  onLugarChange,
+  onLugarSelect,
+  onMapPick,
+  guardando,
   onChange,
   onSubmit,
   onClose,
@@ -10,8 +28,8 @@ function CrearViajeModal({
   camiones = [],
 }) {
   return (
-    <div className="viaje-modal-overlay" onClick={onClose}>
-      <div className="viaje-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="viaje-modal-overlay">
+      <div className="viaje-modal">
         <div className="viaje-modal__header">
           <div>
             <span>Operador logístico</span>
@@ -23,33 +41,45 @@ function CrearViajeModal({
         </div>
 
         <form className="viaje-modal__form" onSubmit={onSubmit}>
+          {!geoapifyConfigurado && (
+            <p className="viaje-modal__error">Falta configurar VITE_GEOAPIFY_API_KEY para buscar ubicaciones.</p>
+          )}
           <div className="viaje-modal__row">
-            <div className="viaje-modal__field">
-              <label htmlFor="origen">Origen</label>
-              <input
-                type="text"
-                id="origen"
-                name="origen"
-                value={form.origen}
-                onChange={onChange}
-                placeholder="Ej: Buenos Aires"
-                maxLength={45}
-              />
-            </div>
-
-            <div className="viaje-modal__field">
-              <label htmlFor="destino">Destino</label>
-              <input
-                type="text"
-                id="destino"
-                name="destino"
-                value={form.destino}
-                onChange={onChange}
-                placeholder="Ej: Rosario"
-                maxLength={45}
-              />
-            </div>
+            <GeoapifyPlaceField
+              id="origen"
+              label="Punto de partida"
+              value={form.origen}
+              selected={Boolean(lugares.origen)}
+              onChange={(texto) => onLugarChange("origen", texto)}
+              onSelect={(lugar) => onLugarSelect("origen", lugar)}
+            />
+            <GeoapifyPlaceField
+              id="destino"
+              label="Punto de destino"
+              value={form.destino}
+              selected={Boolean(lugares.destino)}
+              onChange={(texto) => onLugarChange("destino", texto)}
+              onSelect={(lugar) => onLugarSelect("destino", lugar)}
+            />
           </div>
+
+          {geoapifyConfigurado && (
+            <div className="viaje-modal__route">
+              <div className="viaje-modal__route-top">
+                <span>Mapa de la ruta</span>
+                <div className="viaje-modal__map-mode" role="group" aria-label="Punto a ajustar en el mapa">
+                  <button type="button" className={puntoMapa === "origen" ? "is-active" : ""} onClick={() => onPuntoMapaChange("origen")}>Origen</button>
+                  <button type="button" className={puntoMapa === "destino" ? "is-active" : ""} onClick={() => onPuntoMapaChange("destino")}>Destino</button>
+                </div>
+              </div>
+              <Suspense fallback={<div className="viaje-modal__map" />}>
+                <ViajeRouteMap origin={lugares.origen} destination={lugares.destino} route={ruta} onPick={onMapPick} />
+              </Suspense>
+              {cargandoLugarMapa && <p className="viaje-modal__route-status">Buscando ubicación...</p>}
+              {cargandoRuta && <p className="viaje-modal__route-status">Calculando ruta...</p>}
+              {errorRuta && <p className="viaje-modal__route-status viaje-modal__route-status--error">{errorRuta}</p>}
+            </div>
+          )}
 
           <div className="viaje-modal__row">
             <div className="viaje-modal__field">
@@ -84,7 +114,9 @@ function CrearViajeModal({
                 value={form.Chofer_Usuario_idUsuario}
                 onChange={onChange}
               >
-                <option value="">Seleccionar chofer</option>
+                <option value="">
+                  {cargandoRecursos ? "Cargando choferes..." : choferes.length ? "Seleccionar chofer" : "No hay choferes disponibles"}
+                </option>
 
                 {choferes.map((chofer) => (
                   <option key={chofer.id_usuario} value={chofer.id_usuario}>
@@ -102,7 +134,9 @@ function CrearViajeModal({
                 value={form.Camion_id_camion}
                 onChange={onChange}
               >
-                <option value="">Seleccionar camión</option>
+                <option value="">
+                  {cargandoRecursos ? "Cargando camiones..." : camiones.length ? "Seleccionar camión" : "No hay camiones disponibles"}
+                </option>
 
                 {camiones.map((camion) => (
                   <option key={camion.id_camion} value={camion.id_camion}>
@@ -114,14 +148,14 @@ function CrearViajeModal({
           </div>
 
           <div className="viaje-modal__field">
-            <label htmlFor="recorrido">Recorrido (km)</label>
+            <label htmlFor="recorrido">Distancia estimada (km)</label>
             <input
               type="number"
               id="recorrido"
               name="recorrido"
               value={form.recorrido}
-              onChange={onChange}
-              placeholder="Ej: 300"
+              readOnly
+              placeholder="Se calcula al elegir ambos puntos"
               min="0"
               step="0.1"
             />
@@ -140,7 +174,7 @@ function CrearViajeModal({
             />
           </div>
 
-          {error && <p className="viaje-modal__error">⚠ {error}</p>}
+          {(error || errorRecursos) && <p className="viaje-modal__error">{error || errorRecursos}</p>}
 
           <div className="viaje-modal__actions">
             <button
@@ -154,8 +188,9 @@ function CrearViajeModal({
             <button
               type="submit"
               className="viaje-modal__btn viaje-modal__btn--guardar"
+              disabled={guardando || cargandoRuta || cargandoLugarMapa || cargandoRecursos || Boolean(errorRecursos) || !geoapifyConfigurado || !ruta || !choferes.length || !camiones.length}
             >
-              Crear viaje
+              {guardando ? "Creando..." : "Crear viaje"}
             </button>
           </div>
         </form>

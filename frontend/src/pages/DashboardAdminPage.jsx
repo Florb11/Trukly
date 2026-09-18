@@ -12,6 +12,7 @@ import DashboardBarChart from "../components/dashboard/DashboardBarChart";
 import NotificationPromptCard from "../components/NotificationPromptCard";
 import "./DashboardAdminPage.css";
 import { fetchConToken } from "../utils/fetchConToken";
+import { buildWeeklyActivityFromValues } from "../utils/activityChart";
 
 function DashboardAdminPage({ title = "Panel de administrador" }) {
   const { usuario } = useAuth();
@@ -21,10 +22,12 @@ function DashboardAdminPage({ title = "Panel de administrador" }) {
   const [errorResumen, setErrorResumen] = useState("");
   const [mensajeUsuarios, setMensajeUsuarios] = useState("");
 
-  const cargarResumenDashboard = async () => {
+  const cargarResumenDashboard = async (mostrarCarga = true) => {
     try {
-      setCargandoResumen(true);
-      setErrorResumen("");
+      if (mostrarCarga) {
+        setCargandoResumen(true);
+        setErrorResumen("");
+      }
 
       const resultado = await fetchConToken(
         `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/admin/dashboard/resumen`,
@@ -46,11 +49,13 @@ function DashboardAdminPage({ title = "Panel de administrador" }) {
       setResumenDashboard(data);
       setUsuariosPendientes(data.usuarios_pendientes || []);
     } catch (error) {
-      setErrorResumen(error.message);
-      setResumenDashboard(null);
-      setUsuariosPendientes([]);
+      if (mostrarCarga) {
+        setErrorResumen(error.message);
+        setResumenDashboard(null);
+        setUsuariosPendientes([]);
+      }
     } finally {
-      setCargandoResumen(false);
+      if (mostrarCarga) setCargandoResumen(false);
     }
   };
 
@@ -97,6 +102,18 @@ function DashboardAdminPage({ title = "Panel de administrador" }) {
 
   useEffect(() => {
     cargarResumenDashboard();
+    const intervalo = window.setInterval(() => {
+      if (!document.hidden) cargarResumenDashboard(false);
+    }, 60000);
+    const alVolver = () => {
+      if (!document.hidden) cargarResumenDashboard(false);
+    };
+    document.addEventListener("visibilitychange", alVolver);
+
+    return () => {
+      window.clearInterval(intervalo);
+      document.removeEventListener("visibilitychange", alVolver);
+    };
   }, []);
 
   const getAdminStats = () => {
@@ -149,21 +166,7 @@ function DashboardAdminPage({ title = "Panel de administrador" }) {
       0, 0, 0, 0, 0, 0, 0,
     ];
 
-    const formatoDia = new Intl.DateTimeFormat("es-AR", {
-      weekday: "short",
-    });
-
-    const hoy = new Date();
-
-    return actividad.map((valor, index) => {
-      const fecha = new Date(hoy);
-      fecha.setDate(hoy.getDate() - (actividad.length - 1 - index));
-
-      return {
-        label: formatoDia.format(fecha).replace(".", ""),
-        value: Number(valor) || 0,
-      };
-    });
+    return buildWeeklyActivityFromValues(actividad);
   };
 
   const estadoGeneral = getEstadoGeneral();
