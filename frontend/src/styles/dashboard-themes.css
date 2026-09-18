@@ -490,7 +490,7 @@
   opacity: 1;
 }
 
-.app-shell--operator :is(.operator-card__icon, .op-stats-card__icon) {
+.app-shell--operator :is(.operator-card__icon, .op-viajes-stat__icon, .op-stats-card__icon) {
   position: absolute;
   right: 17px;
   bottom: 18px;
@@ -507,6 +507,10 @@
 }
 
 .app-shell--operator .op-stats-card__icon svg {
+  display: block;
+}
+
+.app-shell--operator .op-viajes-stat__icon svg {
   display: block;
 }
 
