@@ -1,44 +1,95 @@
 import { useEffect, useState } from "react";
 import {
   FaChartBar,
+  FaChevronLeft,
+  FaChevronRight,
   FaCheckCircle,
   FaClipboardCheck,
   FaExclamationTriangle,
+  FaFilePdf,
   FaClock,
   FaRoute,
   FaTruck,
   FaTruckLoading,
-  FaUserCog,
   FaUsers,
 } from "react-icons/fa";
 import { fetchConToken } from "../utils/fetchConToken";
 import "./OperadorEstadisticasPage.css";
 
+const mesActual = () => {
+  const hoy = new Date();
+  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+};
+
+const cambiarMes = (mes, desplazamiento) => {
+  const [anio, numeroMes] = mes.split("-").map(Number);
+  const fecha = new Date(anio, numeroMes - 1 + desplazamiento, 1);
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
+};
+
+const TAMANIO_PAGINA = 10;
+
+function Paginacion({ pagina, total, onChange, nombre }) {
+  const totalPaginas = Math.ceil(total / TAMANIO_PAGINA);
+  if (totalPaginas <= 1) return null;
+  return (
+    <nav className="op-stats-pagination" aria-label={`Páginas de ${nombre}`}>
+      <button type="button" onClick={() => onChange(pagina - 1)} disabled={pagina === 1} aria-label="Página anterior"><FaChevronLeft /></button>
+      <span>Página {pagina} de {totalPaginas}</span>
+      <button type="button" onClick={() => onChange(pagina + 1)} disabled={pagina === totalPaginas} aria-label="Página siguiente"><FaChevronRight /></button>
+    </nav>
+  );
+}
+
 function OperadorEstadisticasPage() {
+  const [mes, setMes] = useState(mesActual);
   const [estadisticas, setEstadisticas] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [exportando, setExportando] = useState(false);
+  const [paginaViajes, setPaginaViajes] = useState(1);
+  const [paginaReportes, setPaginaReportes] = useState(1);
 
   useEffect(() => {
-    cargarEstadisticas();
-  }, []);
-
-  const cargarEstadisticas = async () => {
-    try {
-      setCargando(true);
-      setError("");
-      const resultado = await fetchConToken(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/estadisticas`,
-        { method: "GET" }
-      );
-      if (!resultado) return;
+    const controlador = new AbortController();
+    fetchConToken(
+      `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/estadisticas?mes=${mes}`,
+      { method: "GET", signal: controlador.signal }
+    ).then((resultado) => {
+      if (!resultado || controlador.signal.aborted) return;
       const { respuesta, data } = resultado;
       if (!respuesta.ok) throw new Error(data.mensaje || "Error al cargar estadísticas");
       setEstadisticas(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
       setCargando(false);
+    }).catch((err) => {
+      if (controlador.signal.aborted) return;
+      setError(err.message);
+      setEstadisticas(null);
+      setCargando(false);
+    });
+    return () => controlador.abort();
+  }, [mes]);
+
+  const seleccionarMes = (nuevoMes) => {
+    if (!nuevoMes || nuevoMes === mes || nuevoMes > mesActual()) return;
+    setMes(nuevoMes);
+    setCargando(true);
+    setError("");
+    setPaginaViajes(1);
+    setPaginaReportes(1);
+  };
+
+  const descargarPdf = async () => {
+    if (!estadisticas || cargando) return;
+    setExportando(true);
+    setError("");
+    try {
+      const { exportarEstadisticasOperadorPdf } = await import("../utils/exportOperatorStatisticsPdf");
+      await exportarEstadisticasOperadorPdf(estadisticas, mes);
+    } catch {
+      setError("No se pudo generar el PDF. Intentá nuevamente.");
+    } finally {
+      setExportando(false);
     }
   };
 
@@ -65,17 +116,18 @@ function OperadorEstadisticasPage() {
     return "op-badge op-badge--cancelado";
   };
 
-  if (cargando) return <section className="op-stats-page"><p className="admin-message">Cargando estadísticas...</p></section>;
-  if (error) return <section className="op-stats-page"><p className="admin-message admin-message--error">{error}</p></section>;
-
   const resumen = estadisticas?.resumen || {};
   const ultimosViajes = estadisticas?.ultimos_viajes || [];
   const ultimosReportes = estadisticas?.ultimos_reportes || [];
   const choferesTop = estadisticas?.choferes_mas_usados || [];
   const camionesTop = estadisticas?.camiones_mas_usados || [];
+  const viajesVisibles = ultimosViajes.slice((paginaViajes - 1) * TAMANIO_PAGINA, paginaViajes * TAMANIO_PAGINA);
+  const reportesVisibles = ultimosReportes.slice((paginaReportes - 1) * TAMANIO_PAGINA, paginaReportes * TAMANIO_PAGINA);
+  const [anio, numeroMes] = mes.split("-").map(Number);
+  const nombreMes = new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric" }).format(new Date(anio, numeroMes - 1, 1));
 
   const cards = [
-    { label: "Viajes totales", value: resumen.total_viajes ?? 0, detail: `${resumen.viajes_en_curso ?? 0} en curso`, icon: <FaRoute />, tone: "blue" },
+    { label: "Viajes con salida", value: resumen.total_viajes ?? 0, detail: `${resumen.viajes_en_curso ?? 0} en curso`, icon: <FaRoute />, tone: "blue" },
     { label: "Finalizados", value: resumen.viajes_finalizados ?? 0, detail: `${resumen.viajes_cancelados ?? 0} cancelados`, icon: <FaCheckCircle />, tone: "green" },
     { label: "Pendientes", value: resumen.viajes_pendientes ?? 0, detail: "Sin iniciar", icon: <FaClock />, tone: "violet" },
     { label: "Reportes activos", value: (resumen.reportes_pendientes ?? 0) + (resumen.reportes_en_revision ?? 0), detail: `${resumen.reportes_resueltos ?? 0} resueltos`, icon: <FaClipboardCheck />, tone: "orange" },
@@ -86,11 +138,29 @@ function OperadorEstadisticasPage() {
       <div className="op-stats-heading">
         <div>
           <span>Operador logístico</span>
-          <h1>Estadísticas</h1>
-          <p>Resumen de tu actividad operativa, viajes gestionados y estado de la flota.</p>
+          <h1>Estadísticas e historiales</h1>
+          <p>Consultá viajes con salida y reportes creados en el mes seleccionado.</p>
         </div>
         <div className="op-stats-heading__icon dashboard-heading-icon" aria-hidden="true"><FaChartBar /></div>
       </div>
+
+      <div className="op-stats-periodo">
+        <div className="op-stats-periodo__selector">
+          <button type="button" onClick={() => seleccionarMes(cambiarMes(mes, -1))} aria-label="Mes anterior" title="Mes anterior"><FaChevronLeft /></button>
+          <label htmlFor="op-stats-mes">Mes</label>
+          <input id="op-stats-mes" type="month" value={mes} max={mesActual()} onChange={(event) => seleccionarMes(event.target.value)} />
+          <button type="button" onClick={() => seleccionarMes(cambiarMes(mes, 1))} disabled={mes >= mesActual()} aria-label="Mes siguiente" title="Mes siguiente"><FaChevronRight /></button>
+        </div>
+        <strong>{nombreMes}</strong>
+        <button type="button" className="op-stats-periodo__pdf" onClick={descargarPdf} disabled={cargando || !estadisticas || exportando}>
+          <FaFilePdf aria-hidden="true" /> {exportando ? "Preparando PDF..." : "Descargar PDF"}
+        </button>
+      </div>
+      <p className="op-stats-periodo__nota">Los estados reflejan la situación actual de los registros del mes, no una foto del cierre mensual. Los reportes corresponden a camiones vinculados a tus viajes.</p>
+
+      {cargando && <p className="admin-message">Cargando estadísticas...</p>}
+      {error && <p className="admin-message admin-message--error">{error}</p>}
+      {!cargando && estadisticas && <>
 
       <div className="op-stats-summary">
         {cards.map((card) => (
@@ -169,7 +239,7 @@ function OperadorEstadisticasPage() {
             <p className="op-stats-empty">No hay viajes registrados.</p>
           ) : (
             <div className="op-stats-history">
-              {ultimosViajes.map((viaje) => (
+              {viajesVisibles.map((viaje) => (
                 <div key={viaje.id_viaje} className="op-stats-history__item">
                   <div className="op-stats-history__icon"><FaTruckLoading /></div>
                   <div className="op-stats-history__content">
@@ -182,6 +252,7 @@ function OperadorEstadisticasPage() {
               ))}
             </div>
           )}
+          <Paginacion pagina={paginaViajes} total={ultimosViajes.length} onChange={setPaginaViajes} nombre="viajes" />
         </article>
 
         <article className="op-stats-section">
@@ -193,7 +264,7 @@ function OperadorEstadisticasPage() {
             <p className="op-stats-empty">No hay reportes registrados.</p>
           ) : (
             <div className="op-stats-history">
-              {ultimosReportes.map((reporte) => (
+              {reportesVisibles.map((reporte) => (
                 <div key={reporte.id_reporte} className="op-stats-history__item">
                   <div className="op-stats-history__icon"><FaExclamationTriangle /></div>
                   <div className="op-stats-history__content">
@@ -206,8 +277,10 @@ function OperadorEstadisticasPage() {
               ))}
             </div>
           )}
+          <Paginacion pagina={paginaReportes} total={ultimosReportes.length} onChange={setPaginaReportes} nombre="reportes" />
         </article>
       </div>
+      </>}
     </section>
   );
 }

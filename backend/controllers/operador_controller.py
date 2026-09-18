@@ -1,4 +1,5 @@
 import math
+from datetime import date, datetime
 
 from flask import g, jsonify, request
 from models.mecanico_model import MecanicoModel
@@ -376,10 +377,25 @@ class OperadorController:
     def obtener_estadisticas():
         operador = g.operador_actual
 
+        mes = request.args.get("mes", date.today().strftime("%Y-%m"))
         try:
-            viajes = ViajeModel.query.filter_by(
+            if len(mes) != 7:
+                raise ValueError
+            inicio = datetime.strptime(mes, "%Y-%m").date()
+            if inicio.strftime("%Y-%m") != mes or (inicio.year == 9999 and inicio.month == 12):
+                raise ValueError
+            fin = date(inicio.year + 1, 1, 1) if inicio.month == 12 else date(inicio.year, inicio.month + 1, 1)
+        except ValueError:
+            return jsonify({"mensaje": "El mes debe tener el formato AAAA-MM"}), 400
+
+        try:
+            viajes_operador = ViajeModel.query.filter_by(
                 OperadorLogistico_Usuario_idUsuario=operador.id_usuario
-            ).all()
+            )
+            viajes = viajes_operador.filter(
+                ViajeModel.fecha_salida >= inicio,
+                ViajeModel.fecha_salida < fin,
+            ).order_by(ViajeModel.fecha_salida.desc(), ViajeModel.id_viaje.desc()).all()
 
             total_viajes = len(viajes)
             viajes_pendientes = sum(1 for v in viajes if v.estado == Viaje.ESTADO_PENDIENTE)
@@ -387,20 +403,15 @@ class OperadorController:
             viajes_finalizados = sum(1 for v in viajes if v.estado == Viaje.ESTADO_FINALIZADO)
             viajes_cancelados = sum(1 for v in viajes if v.estado == Viaje.ESTADO_CANCELADO)
 
-            ultimos_viajes = (
-                ViajeModel.query.filter_by(
-                    OperadorLogistico_Usuario_idUsuario=operador.id_usuario
-                )
-                .order_by(ViajeModel.id_viaje.desc())
-                .limit(5)
-                .all()
-            )
-
-            id_camiones = list({v.Camion_id_camion for v in viajes})
+            id_camiones = [fila[0] for fila in viajes_operador.with_entities(
+                ViajeModel.Camion_id_camion
+            ).distinct().all()]
             reportes = (
                 ReporteModel.query.filter(
-                    ReporteModel.Camion_id_camion.in_(id_camiones)
-                ).all()
+                    ReporteModel.Camion_id_camion.in_(id_camiones),
+                    ReporteModel.fecha_hora >= inicio,
+                    ReporteModel.fecha_hora < fin,
+                ).order_by(ReporteModel.fecha_hora.desc(), ReporteModel.id_reporte.desc()).all()
                 if id_camiones
                 else []
             )
@@ -408,15 +419,6 @@ class OperadorController:
             reportes_pendientes = sum(1 for r in reportes if r.estado == "pendiente")
             reportes_en_revision = sum(1 for r in reportes if r.estado == "en revision")
             reportes_resueltos = sum(1 for r in reportes if r.estado == "resuelto")
-
-            ultimos_reportes = (
-                ReporteModel.query.filter(ReporteModel.Camion_id_camion.in_(id_camiones))
-                .order_by(ReporteModel.id_reporte.desc())
-                .limit(5)
-                .all()
-                if id_camiones
-                else []
-            )
 
             from collections import Counter
 
@@ -446,6 +448,7 @@ class OperadorController:
                     })
 
             return jsonify({
+                "mes": mes,
                 "resumen": {
                     "total_viajes": total_viajes,
                     "viajes_pendientes": viajes_pendientes,
@@ -456,8 +459,8 @@ class OperadorController:
                     "reportes_en_revision": reportes_en_revision,
                     "reportes_resueltos": reportes_resueltos,
                 },
-                "ultimos_viajes": [v.to_dict() for v in ultimos_viajes],
-                "ultimos_reportes": [r.to_dict() for r in ultimos_reportes],
+                "ultimos_viajes": [v.to_dict() for v in viajes],
+                "ultimos_reportes": [r.to_dict() for r in reportes],
                 "choferes_mas_usados": choferes_top,
                 "camiones_mas_usados": camiones_top,
             }), 200

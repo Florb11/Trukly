@@ -400,6 +400,142 @@
   gap: 20px;
 }
 
+.app-shell--operator .dashboard-topbar strong,
+.app-shell--operator .dashboard-content :is(h1, h2, h3, th, strong, label) {
+  color: var(--ui-text) !important;
+  font-weight: 700 !important;
+}
+
+.app-shell--operator .sidebar__logo-text {
+  font-weight: 700 !important;
+}
+
+.app-shell--operator .dashboard-content :is(button, a[class*="btn"], a[class*="action"], .operator-page__cta) {
+  font-weight: 600 !important;
+}
+
+.app-shell--operator :is(.op-camiones-page, .op-choferes-page, .op-reportes-page) {
+  padding: 0;
+}
+
+.app-shell--operator .dashboard-content :is(
+  .operator-page__header, .op-viajes-header, .op-camiones-header,
+  .op-choferes-header, .op-reportes-heading, .op-stats-heading,
+  .admin-perfil-header, .notificaciones-header
+) {
+  margin-bottom: 22px;
+  padding: 4px 0;
+}
+
+.app-shell--operator .dashboard-content :is(
+  .op-viajes-header, .op-camiones-header, .op-choferes-header,
+  .op-reportes-heading, .op-stats-heading
+) {
+  margin-bottom: 0;
+}
+
+.app-shell--operator .dashboard-content :is(
+  .operator-page__header h1, .op-viajes-header h1, .op-camiones-header h1,
+  .op-choferes-header h1, .op-reportes-heading h1, .op-stats-heading h1,
+  .admin-perfil-header h1, .notificaciones-header h1
+) {
+  margin: 4px 0;
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.app-shell--operator .dashboard-content :is(
+  .operator-page__header span, .op-viajes-header span, .op-camiones-header span,
+  .op-choferes-header span, .op-reportes-heading span, .op-stats-heading span,
+  .admin-perfil-header span, .notificaciones-header span
+) {
+  color: var(--ui-muted) !important;
+  font-size: 12px;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em;
+}
+
+.app-shell--operator :is(.operator-card, .op-viajes-stat, .op-stats-card) {
+  position: relative;
+  min-height: 142px;
+  padding: 18px;
+  overflow: hidden;
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-top: 3px solid var(--stat-accent);
+  border-radius: 8px;
+  box-shadow: var(--ui-shadow);
+}
+
+.app-shell--operator .operator-card:hover {
+  transform: none;
+  box-shadow: var(--ui-shadow);
+}
+
+.app-shell--operator :is(.operator-card, .op-viajes-stat, .op-stats-card) strong {
+  font-size: 32px;
+}
+
+.app-shell--operator :is(.operator-card, .op-viajes-stat, .op-stats-card) span {
+  color: var(--ui-text);
+  font-size: 14px;
+  font-weight: 700 !important;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.app-shell--operator :is(.operator-card, .op-viajes-stat, .op-stats-card) p {
+  color: var(--ui-muted);
+  opacity: 1;
+}
+
+.app-shell--operator :is(.operator-card__icon, .op-stats-card__icon) {
+  position: absolute;
+  right: 17px;
+  bottom: 18px;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  display: block;
+  padding: 0;
+  color: var(--stat-accent);
+  background: transparent;
+  border-radius: 0;
+  font-size: 35px;
+  opacity: 0.68;
+}
+
+.app-shell--operator .op-stats-card__icon svg {
+  display: block;
+}
+
+.app-shell--operator :is(.operator-table-card, .op-reportes-card, .op-stats-section) {
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  box-shadow: var(--ui-shadow);
+}
+
+.app-shell--operator :is(.operator-table-card__header, .op-reportes-card__header,
+  .op-stats-section__header, .op-reportes-filtros) {
+  background: var(--ui-surface);
+  border-color: var(--ui-border);
+}
+
+.app-shell--operator .operator-progress-item__bar {
+  background: var(--ui-soft);
+}
+
+.app-shell--operator .operator-progress-item__bar i {
+  background: #2db8ac;
+}
+
+.app-shell--operator .dashboard-bar-chart__bar {
+  background: #6867e9;
+}
+
 .app-shell--dashboard[data-theme="dark"] :is(
   h1, h2, h3, .dashboard-content strong, .dashboard-content label,
   .mecanico-card span, .mecanico-panel__header span,
@@ -564,6 +700,123 @@
   border-color: var(--ui-border);
 }
 
+.app-shell--mechanic .dashboard-topbar strong,
+.app-shell--mechanic .dashboard-content :is(h1, h2, h3, th, strong, label),
+.app-shell--mechanic .sidebar__logo-text {
+  color: var(--ui-text) !important;
+  font-weight: 700 !important;
+}
+
+.app-shell--mechanic .dashboard-content :is(button, a[class*="btn"], a[class*="action"], .mecanico-panel__link, .mecanico-main-action) {
+  font-weight: 600 !important;
+}
+
+.app-shell--mechanic .dashboard-content :is(
+  .mecanico-dashboard__header, .mecanico-reportes-header,
+  .mecanico-mantenimiento-header, .admin-perfil-header, .notificaciones-header
+) {
+  margin-bottom: 22px;
+  padding: 4px 0;
+}
+
+.app-shell--mechanic .dashboard-content :is(
+  .mecanico-dashboard__header h1, .mecanico-reportes-header h1,
+  .mecanico-mantenimiento-header h1, .admin-perfil-header h1,
+  .notificaciones-header h1
+) {
+  margin: 4px 0;
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.app-shell--mechanic .dashboard-content :is(
+  .mecanico-dashboard__header span, .mecanico-reportes-header span,
+  .mecanico-mantenimiento-header span, .admin-perfil-header span,
+  .notificaciones-header span
+) {
+  color: var(--ui-muted) !important;
+  font-size: 12px;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em;
+}
+
+.app-shell--mechanic .mecanico-card {
+  min-height: 142px;
+  padding: 18px;
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-top: 3px solid var(--stat-accent);
+  border-radius: 8px;
+  box-shadow: var(--ui-shadow);
+}
+
+.app-shell--mechanic .mecanico-card::after {
+  content: none;
+}
+
+.app-shell--mechanic .mecanico-card span {
+  max-width: none;
+  color: var(--ui-text);
+  font-size: 14px;
+  font-weight: 700 !important;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.app-shell--mechanic .mecanico-card strong {
+  color: var(--ui-text);
+  font-size: 32px;
+}
+
+.app-shell--mechanic .mecanico-card p {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  max-width: calc(100% - 48px);
+  margin: 8px 0 0;
+  color: var(--ui-muted);
+}
+
+.app-shell--mechanic .mecanico-card__icon {
+  position: absolute;
+  top: auto;
+  right: 17px;
+  bottom: 18px;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  display: block;
+  padding: 0;
+  margin: 0;
+  color: var(--stat-accent);
+  background: transparent;
+  border-radius: 0;
+  font-size: 35px;
+  opacity: 0.68;
+  transform: none;
+}
+
+.app-shell--mechanic .mecanico-card__icon svg {
+  display: block;
+}
+
+.app-shell--mechanic :is(.mecanico-panel, .mecanico-reportes-card,
+  .mecanico-mantenimiento-table-wrap) {
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  box-shadow: var(--ui-shadow);
+}
+
+.app-shell--mechanic :is(.mecanico-panel__header, .mecanico-reportes-filtros) {
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border-color: var(--ui-border);
+}
+
 .app-shell--dashboard .dashboard-heading-icon,
 .app-shell--chofer .ch-stats-heading__icon {
   width: 74px;
@@ -597,6 +850,162 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+}
+
+/* Driver views use the same hierarchy and stat treatment as the admin workspace. */
+.app-shell--chofer .dashboard-topbar strong,
+.app-shell--chofer .dashboard-content :is(h1, h2, h3, th, strong, label) {
+  color: var(--ui-text) !important;
+  font-weight: 700 !important;
+}
+
+.app-shell--chofer .dashboard-content :is(
+  .admin-dashboard__heading, .chofer-page__header, .reportes-page__heading,
+  .ch-stats-heading, .admin-perfil-header, .notificaciones-header
+) {
+  margin-bottom: 22px;
+  padding: 4px 0;
+}
+
+.app-shell--chofer .dashboard-content :is(
+  .admin-dashboard__heading h1, .chofer-page__header h1,
+  .reportes-page__heading h1, .ch-stats-heading h1,
+  .admin-perfil-header h1, .notificaciones-header h1
+) {
+  margin: 4px 0;
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.app-shell--chofer .dashboard-content :is(
+  .admin-dashboard__heading span, .chofer-page__header span,
+  .reportes-page__heading-text span, .ch-stats-heading span,
+  .admin-perfil-header span, .notificaciones-header span
+) {
+  color: var(--ui-muted) !important;
+  font-size: 12px;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em;
+}
+
+.app-shell--chofer .admin-small-box,
+.app-shell--chofer .chofer-card,
+.app-shell--chofer .ch-stats-card {
+  position: relative;
+  min-height: 142px;
+  padding: 18px;
+  overflow: hidden;
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-top: 3px solid var(--stat-accent);
+  border-radius: 8px;
+  box-shadow: var(--ui-shadow);
+}
+
+.app-shell--chofer .chofer-card:hover {
+  transform: none;
+  box-shadow: var(--ui-shadow);
+}
+
+.app-shell--chofer :is(.admin-small-box, .chofer-card, .ch-stats-card) strong {
+  font-size: 32px;
+}
+
+.app-shell--chofer :is(.admin-small-box, .chofer-card, .ch-stats-card) span {
+  color: var(--ui-text);
+  font-size: 14px;
+  font-weight: 700 !important;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.app-shell--chofer :is(.admin-small-box, .chofer-card, .ch-stats-card) p {
+  color: var(--ui-muted);
+  opacity: 1;
+}
+
+.app-shell--chofer :is(.admin-small-box__icon, .chofer-card__icon, .ch-stats-card__icon) {
+  position: absolute;
+  right: 17px;
+  bottom: 18px;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  display: block;
+  padding: 0;
+  color: var(--stat-accent);
+  background: transparent;
+  border-radius: 0;
+  font-size: 35px;
+  opacity: 0.68;
+}
+
+.app-shell--chofer .chofer-card__icon svg,
+.app-shell--chofer .ch-stats-card__icon svg {
+  display: block;
+}
+
+.app-shell--chofer :is(.admin-card, .chofer-table-card, .reportes-card, .ch-stats-section) {
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  box-shadow: var(--ui-shadow);
+}
+
+.app-shell--chofer :is(.admin-card__header, .chofer-table-card__header,
+  .reportes-card__header, .reportes-filtros, .ch-stats-section__header) {
+  background: var(--ui-surface);
+  border-color: var(--ui-border);
+}
+
+.app-shell--chofer :is(.chofer-table-card__header span, .ch-stats-section__header span) {
+  color: var(--ui-muted);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.app-shell--chofer .admin-progress-list div div {
+  background: var(--ui-soft);
+}
+
+.app-shell--chofer .admin-progress-list i {
+  background: #2db8ac;
+}
+
+.app-shell--chofer .dashboard-bar-chart__bar {
+  background: #6867e9;
+}
+
+.app-shell--chofer :is(.chofer-table th, .reportes-table th) {
+  color: var(--ui-accent);
+  background: var(--ui-accent-soft);
+}
+
+.app-shell--chofer :is(.chofer-table td, .reportes-table td) {
+  color: var(--ui-text);
+  border-color: var(--ui-border);
+}
+
+.app-shell--chofer :is(.chofer-table tbody tr:hover, .reportes-table tbody tr:hover) {
+  background: var(--ui-soft);
+}
+
+.app-shell--chofer .ch-stats-section__header > svg {
+  color: var(--ui-accent);
+}
+
+.app-shell--chofer .ch-stats-history__item {
+  border-color: var(--ui-border);
+}
+
+.app-shell--chofer .ch-stats-history__icon {
+  color: var(--ui-accent);
+  background: var(--ui-accent-soft);
 }
 
 .app-shell--chofer .reportes-page__heading-actions {
