@@ -101,12 +101,24 @@
 
 .app-shell--admin .dashboard-content :is(
   .admin-viajes-header p,
+  .usuarios-page__heading-text p,
+  .camiones-page__heading-text p,
+  .reportes-page__heading-text p,
   .mantenimiento-page__heading p,
   .estadisticas-page__heading p,
   .admin-perfil-header p,
   .notificaciones-header p
 ) {
   color: var(--admin-muted) !important;
+}
+
+.app-shell--admin .dashboard-content :is(
+  .usuarios-page__heading-text p,
+  .camiones-page__heading-text p,
+  .reportes-page__heading-text p
+) {
+  max-width: 680px;
+  margin: 0;
 }
 
 .app-shell--admin .dashboard-content :is(
@@ -678,6 +690,51 @@
   color: var(--admin-text) !important;
   background: var(--admin-surface-soft) !important;
   border-color: var(--admin-primary) !important;
+}
+
+.app-shell--admin[data-theme="dark"] .dashboard-content :is(
+  .admin-viajes-detail-grid > div,
+  .admin-viajes-observaciones,
+  .detalle-camion-item,
+  .detalle-reporte-item,
+  .detalle-reporte-description,
+  .estadisticas-camion-card
+) {
+  color: var(--admin-text);
+  background: var(--admin-surface-soft);
+  border-color: var(--admin-border);
+}
+
+.app-shell--admin[data-theme="dark"] .dashboard-content :is(
+  .admin-viajes-detail-grid span,
+  .admin-viajes-observaciones span,
+  .admin-viajes-field span,
+  .detalle-camion-item span,
+  .detalle-reporte-item span,
+  .estadisticas-camion-card span:not(.estadisticas-camion-card__position)
+) {
+  color: var(--admin-muted) !important;
+}
+
+.app-shell--admin[data-theme="dark"] .dashboard-content .estadisticas-camion-card__position {
+  color: var(--admin-primary) !important;
+}
+
+.app-shell--admin[data-theme="dark"] .dashboard-content :is(
+  .admin-viajes-detail-grid strong,
+  .admin-viajes-observaciones p,
+  .detalle-camion-item p,
+  .detalle-reporte-item p,
+  .detalle-reporte-description p,
+  .estadisticas-camion-card strong
+) {
+  color: var(--admin-text);
+}
+
+.app-shell--admin[data-theme="dark"] .dashboard-content .admin-viajes-warning {
+  color: #fcd3a5 !important;
+  background: #3b2e25;
+  border-color: #8b5e35;
 }
 
 @media (max-width: 760px) {

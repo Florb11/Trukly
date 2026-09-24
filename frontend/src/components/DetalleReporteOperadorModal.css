@@ -61,3 +61,42 @@
 
 .det-rep-btn { border: none; border-radius: 9px; padding: 10px 22px; font-size: 14px; font-weight: 700; cursor: pointer; background: #f3f4f6; color: #374151; }
 .det-rep-btn:hover { background: #e5e7eb; }
+
+.app-shell--operator[data-theme="dark"] .det-rep-modal {
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border-color: var(--ui-border);
+  border-top: 3px solid var(--ui-accent);
+  border-radius: 8px;
+}
+
+.app-shell--operator[data-theme="dark"] :is(.det-rep-header, .det-rep-footer) {
+  background: var(--ui-soft);
+  border-color: var(--ui-border);
+}
+
+.app-shell--operator[data-theme="dark"] :is(.det-rep-grid div, .det-rep-description) {
+  background: var(--ui-soft);
+  border-color: var(--ui-border);
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .det-rep-header h2, .det-rep-section h3, .det-rep-grid p, .det-rep-description p
+) {
+  color: var(--ui-text);
+}
+
+.app-shell--operator[data-theme="dark"] :is(.det-rep-header p, .det-rep-grid span) {
+  color: var(--ui-muted) !important;
+}
+
+.app-shell--operator[data-theme="dark"] :is(.det-rep-close, .det-rep-btn) {
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+}
+
+.app-shell--operator[data-theme="dark"] :is(.det-rep-close, .det-rep-btn):hover {
+  color: var(--ui-accent);
+  background: var(--ui-accent-soft);
+}

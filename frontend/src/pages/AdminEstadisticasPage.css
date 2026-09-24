@@ -51,6 +51,109 @@
   box-shadow: 0 15px 35px rgba(111, 66, 193, 0.25);
 }
 
+.estadisticas-periodo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.estadisticas-periodo__selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.estadisticas-periodo__selector label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.estadisticas-periodo__selector input,
+.estadisticas-periodo__selector button,
+.estadisticas-pagination button {
+  min-height: 40px;
+  border: 1px solid var(--ui-border, #e3e9f2);
+  border-radius: 6px;
+  background: var(--ui-surface, #ffffff);
+  color: var(--ui-text, #192338);
+}
+
+.estadisticas-periodo__selector input {
+  padding: 7px 10px;
+  font: inherit;
+}
+
+.estadisticas-periodo__selector button,
+.estadisticas-pagination button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.estadisticas-periodo__selector button:disabled,
+.estadisticas-pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.estadisticas-periodo > strong {
+  color: var(--ui-muted, #69758a);
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+.estadisticas-periodo__pdf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  margin-left: auto;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--action-info, #2563eb);
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.estadisticas-periodo__pdf:hover:not(:disabled) {
+  background: var(--action-info-hover, #1d4ed8);
+}
+
+.estadisticas-periodo__pdf:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.estadisticas-periodo__nota {
+  margin: -8px 0 0;
+  color: var(--ui-muted, #69758a);
+  font-size: 13px;
+}
+
+.estadisticas-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-top: 1px solid var(--ui-border, #e3e9f2);
+  color: var(--ui-muted, #69758a);
+  font-size: 13px;
+}
+
+.estadisticas-pagination button {
+  min-height: 32px;
+  width: 32px;
+}
+
 .estadisticas-summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -355,6 +458,9 @@
 }
 
 @media (max-width: 760px) {
+  .estadisticas-periodo__pdf {
+    margin-left: 0;
+  }
   .estadisticas-page__heading {
     align-items: flex-start;
   }
@@ -388,5 +494,20 @@
 
   .estadisticas-history-item__content small {
     white-space: normal;
+  }
+}
+
+@media (max-width: 480px) {
+  .estadisticas-periodo__selector {
+    width: 100%;
+  }
+
+  .estadisticas-periodo__selector input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .estadisticas-periodo__pdf {
+    width: 100%;
   }
 }

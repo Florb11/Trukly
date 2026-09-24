@@ -154,6 +154,51 @@
     background: #6d28d9;
 }
 
+.app-shell--chofer[data-theme="dark"] .detalle-reporte-modal {
+    color: var(--ui-text);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    border-radius: 8px;
+}
+
+.app-shell--chofer[data-theme="dark"] :is(.detalle-reporte-header, .detalle-reporte-footer) {
+    background: var(--ui-soft);
+    border-color: var(--ui-border);
+}
+
+.app-shell--chofer[data-theme="dark"] .detalle-reporte-header {
+    border-top: 3px solid var(--ui-accent);
+}
+
+.app-shell--chofer[data-theme="dark"] :is(.detalle-reporte-item, .detalle-reporte-description) {
+    background: var(--ui-soft);
+    border-color: var(--ui-border);
+}
+
+.app-shell--chofer[data-theme="dark"] :is(
+    .detalle-reporte-header h2, .detalle-reporte-section h3,
+    .detalle-reporte-item p, .detalle-reporte-description p
+) {
+    color: var(--ui-text);
+}
+
+.app-shell--chofer[data-theme="dark"] :is(
+    .detalle-reporte-header p, .detalle-reporte-item span
+) {
+    color: var(--ui-muted) !important;
+}
+
+.app-shell--chofer[data-theme="dark"] .detalle-reporte-close {
+    color: var(--ui-text);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+}
+
+.app-shell--chofer[data-theme="dark"] .detalle-reporte-close:hover {
+    color: var(--ui-accent);
+    background: var(--ui-accent-soft);
+}
+
 @media (max-width: 560px) {
     .detalle-reporte-grid {
         grid-template-columns: 1fr;

@@ -234,6 +234,23 @@
   cursor: not-allowed;
 }
 
+.chofer-table__acciones {
+  white-space: nowrap;
+}
+
+.chofer-table__acciones .chofer-btn-accion + .chofer-btn-accion {
+  margin-left: 8px;
+}
+
+.chofer-btn-accion--detalle {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.chofer-btn-accion--detalle:hover {
+  background: #1d4ed8;
+}
+
 .chofer-btn-accion--aceptar {
   background: #dbeafe;
   color: #1d4ed8;

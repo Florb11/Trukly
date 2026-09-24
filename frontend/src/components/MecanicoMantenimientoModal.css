@@ -332,6 +332,85 @@
   border-radius: 14px;
 }
 
+.app-shell--mechanic:not([data-theme="dark"]) .mecanico-mantenimiento-modal__header h2 {
+  color: #ffffff !important;
+}
+
+.app-shell--mechanic[data-theme="dark"] .mecanico-mantenimiento-modal {
+  --mecanico-main: var(--ui-accent);
+  --mecanico-deep: var(--ui-text);
+  --mecanico-soft: var(--ui-accent-soft);
+  --mecanico-border: var(--ui-border);
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+}
+
+.app-shell--mechanic[data-theme="dark"] .mecanico-mantenimiento-modal__header {
+  color: var(--ui-text);
+  background: var(--ui-soft);
+  border-color: var(--ui-border);
+  border-radius: 8px 8px 0 0;
+}
+
+.app-shell--mechanic[data-theme="dark"] .mecanico-mantenimiento-modal__header span {
+  color: var(--ui-accent) !important;
+}
+
+.app-shell--mechanic[data-theme="dark"] .mecanico-mantenimiento-modal__close {
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+}
+
+.app-shell--mechanic[data-theme="dark"] .mecanico-mantenimiento-modal__close:hover {
+  color: var(--ui-accent);
+  background: var(--ui-accent-soft);
+  transform: none;
+}
+
+.app-shell--mechanic[data-theme="dark"] :is(
+  .mecanico-mantenimiento-modal__truck,
+  .mecanico-mantenimiento-modal__summary article,
+  .mecanico-mantenimiento-modal__section,
+  .mecanico-mantenimiento-modal__repair,
+  .mecanico-mantenimiento-modal__message,
+  .mecanico-mantenimiento-modal__empty
+) {
+  color: var(--ui-text);
+  background: var(--ui-soft);
+  border-color: var(--ui-border);
+}
+
+.app-shell--mechanic[data-theme="dark"] .mecanico-mantenimiento-modal__report {
+  background: #3b3225;
+  border-color: #705831;
+}
+
+.app-shell--mechanic[data-theme="dark"] .mecanico-mantenimiento-modal__report--resolved {
+  background: #193a32;
+  border-color: #35675a;
+}
+
+.app-shell--mechanic[data-theme="dark"] .mecanico-mantenimiento-modal__message--error {
+  color: #fca5a5 !important;
+  background: #42272d;
+  border-color: #a45a61;
+}
+
+.app-shell--mechanic[data-theme="dark"] :is(
+  .mecanico-mantenimiento-modal__truck p,
+  .mecanico-mantenimiento-modal__summary span,
+  .mecanico-mantenimiento-modal__report > p,
+  .mecanico-mantenimiento-modal__repair p,
+  .mecanico-mantenimiento-modal__date,
+  .mecanico-mantenimiento-modal__empty
+) {
+  color: var(--ui-muted);
+}
+
 @media (max-width: 760px) {
   .mecanico-mantenimiento-modal-overlay {
     align-items: flex-end;

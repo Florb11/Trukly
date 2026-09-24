@@ -3,6 +3,7 @@ import {
   FaEye,
   FaTimesCircle,
   FaRoute,
+  FaClipboardList,
   FaTruck,
   FaUser,
   FaMapMarkerAlt,
@@ -169,13 +170,15 @@ function AdminViajesPage() {
       </div>
 
       <div className="admin-viajes-stats">
-        <article className="admin-viajes-stat">
+        <article className="admin-viajes-stat admin-viajes-stat--total">
           <span>Total viajes</span>
           <strong>{viajes.length}</strong>
-          <FaRoute className="admin-viajes-stat__icon" aria-hidden="true" />
+          <div className="admin-small-box__icon" aria-hidden="true">
+            <FaClipboardList />
+          </div>
         </article>
 
-        <article className="admin-viajes-stat">
+        <article className="admin-viajes-stat admin-viajes-stat--active">
           <span>Activos</span>
           <strong>
             {
@@ -187,10 +190,12 @@ function AdminViajesPage() {
               ).length
             }
           </strong>
-          <FaTruck className="admin-viajes-stat__icon" aria-hidden="true" />
+          <div className="admin-small-box__icon" aria-hidden="true">
+            <FaTruck />
+          </div>
         </article>
 
-        <article className="admin-viajes-stat">
+        <article className="admin-viajes-stat admin-viajes-stat--cancelled">
           <span>Cancelados</span>
           <strong>
             {
@@ -199,7 +204,9 @@ function AdminViajesPage() {
               ).length
             }
           </strong>
-          <FaTimesCircle className="admin-viajes-stat__icon" aria-hidden="true" />
+          <div className="admin-small-box__icon" aria-hidden="true">
+            <FaTimesCircle />
+          </div>
         </article>
       </div>
 

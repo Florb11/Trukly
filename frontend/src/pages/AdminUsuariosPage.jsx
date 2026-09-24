@@ -437,6 +437,7 @@ function AdminUsuariosPage() {
                 <div className="usuarios-page__heading-text">
                     <span>Administración</span>
                     <h1>Gestión de usuarios</h1>
+                    <p>Administrá las cuentas, los roles y el acceso de cada integrante.</p>
                 </div>
 
                 <div className="dashboard-heading-actions">

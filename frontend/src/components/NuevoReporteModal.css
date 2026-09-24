@@ -234,6 +234,47 @@
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
   }
 
+.app-shell--chofer[data-theme="dark"] .reporte-modal {
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border-color: var(--ui-border);
+  border-top: 3px solid var(--ui-accent);
+}
+
+.app-shell--chofer[data-theme="dark"] .reporte-modal__header,
+.app-shell--chofer[data-theme="dark"] .reporte-modal__actions--detalle {
+  background: var(--ui-soft);
+  border-color: var(--ui-border);
+}
+
+.app-shell--chofer[data-theme="dark"] .reporte-modal__header h2,
+.app-shell--chofer[data-theme="dark"] .reporte-modal__field label {
+  color: var(--ui-text);
+}
+
+.app-shell--chofer[data-theme="dark"] .reporte-modal__close,
+.app-shell--chofer[data-theme="dark"] .reporte-modal__btn--cancelar {
+  color: var(--ui-text);
+  background: var(--ui-soft);
+  border: 1px solid var(--ui-border);
+}
+
+.app-shell--chofer[data-theme="dark"] .reporte-modal__close:hover,
+.app-shell--chofer[data-theme="dark"] .reporte-modal__btn--cancelar:hover {
+  background: var(--ui-accent-soft);
+}
+
+.app-shell--chofer[data-theme="dark"] .reporte-modal__field :is(input, textarea, select) {
+  color: var(--ui-text);
+  background-color: var(--ui-soft);
+  border-color: var(--ui-border);
+}
+
+.app-shell--chofer[data-theme="dark"] .reporte-modal__error {
+  color: #fca5a5;
+  background: #42272d;
+}
+
 
 @media (max-width: 480px) {
   .reporte-modal {

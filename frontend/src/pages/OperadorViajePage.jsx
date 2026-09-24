@@ -1,6 +1,14 @@
 import { useState, useMemo, useEffect } from "react";
 import "./OperadorViajePage.css";
-import { FaRoute, FaPlus, FaEye, FaSearch } from "react-icons/fa";
+import {
+  FaCheckCircle,
+  FaClock,
+  FaEye,
+  FaPlus,
+  FaRoute,
+  FaSearch,
+  FaTimesCircle,
+} from "react-icons/fa";
 import DetalleViajeModal from "../components/DetalleViajeModal";
 import CrearViajeModal from "../components/CrearViajeModal";
 import { fetchConToken } from "../utils/fetchConToken";
@@ -332,21 +340,25 @@ function OperadorViajesPage() {
         <article className="op-viajes-stat op-viajes-stat--info">
           <span>Total</span>
           <strong>{stats.total}</strong>
+          <div className="op-viajes-stat__icon" aria-hidden="true"><FaRoute /></div>
         </article>
 
         <article className="op-viajes-stat op-viajes-stat--active">
           <span>En curso / aceptados</span>
           <strong>{stats.activos}</strong>
+          <div className="op-viajes-stat__icon" aria-hidden="true"><FaCheckCircle /></div>
         </article>
 
         <article className="op-viajes-stat op-viajes-stat--pending">
           <span>Pendientes</span>
           <strong>{stats.pendientes}</strong>
+          <div className="op-viajes-stat__icon" aria-hidden="true"><FaClock /></div>
         </article>
 
         <article className="op-viajes-stat op-viajes-stat--cancelled">
           <span>Cancelados</span>
           <strong>{stats.cancelados}</strong>
+          <div className="op-viajes-stat__icon" aria-hidden="true"><FaTimesCircle /></div>
         </article>
       </div>
 
@@ -417,13 +429,13 @@ function OperadorViajesPage() {
 
                   return (
                     <tr key={viaje.id_viaje}>
-                      <td className="operator-table__id">{viaje.id_viaje}</td>
-                      <td>{viaje.origen}</td>
-                      <td>{viaje.destino}</td>
-                      <td>{formatearFecha(viaje.fecha_salida)}</td>
-                      <td>{formatearFecha(viaje.fecha_llegada)}</td>
-                      <td>{viaje.recorrido} km</td>
-                      <td>
+                      <td data-label="#" className="operator-table__id">{viaje.id_viaje}</td>
+                      <td data-label="Origen">{viaje.origen}</td>
+                      <td data-label="Destino">{viaje.destino}</td>
+                      <td data-label="Salida">{formatearFecha(viaje.fecha_salida)}</td>
+                      <td data-label="Llegada">{formatearFecha(viaje.fecha_llegada)}</td>
+                      <td data-label="Recorrido">{viaje.recorrido} km</td>
+                      <td data-label="Estado">
                         <span
                           className={`chofer-badge chofer-badge--${estadoLower?.replace(
                             " ",
@@ -433,13 +445,7 @@ function OperadorViajesPage() {
                           {viaje.estado}
                         </span>
                       </td>
-                      <td
-                        style={{
-                          display: "flex",
-                          gap: "8px",
-                          alignItems: "center",
-                        }}
-                      >
+                      <td data-label="Acciones" className="op-viajes-table__acciones">
                         <button
                           type="button"
                           className="op-viajes-btn-ver"

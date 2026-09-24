@@ -4,6 +4,111 @@
   gap: 1.4rem;
 }
 
+.op-stats-periodo,
+.op-stats-periodo__selector,
+.op-stats-pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.op-stats-periodo {
+  flex-wrap: wrap;
+}
+
+.op-stats-periodo__selector {
+  gap: 8px;
+}
+
+.op-stats-periodo__selector label {
+  font-size: 13px;
+}
+
+.op-stats-periodo__selector :is(input, button),
+.op-stats-pagination button {
+  min-height: 40px;
+  color: var(--ui-text, #192338);
+  background: var(--ui-surface, #ffffff);
+  border: 1px solid var(--ui-border, #e3e9f2);
+  border-radius: 6px;
+}
+
+.op-stats-periodo__selector input {
+  padding: 7px 10px;
+  font: inherit;
+}
+
+.op-stats-periodo__selector button,
+.op-stats-pagination button {
+  width: 40px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.op-stats-periodo__selector button:disabled,
+.op-stats-pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.op-stats-periodo > strong {
+  color: var(--ui-muted, #69758a);
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+.op-stats-periodo__pdf {
+  min-height: 40px;
+  margin-left: auto;
+  padding: 8px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #ffffff;
+  background: var(--action-info, #2563eb);
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.op-stats-periodo__pdf:hover:not(:disabled) {
+  background: var(--action-info-hover, #1d4ed8);
+}
+
+.op-stats-periodo__pdf:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.op-stats-periodo__nota {
+  margin: -8px 0 0;
+  color: var(--ui-muted, #69758a);
+  font-size: 13px;
+}
+
+.op-stats-pagination {
+  justify-content: center;
+  padding: 14px;
+  border-top: 1px solid var(--ui-border, #e3e9f2);
+}
+
+.op-stats-pagination span {
+  color: var(--ui-muted, #69758a);
+  font-size: 13px;
+}
+
+@media (max-width: 620px) {
+  .op-stats-periodo__pdf {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
 .op-stats-heading {
   display: flex;
   align-items: center;

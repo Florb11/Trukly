@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { FaClipboardList, FaCheckCircle, FaClock, FaRoute } from "react-icons/fa";
+import DetalleViajeModal from "../components/DetalleViajeModal";
 import "./ViajesTruckerPage.css";
 import { fetchConToken } from "../utils/fetchConToken";
 
@@ -8,6 +9,7 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
   const [cargandoViajes, setCargandoViajes] = useState(true);
   const [errorViajes, setErrorViajes] = useState("");
   const [accionando, setAccionando] = useState(null);
+  const [viajeDetalle, setViajeDetalle] = useState(null);
 
   const usuario = JSON.parse(localStorage.getItem("usuario"));
 
@@ -175,7 +177,14 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
                           {viaje.estado}
                         </span>
                       </td>
-                      <td>
+                      <td className="chofer-table__acciones">
+                        <button
+                          type="button"
+                          className="chofer-btn-accion chofer-btn-accion--detalle"
+                          onClick={() => setViajeDetalle(viaje)}
+                        >
+                          Ver detalle
+                        </button>
                         {estadoLower === "pendiente" && (
                           <button
                             type="button"
@@ -205,6 +214,13 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
           </div>
         )}
       </article>
+
+      {viajeDetalle && (
+        <DetalleViajeModal
+          viaje={viajeDetalle}
+          onClose={() => setViajeDetalle(null)}
+        />
+      )}
     </section>
   );
 }

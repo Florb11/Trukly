@@ -70,6 +70,10 @@ function Navbar() {
             Roles
           </a>
 
+          <a href="#planes" onClick={cerrarMenu}>
+            Planes
+          </a>
+
           <a href="#contacto" onClick={cerrarMenu}>
             Contacto
           </a>
