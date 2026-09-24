@@ -2,6 +2,8 @@ const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
 
 export const hasGeoapifyKey = Boolean(apiKey);
 
+const coordinateLabel = (lat, lon) => `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+
 const getJson = async (url, signal) => {
   if (!apiKey) throw new Error("Falta configurar la clave de Geoapify.");
 
@@ -21,7 +23,23 @@ const getJson = async (url, signal) => {
   if (response.status === 429) {
     throw new Error("Geoapify alcanzó el límite de consultas. Intentá de nuevo más tarde.");
   }
-  if (!response.ok) throw new Error(`No se pudo consultar Geoapify (HTTP ${response.status}).`);
+  if (!response.ok) {
+    let detail = "";
+    try {
+      const body = await response.json();
+      detail = body.message || body.error || "";
+    } catch {
+      // Geoapify no siempre devuelve JSON para los errores.
+    }
+
+    const error = new Error(
+      detail
+        ? `No se pudo consultar Geoapify (HTTP ${response.status}): ${detail}`
+        : `No se pudo consultar Geoapify (HTTP ${response.status}).`,
+    );
+    error.status = response.status;
+    throw error;
+  }
   return response.json();
 };
 
@@ -43,6 +61,10 @@ export const searchPlaces = async (query, signal) => {
 };
 
 export const reversePlace = async (lat, lon, signal) => {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    throw new Error("El punto seleccionado no tiene coordenadas validas.");
+  }
+
   const params = new URLSearchParams({
     lat: String(lat),
     lon: String(lon),
@@ -50,11 +72,17 @@ export const reversePlace = async (lat, lon, signal) => {
     lang: "es",
     apiKey,
   });
-  const data = await getJson(
-    `https://api.geoapify.com/v1/geocode/reverse?${params}`,
-    signal,
-  );
-  return data.results?.[0]?.formatted || `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+  try {
+    const data = await getJson(
+      `https://api.geoapify.com/v1/geocode/reverse?${params}`,
+      signal,
+    );
+    return data.results?.[0]?.formatted || coordinateLabel(lat, lon);
+  } catch (error) {
+    if (error.name === "AbortError") throw error;
+    if (error.status === 400) return coordinateLabel(lat, lon);
+    throw error;
+  }
 };
 
 export const getTruckRoute = async (origin, destination, signal) => {
