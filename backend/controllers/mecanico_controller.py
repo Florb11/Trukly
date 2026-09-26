@@ -257,12 +257,12 @@ class MecanicoController:
                 camion
             )
 
-        MecanicoController.notificar_reporte_resuelto(
-            reporte_model,
-            nota_reparacion
-        )
-
         try:
+            # La notificacion se confirma junto con la resolucion.
+            MecanicoController.notificar_reporte_resuelto(
+                reporte_model,
+                nota_reparacion
+            )
             db.session.commit()
         except Exception:
             db.session.rollback()

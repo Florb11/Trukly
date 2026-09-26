@@ -15,9 +15,11 @@ function NotificationPromptCard({
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let componenteActivo = true;
+
     const cargarNotificaciones = async () => {
       try {
-        setCargando(true);
+        if (componenteActivo) setCargando(true);
         setError("");
 
         const resultado = await fetchConToken(
@@ -25,7 +27,7 @@ function NotificationPromptCard({
           { method: "GET" }
         );
 
-        if (!resultado) return;
+        if (!resultado || !componenteActivo) return;
 
         const { respuesta, data } = resultado;
 
@@ -43,13 +45,23 @@ function NotificationPromptCard({
         setCantidadSinLeer(sinLeer.length);
         setUltimaNotificacion(sinLeer[0] || notificaciones[0] || null);
       } catch (error) {
-        setError(error.message);
+        if (componenteActivo) setError(error.message);
       } finally {
-        setCargando(false);
+        if (componenteActivo) setCargando(false);
       }
     };
 
     cargarNotificaciones();
+    const intervalo = window.setInterval(cargarNotificaciones, 30000);
+    window.addEventListener("notificacionesActualizadas", cargarNotificaciones);
+    window.addEventListener("focus", cargarNotificaciones);
+
+    return () => {
+      componenteActivo = false;
+      window.clearInterval(intervalo);
+      window.removeEventListener("notificacionesActualizadas", cargarNotificaciones);
+      window.removeEventListener("focus", cargarNotificaciones);
+    };
   }, []);
 
   const mensaje = () => {

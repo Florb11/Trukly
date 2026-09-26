@@ -289,6 +289,10 @@ function DashboardSidebar({ isOpen, onClose }) {
     };
 
     cargarNotificacionesSinLeer();
+    const intervalo = window.setInterval(
+      cargarNotificacionesSinLeer,
+      30000
+    );
 
     window.addEventListener(
       "notificacionesActualizadas",
@@ -298,6 +302,7 @@ function DashboardSidebar({ isOpen, onClose }) {
 
     return () => {
       componenteActivo = false;
+      window.clearInterval(intervalo);
       window.removeEventListener(
         "notificacionesActualizadas",
         cargarNotificacionesSinLeer

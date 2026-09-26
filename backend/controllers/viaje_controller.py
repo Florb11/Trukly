@@ -6,6 +6,7 @@ from models.chofer_model import ChoferModel
 from models.operador_model import OperadorModel
 from models.usuario_model import UsuarioModel
 from models.viaje_model import ViajeModel
+from services.notificacion_service import NotificacionService
 
 from src.Camion import Camion
 from src.Chofer import Chofer
@@ -417,6 +418,17 @@ class ViajeController:
 
         try:
             db.session.add(nuevo_viaje)
+            db.session.flush()
+            NotificacionService.crear(
+                id_chofer,
+                "Nuevo viaje asignado",
+                (
+                    f"Se te asignó el viaje #{nuevo_viaje.id_viaje}: "
+                    f"{nuevo_viaje.origen} → {nuevo_viaje.destino}, "
+                    f"con salida el {nuevo_viaje.fecha_salida}."
+                ),
+                "viaje_asignado",
+            )
             db.session.commit()
         except Exception:
             db.session.rollback()

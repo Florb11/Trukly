@@ -4,6 +4,43 @@ export const hasGeoapifyKey = Boolean(apiKey);
 
 const coordinateLabel = (lat, lon) => `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
 
+const geoapifyError = (message, status, detail = "", cause) => {
+  const error = new Error(message, cause ? { cause } : undefined);
+  error.status = status;
+  error.detail = detail;
+  return error;
+};
+
+const routeErrorMessage = (error) => {
+  const detail = `${error.detail || ""} ${error.message || ""}`.toLowerCase();
+
+  if (error.status === 401 || error.status === 403) {
+    return "El servicio de mapas no está disponible en este momento.";
+  }
+  if (error.status === 429) {
+    return "El servicio de mapas está ocupado. Intentá nuevamente en unos minutos.";
+  }
+  if (error.status >= 500 || !error.status) {
+    return "No pudimos calcular la ruta en este momento. Intentá nuevamente.";
+  }
+  if (/too far|distance|maximum|max distance|exceed|long route/.test(detail)) {
+    return "La ruta es demasiado extensa para calcularla. Elegí un origen y un destino más cercanos.";
+  }
+  if (/no suitable edges|not routable|unreachable|inaccessible/.test(detail)) {
+    return "Uno de los puntos no es accesible para camiones. Elegí una ubicación cercana sobre una calle o ruta.";
+  }
+  if (/no route|route not found|no path|disconnected|different continent/.test(detail)) {
+    return "No encontramos una ruta terrestre entre estas ubicaciones.";
+  }
+  if (/coordinate|waypoint|latitude|longitude|lat\/lon/.test(detail)) {
+    return "No pudimos reconocer una de las ubicaciones. Volvé a seleccionarla.";
+  }
+  if (error.status === 400) {
+    return "No pudimos calcular una ruta con las ubicaciones elegidas. Probá seleccionando puntos cercanos sobre una calle o ruta.";
+  }
+  return "No pudimos calcular la ruta en este momento. Intentá nuevamente.";
+};
+
 const getJson = async (url, signal) => {
   if (!apiKey) throw new Error("Falta configurar la clave de Geoapify.");
 
@@ -12,16 +49,24 @@ const getJson = async (url, signal) => {
     response = await fetch(url, { signal });
   } catch (error) {
     if (error.name === "AbortError") throw error;
-    throw new Error(
+    throw geoapifyError(
       "No se pudo conectar con Geoapify. Revisá la conexión y los dominios permitidos para la clave.",
-      { cause: error },
+      undefined,
+      "",
+      error,
     );
   }
   if (response.status === 401 || response.status === 403) {
-    throw new Error(`Geoapify rechazó la clave (HTTP ${response.status}). Revisá la clave y permití localhost en Geoapify.`);
+    throw geoapifyError(
+      `Geoapify rechazó la clave (HTTP ${response.status}). Revisá la clave y permití localhost en Geoapify.`,
+      response.status,
+    );
   }
   if (response.status === 429) {
-    throw new Error("Geoapify alcanzó el límite de consultas. Intentá de nuevo más tarde.");
+    throw geoapifyError(
+      "Geoapify alcanzó el límite de consultas. Intentá de nuevo más tarde.",
+      response.status,
+    );
   }
   if (!response.ok) {
     let detail = "";
@@ -32,14 +77,13 @@ const getJson = async (url, signal) => {
       // Geoapify no siempre devuelve JSON para los errores.
     }
 
-    const error = new Error(
+    throw geoapifyError(
       detail
         ? `No se pudo consultar Geoapify (HTTP ${response.status}): ${detail}`
         : `No se pudo consultar Geoapify (HTTP ${response.status}).`,
+      response.status,
+      detail,
     );
-    error.status = response.status;
-    error.detail = detail;
-    throw error;
   }
   return response.json();
 };
@@ -100,16 +144,9 @@ export const getTruckRoute = async (origin, destination, signal) => {
       signal,
     );
   } catch (error) {
-    const puntoNoEnrutable =
-      error.status === 400 && /no suitable edges near location/i.test(error.detail || "");
-
-    if (puntoNoEnrutable) {
-      throw new Error(
-        "Uno de los puntos está fuera de una ruta transitable para camiones. Elegí una ubicación cercana sobre una calle o ruta.",
-        { cause: error },
-      );
-    }
-    throw error;
+    if (error.name === "AbortError") throw error;
+    console.error("Error calculando ruta con Geoapify:", error);
+    throw new Error(routeErrorMessage(error), { cause: error });
   }
   const feature = data.features?.[0];
   const meters = Number(feature?.properties?.distance);
