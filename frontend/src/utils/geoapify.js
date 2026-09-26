@@ -38,6 +38,7 @@ const getJson = async (url, signal) => {
         : `No se pudo consultar Geoapify (HTTP ${response.status}).`,
     );
     error.status = response.status;
+    error.detail = detail;
     throw error;
   }
   return response.json();
@@ -92,10 +93,24 @@ export const getTruckRoute = async (origin, destination, signal) => {
     units: "metric",
     apiKey,
   });
-  const data = await getJson(
-    `https://api.geoapify.com/v1/routing?${params}`,
-    signal,
-  );
+  let data;
+  try {
+    data = await getJson(
+      `https://api.geoapify.com/v1/routing?${params}`,
+      signal,
+    );
+  } catch (error) {
+    const puntoNoEnrutable =
+      error.status === 400 && /no suitable edges near location/i.test(error.detail || "");
+
+    if (puntoNoEnrutable) {
+      throw new Error(
+        "Uno de los puntos está fuera de una ruta transitable para camiones. Elegí una ubicación cercana sobre una calle o ruta.",
+        { cause: error },
+      );
+    }
+    throw error;
+  }
   const feature = data.features?.[0];
   const meters = Number(feature?.properties?.distance);
   if (!feature || !Number.isFinite(meters)) {
