@@ -9,9 +9,9 @@ function NotificacionesPage() {
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
 
-  const cargarNotificaciones = async () => {
+  const cargarNotificaciones = async ({ silencioso = false } = {}) => {
     try {
-      setCargando(true);
+      if (!silencioso) setCargando(true);
       setError("");
 
       const resultado = await fetchConToken(
@@ -40,7 +40,16 @@ function NotificacionesPage() {
   };
 
   useEffect(() => {
-    cargarNotificaciones();
+    const cargaInicial = window.setTimeout(cargarNotificaciones, 0);
+    const actualizar = () => cargarNotificaciones({ silencioso: true });
+    const intervalo = window.setInterval(actualizar, 30000);
+    window.addEventListener("focus", actualizar);
+
+    return () => {
+      window.clearTimeout(cargaInicial);
+      window.clearInterval(intervalo);
+      window.removeEventListener("focus", actualizar);
+    };
   }, []);
 
   const marcarComoLeida = async (idNotificacion) => {

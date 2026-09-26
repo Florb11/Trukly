@@ -88,19 +88,12 @@ class NotificacionController:
         # lista notificaciones del usuario logueado
         usuario_actual = g.usuario_actual
         id_usuario = usuario_actual.id_usuario
-        rol = usuario_actual.rol
-
-        if rol == Usuario.ROL_ADMIN:
-            notificaciones = NotificacionModel.query.order_by(
-                NotificacionModel.fecha_hora.desc()
-            ).all()
-        else:
-            notificaciones = (
-                NotificacionModel.query
-                .filter_by(Usuario_idUsuario=id_usuario)
-                .order_by(NotificacionModel.fecha_hora.desc())
-                .all()
-            )
+        notificaciones = (
+            NotificacionModel.query
+            .filter_by(Usuario_idUsuario=id_usuario)
+            .order_by(NotificacionModel.fecha_hora.desc())
+            .all()
+        )
 
         return jsonify({
             "notificaciones": [
@@ -126,8 +119,7 @@ class NotificacionController:
 
         notificacion = (
             NotificacionController.crear_objeto_notificacion(
-                notificacion_model,
-                usuario_actual
+                notificacion_model
             )
         )
 

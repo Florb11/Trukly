@@ -441,10 +441,11 @@ class ReporteController:
             )
         )
 
-        ReporteController.notificar_reporte_creado(reporte_clase)
-
         try:
             db.session.add(nuevo_reporte)
+            db.session.flush()
+            reporte_clase.id_reporte = nuevo_reporte.id_reporte
+            ReporteController.notificar_reporte_creado(reporte_clase)
             db.session.commit()
         except Exception:
             db.session.rollback()
@@ -466,11 +467,19 @@ class ReporteController:
     def notificar_reporte_creado(reporte_clase):
         from models.operador_model import OperadorModel
 
-        event_manager = EventManager()
-        listener = NotificacionReporteListener(NotificacionService.agregar_a_sesion)
-        operadores = OperadorModel.query.all()
-
-        reporte_clase.notificar_creacion(event_manager, listener, operadores)
+        ids_operadores = [
+            operador.Usuario_idUsuario
+            for operador in OperadorModel.query.all()
+        ]
+        NotificacionService.crear_para_usuarios(
+            ids_operadores,
+            "Nuevo reporte de falla",
+            (
+                f"El chofer #{reporte_clase.id_chofer} creó el reporte "
+                f"#{reporte_clase.id_reporte} del camión #{reporte_clase.id_camion}."
+            ),
+            "reporte_creado",
+        )
 
     @staticmethod
     @roles_required(
@@ -603,13 +612,12 @@ class ReporteController:
             )
         )
 
-        # notifica al mecanico
-        ReporteController.notificar_reporte_asignado(
-            reporte_clase,
-            mecanico
-        )
-
         try:
+            # La notificacion se confirma junto con la asignacion.
+            ReporteController.notificar_reporte_asignado(
+                reporte_clase,
+                mecanico
+            )
             db.session.commit()
         except Exception:
             db.session.rollback()
@@ -626,26 +634,3 @@ class ReporteController:
             ),
             "camion_en_mantenimiento": camion_en_mantenimiento,
         }), 200
-    
-    @staticmethod
-    def notificar_reporte_creado(reporte_clase):
-        from models.operador_model import OperadorModel
-
-        event_manager = EventManager()
-        listener = NotificacionReporteListener(NotificacionService.agregar_a_sesion)
-
-        operadores = OperadorModel.query.all()
-
-        for operador in operadores:
-            event_manager.suscribir("reporte_creado", listener)
-            event_manager.notificar(
-                "reporte_creado",
-                {
-                    "id_usuario": operador.Usuario_idUsuario,
-                    "titulo": "Nuevo reporte de falla",
-                    "mensaje": (
-                        f"El chofer #{reporte_clase.id_chofer} creó el reporte "
-                    ),
-                    "tipo": "reporte_creado",
-                }
-            )

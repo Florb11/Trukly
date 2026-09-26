@@ -1,4 +1,3 @@
-from src.Usuario import Usuario
 from utils.domain_helpers import formatear_fecha, texto_valido
 
 
@@ -94,20 +93,10 @@ class Notificacion:
 
         return str(self.id_usuario) == str(id_usuario)
 
-    def usuario_es_admin(self, usuario):
-        # valida si el usuario tiene rol admin
-        if usuario is None:
-            return False
-
-        return getattr(usuario, "rol", None) == Usuario.ROL_ADMIN
-
     def puede_ser_modificada_por_usuario(self, usuario):
         # valida permisos para modificar la notificacion
         if usuario is None:
             return False
-
-        if self.usuario_es_admin(usuario):
-            return True
 
         return self.pertenece_a_usuario(usuario)
 

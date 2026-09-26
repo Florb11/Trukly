@@ -19,6 +19,7 @@ from models.camion_model import CamionModel
 from utils.input_sanitizer import InputSanitizer
 from utils.auth_decorators import operador_required
 from services.camion_disponibilidad_service import actualizar_camion_tras_cancelacion
+from services.notificacion_service import NotificacionService
 
 from models.usuario_model import UsuarioModel
 from src.Viaje import Viaje
@@ -200,6 +201,16 @@ class OperadorController:
             camion_model.estado = camion.estado
 
             db.session.add(nuevo_viaje)
+            db.session.flush()
+            NotificacionService.crear(
+                id_chofer,
+                "Nuevo viaje asignado",
+                (
+                    f"Se te asignó el viaje #{nuevo_viaje.id_viaje}: "
+                    f"{origen} → {destino}, con salida el {fecha_salida}."
+                ),
+                "viaje_asignado",
+            )
             db.session.commit()
             return jsonify({"mensaje": "Viaje creado correctamente", "viaje": nuevo_viaje.to_dict()}), 201
 
@@ -271,6 +282,7 @@ class OperadorController:
 
         id_chofer = datos.get("Chofer_Usuario_idUsuario")
         id_camion = datos.get("Camion_id_camion")
+        id_chofer_anterior = viaje_model.Chofer_Usuario_idUsuario
 
         if id_chofer and not ChoferModel.query.get(id_chofer):
             return jsonify({"mensaje": "El chofer no existe"}), 400
@@ -304,6 +316,22 @@ class OperadorController:
         viaje_model.Camion_id_camion = viaje.id_camion
 
         try:
+            if viaje.id_chofer != id_chofer_anterior:
+                NotificacionService.crear(
+                    viaje.id_chofer,
+                    "Viaje asignado",
+                    (
+                        f"Se te reasignó el viaje #{viaje_model.id_viaje}: "
+                        f"{viaje.origen} → {viaje.destino}."
+                    ),
+                    "viaje_asignado",
+                )
+                NotificacionService.crear(
+                    id_chofer_anterior,
+                    "Asignación de viaje actualizada",
+                    f"El viaje #{viaje_model.id_viaje} fue reasignado a otro chofer.",
+                    "viaje_reasignado",
+                )
             db.session.commit()
             return jsonify({"mensaje": "Viaje actualizado correctamente", "viaje": viaje_model.to_dict()}), 200
         except Exception:
