@@ -8,6 +8,7 @@ from db_instance import db
 from utils.app_logger import get_app_logger
 
 from models.reporte_model import ReporteModel
+from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
 from models.camion_model import CamionModel
 from models.chofer_model import ChoferModel
 from utils.input_sanitizer import InputSanitizer
@@ -110,6 +111,80 @@ class ChoferController:
             return jsonify([v.to_dict() for v in viajes]), 200
         except Exception:
             logger.exception(f"Error al listar viajes del chofer {chofer.id_usuario}")
+            return jsonify({"mensaje": "Error interno del servidor"}), 500
+
+    @staticmethod
+    @chofer_required
+    def registrar_ingreso_salida(id_viaje):
+        chofer = g.chofer_actual
+        datos = InputSanitizer.sanitizar_campos(
+            request.get_json(silent=True) or {},
+            campos_texto=["tipo_registro", "observacion"],
+        )
+        tipo_registro = (datos.get("tipo_registro") or "").strip().lower()
+
+        if tipo_registro not in {"ingreso", "salida"}:
+            return jsonify({"mensaje": "El tipo debe ser ingreso o salida"}), 400
+
+        viaje_model = ViajeModel.query.filter_by(
+            id_viaje=id_viaje,
+            Chofer_Usuario_idUsuario=chofer.id_usuario,
+        ).first()
+
+        if viaje_model is None:
+            return jsonify({"mensaje": "Viaje no encontrado o no asignado al chofer"}), 404
+
+        estado_actual = (viaje_model.estado or "").strip().lower()
+        estado_esperado = "pendiente" if tipo_registro == "ingreso" else "en curso"
+
+        if estado_actual != estado_esperado:
+            accion = "iniciar" if tipo_registro == "ingreso" else "finalizar"
+            return jsonify({
+                "mensaje": f"El viaje no se puede {accion} desde el estado {viaje_model.estado}"
+            }), 400
+
+        ahora = datetime.datetime.now()
+        nuevo_estado = "en curso" if tipo_registro == "ingreso" else "finalizado"
+        nuevo_registro = RegistroIngresoSalidaModel(
+            fecha_hora=ahora,
+            tipo_registro=tipo_registro,
+            observacion=datos.get("observacion") or None,
+            Viaje_id_viaje=viaje_model.id_viaje,
+        )
+
+        viaje_model.estado = nuevo_estado
+        if tipo_registro == "salida":
+            viaje_model.fecha_llegada = viaje_model.fecha_llegada or ahora.date()
+
+            camion_model = CamionModel.query.get(viaje_model.Camion_id_camion)
+            if camion_model and camion_model.estado == Camion.ESTADO_EN_VIAJE:
+                tiene_reportes_activos = ReporteModel.query.filter(
+                    ReporteModel.Camion_id_camion == camion_model.id_camion,
+                    ReporteModel.estado.in_(ReporteFalla.ESTADOS_ACTIVOS),
+                ).first() is not None
+                camion_model.estado = (
+                    Camion.ESTADO_EN_MANTENIMIENTO
+                    if tiene_reportes_activos
+                    else Camion.ESTADO_DISPONIBLE
+                )
+
+        try:
+            db.session.add(nuevo_registro)
+            db.session.commit()
+            return jsonify({
+                "mensaje": (
+                    "Check-in registrado correctamente"
+                    if tipo_registro == "ingreso"
+                    else "Check-out registrado correctamente"
+                ),
+                "registro": nuevo_registro.to_dict(),
+                "viaje": viaje_model.to_dict(),
+            }), 201
+        except Exception:
+            db.session.rollback()
+            logger.exception(
+                f"Error al registrar {tipo_registro} del viaje {id_viaje}"
+            )
             return jsonify({"mensaje": "Error interno del servidor"}), 500
         
     @staticmethod

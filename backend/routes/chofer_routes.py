@@ -39,3 +39,10 @@ def ruta_iniciar_viaje(id_viaje):
 @chofer_routes.route("/api/choferes/viajes/<int:id_viaje>/finalizar", methods=["PUT"])
 def ruta_finalizar_viaje(id_viaje):
     return ChoferController.finalizar_viaje(id_viaje)
+
+@chofer_routes.route(
+    "/api/choferes/viajes/<int:id_viaje>/registro",
+    methods=["POST"],
+)
+def ruta_registrar_ingreso_salida(id_viaje):
+    return ChoferController.registrar_ingreso_salida(id_viaje)

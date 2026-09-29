@@ -7,7 +7,7 @@ class RegistroIngresoSalidaModel(db.Model):
     id_registro = db.Column(db.Integer, primary_key=True, autoincrement=True)
     fecha_hora = db.Column(db.DateTime, nullable=False)
     tipo_registro = db.Column(db.String(45), nullable=False)
-    observacion = db.Column(db.String(45))
+    observacion = db.Column(db.String(100))
     
     # Clave foranea
     Viaje_id_viaje = db.Column(
