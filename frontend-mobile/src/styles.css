@@ -53,6 +53,7 @@ button { cursor: pointer; }
 .feedback { display: flex; align-items: center; gap: 7px; margin: 0; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; }
 .feedback.error { color: #991b1b; background: #fee2e2; }
 .feedback.ok { color: #166534; background: #dcfce7; }
+.feedback.info { color: #075985; background: #e0f2fe; }
 .empty { margin: 0; padding: 34px 18px; border: 1px dashed #b9c9d1; border-radius: 8px; color: #71818d; background: #f9fbfc; text-align: center; }
 .empty.compact { padding: 18px 8px; border: 0; background: transparent; }
 .camera { position: relative; aspect-ratio: 4 / 3; display: grid; place-items: center; overflow: hidden; border: 1px dashed #8fa6b2; border-radius: 8px; background: #edf3f5; }
@@ -81,6 +82,16 @@ input:focus, textarea:focus { border-color: #087f8c; box-shadow: 0 0 0 3px rgba(
 .failure-list h2 { margin: 13px 0 6px; font-size: 16px; }
 .failure-list p, .failure-list small { margin: 0; color: #74838f; font-size: 12px; }
 .icon-button { width: 44px; height: 44px; display: grid; place-items: center; flex: 0 0 auto; border: 0; border-radius: 8px; color: #fff; background: #087f8c; font-size: 18px; }
+.icon-button:disabled { color: #93a4ad; background: #dce5e9; cursor: not-allowed; }
+.assigned-truck { padding: 17px; border: 1px solid #b8dfe1; border-left: 4px solid #087f8c; border-radius: 8px; background: #f3fbfb; }
+.assigned-truck > div { display: flex; align-items: center; gap: 7px; color: #087f8c; font-size: 11px; font-weight: 800; }
+.assigned-truck h2 { margin: 11px 0 2px; font-size: 19px; }
+.assigned-truck p { margin: 0 0 12px; color: #526875; font-weight: 700; }
+.assigned-truck small { display: flex; align-items: flex-start; gap: 6px; color: #6c7e89; line-height: 1.4; }
+.modal-unit { display: flex; align-items: center; gap: 12px; margin: 14px 0; padding: 13px; border: 1px solid #cce4e6; border-radius: 8px; color: #087f8c; background: #f2fafa; }
+.modal-unit > svg { flex: 0 0 auto; font-size: 25px; }
+.modal-unit > div { display: grid; gap: 2px; }
+.modal-unit small, .modal-unit span { color: #687b87; font-size: 11px; }
 .modal-backdrop { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; padding: 18px; background: rgba(4,18,27,.6); }
 .modal-sheet { width: min(100%, 520px); max-height: 90vh; overflow-y: auto; padding: 22px; border-radius: 8px; background: #fff; box-shadow: 0 22px 60px rgba(0,0,0,.28); }
 .modal-sheet > span { color: #087f8c; font-size: 11px; font-weight: 800; }

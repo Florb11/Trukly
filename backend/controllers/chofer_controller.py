@@ -108,7 +108,23 @@ class ChoferController:
 
         try:
             viajes = chofer.obtener_mis_viajes(ViajeModel.query)
-            return jsonify([v.to_dict() for v in viajes]), 200
+            ids_camiones = {viaje.Camion_id_camion for viaje in viajes}
+            camiones = {
+                camion.id_camion: camion.to_dict()
+                for camion in CamionModel.query.filter(
+                    CamionModel.id_camion.in_(ids_camiones)
+                ).all()
+            } if ids_camiones else {}
+
+            respuesta = []
+            for viaje in viajes:
+                datos_viaje = viaje.to_dict()
+                datos_viaje["camion"] = camiones.get(
+                    viaje.Camion_id_camion
+                )
+                respuesta.append(datos_viaje)
+
+            return jsonify(respuesta), 200
         except Exception:
             logger.exception(f"Error al listar viajes del chofer {chofer.id_usuario}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
