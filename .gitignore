@@ -1,16 +1,24 @@
 venv/
-__pycache__/
-*.pyc
+pycache/
+.pyc
 node_modules/
 dist/
 
 .env
-
-backend/uploads/perfiles/*
+package.json
+package-lock.json
+backend/uploads/perfiles/
 !backend/uploads/perfiles/.gitkeep
 
 backend/logs/*
 !backend/logs/.gitkeep
 *.log
-*firebase*service*account*.json
-*serviceAccount*.json
+firebaseserviceaccount.json
+serviceAccount.json
+
+
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
