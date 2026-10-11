@@ -24,6 +24,10 @@ def ruta_listar_reportes_propios():
 def ruta_listar_viajes_propios():
     return ChoferController.listar_viajes_propios()
 
+@chofer_routes.route("/api/choferes/mis-registros", methods=["GET"])
+def ruta_listar_registros_propios():
+    return ChoferController.listar_registros_propios()
+
 @chofer_routes.route("/api/choferes/estadisticas", methods=["GET"])
 def ruta_estadisticas():
     return ChoferController.obtener_estadisticas()
@@ -39,3 +43,10 @@ def ruta_iniciar_viaje(id_viaje):
 @chofer_routes.route("/api/choferes/viajes/<int:id_viaje>/finalizar", methods=["PUT"])
 def ruta_finalizar_viaje(id_viaje):
     return ChoferController.finalizar_viaje(id_viaje)
+
+@chofer_routes.route(
+    "/api/choferes/viajes/<int:id_viaje>/registro",
+    methods=["POST"],
+)
+def ruta_registrar_ingreso_salida(id_viaje):
+    return ChoferController.registrar_ingreso_salida(id_viaje)

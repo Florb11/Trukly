@@ -8,6 +8,7 @@ from models.chofer_model import ChoferModel
 from models.mecanico_model import MecanicoModel
 from models.reporte_model import ReporteModel
 from models.usuario_model import UsuarioModel
+from models.viaje_model import ViajeModel
 
 from src.Camion import Camion
 from src.Chofer import Chofer
@@ -376,6 +377,20 @@ class ReporteController:
         id_chofer = AuthService.obtener_id_usuario_actual()
         camion_id = datos.get("Camion_id_camion")
         descripcion = datos.get("descripcion")
+
+        viaje_activo = ViajeModel.query.filter_by(
+            Chofer_Usuario_idUsuario=id_chofer,
+            Camion_id_camion=camion_id,
+            estado="en curso",
+        ).first()
+
+        if viaje_activo is None:
+            return jsonify({
+                "mensaje": (
+                    "Solo podés reportar fallas del camión asignado "
+                    "a tu viaje en curso"
+                )
+            }), 403
 
      
         datos_validos, mensaje_error = ReporteFalla.validar_datos_reporte(
