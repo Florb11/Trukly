@@ -24,6 +24,10 @@ def ruta_listar_reportes_propios():
 def ruta_listar_viajes_propios():
     return ChoferController.listar_viajes_propios()
 
+@chofer_routes.route("/api/choferes/mis-registros", methods=["GET"])
+def ruta_listar_registros_propios():
+    return ChoferController.listar_registros_propios()
+
 @chofer_routes.route("/api/choferes/estadisticas", methods=["GET"])
 def ruta_estadisticas():
     return ChoferController.obtener_estadisticas()

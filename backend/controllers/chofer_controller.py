@@ -131,6 +131,55 @@ class ChoferController:
 
     @staticmethod
     @chofer_required
+    def listar_registros_propios():
+        chofer = g.chofer_actual
+
+        try:
+            resultados = (
+                db.session.query(RegistroIngresoSalidaModel, ViajeModel)
+                .join(
+                    ViajeModel,
+                    RegistroIngresoSalidaModel.Viaje_id_viaje
+                    == ViajeModel.id_viaje,
+                )
+                .filter(
+                    ViajeModel.Chofer_Usuario_idUsuario
+                    == chofer.id_usuario
+                )
+                .order_by(
+                    RegistroIngresoSalidaModel.fecha_hora.desc(),
+                    RegistroIngresoSalidaModel.id_registro.desc(),
+                )
+                .all()
+            )
+
+            registros = []
+            for registro, viaje in resultados:
+                tipo_registro = (
+                    "ingreso"
+                    if registro.tipo_registro in {"entrada", "ingreso"}
+                    else registro.tipo_registro
+                )
+                registros.append({
+                    "id_registro": registro.id_registro,
+                    "fecha_hora": registro.fecha_hora.isoformat(),
+                    "tipo_registro": tipo_registro,
+                    "observacion": registro.observacion,
+                    "id_viaje": viaje.id_viaje,
+                    "origen": viaje.origen,
+                    "destino": viaje.destino,
+                    "id_camion": viaje.Camion_id_camion,
+                })
+
+            return jsonify(registros), 200
+        except Exception:
+            logger.exception(
+                f"Error al listar registros del chofer {chofer.id_usuario}"
+            )
+            return jsonify({"mensaje": "Error interno del servidor"}), 500
+
+    @staticmethod
+    @chofer_required
     def registrar_ingreso_salida(id_viaje):
         chofer = g.chofer_actual
         datos = InputSanitizer.sanitizar_campos(
