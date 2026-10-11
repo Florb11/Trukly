@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { FaEye, FaEyeSlash, FaLock, FaTruck } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaGoogle, FaLock, FaTruck } from "react-icons/fa";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { useAuth } from "../context/AuthContext";
+import { auth } from "../firebase";
 import { API_URL } from "../utils/api";
 
 export default function LoginPage() {
@@ -11,6 +13,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ username: "", password: "" });
   const [mostrar, setMostrar] = useState(false);
   const [cargando, setCargando] = useState(false);
+  const [googleProcesando, setGoogleProcesando] = useState(false);
   const [error, setError] = useState("");
 
   if (token) return <Navigate to="/" replace />;
@@ -33,6 +36,40 @@ export default function LoginPage() {
     } catch (err) { setError(err.message); } finally { setCargando(false); }
   };
 
+  const loginGoogle = async () => {
+    if (googleProcesando) return;
+    setGoogleProcesando(true);
+    setError("");
+
+    try {
+      const credencial = await signInWithPopup(auth, new GoogleAuthProvider());
+      const firebaseToken = await credencial.user.getIdToken();
+      const response = await fetch(`${API_URL}/api/auth/firebase-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: firebaseToken }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.mensaje || "No se pudo iniciar sesión con Google");
+      if (data.usuario?.rol !== "chofer") {
+        await signOut(auth);
+        throw new Error("Esta aplicación es para cuentas de chofer.");
+      }
+      login(data.token, data.usuario);
+      navigate("/", { replace: true });
+    } catch (err) {
+      const mensajes = {
+        "auth/popup-closed-by-user": "Se cerró la ventana de Google antes de completar el acceso.",
+        "auth/popup-blocked": "El navegador bloqueó la ventana de Google. Permití popups para este sitio.",
+        "auth/unauthorized-domain": "Este dominio no está autorizado en Firebase Authentication.",
+        "auth/cancelled-popup-request": "Ya hay una ventana de Google abierta.",
+      };
+      setError(mensajes[err.code] || err.message || "No se pudo iniciar sesión con Google");
+    } finally {
+      setGoogleProcesando(false);
+    }
+  };
+
   const params = new URLSearchParams(location.search);
   return (
     <main className="login-page">
@@ -51,6 +88,10 @@ export default function LoginPage() {
           <label>Contraseña<div className="password-field"><FaLock /><input type={mostrar ? "text" : "password"} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} autoComplete="current-password" required /><button type="button" onClick={() => setMostrar(!mostrar)} aria-label={mostrar ? "Ocultar contraseña" : "Mostrar contraseña"}>{mostrar ? <FaEyeSlash /> : <FaEye />}</button></div></label>
           <button className="button primary wide" disabled={cargando}>{cargando ? "Ingresando..." : "Entrar"}</button>
         </form>
+        <div className="login-divider"><span>o</span></div>
+        <button className="button google wide" type="button" onClick={loginGoogle} disabled={googleProcesando || cargando}>
+          <FaGoogle /> {googleProcesando ? "Conectando..." : "Continuar con Google"}
+        </button>
       </section>
     </main>
   );

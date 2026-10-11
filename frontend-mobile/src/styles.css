@@ -138,6 +138,11 @@ input:focus, textarea:focus { border-color: #087f8c; box-shadow: 0 0 0 3px rgba(
 .login-card-title > svg { color: #087f8c; font-size: 25px; }
 .login-card-title h2 { margin: 0; font-size: 20px; }
 .login-card-title p { margin: 3px 0 0; color: #71818d; font-size: 12px; }
+.login-divider { display: flex; align-items: center; gap: 12px; margin: 18px 0; color: #86949e; font-size: 12px; }
+.login-divider::before, .login-divider::after { content: ""; flex: 1; height: 1px; background: #d7e3e8; }
+.button.google { display: flex; align-items: center; justify-content: center; gap: 9px; border: 1px solid #cbd8de; background: #fff; color: #243746; }
+.button.google:hover { background: #f5f8f9; }
+.button.google svg { color: #4285f4; }
 .password-field { position: relative; }
 .password-field > svg { position: absolute; left: 12px; top: 14px; color: #8796a0; }
 .password-field input { padding-left: 36px; padding-right: 42px; }
