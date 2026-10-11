@@ -9,6 +9,11 @@
     <link rel="icon" type="image/png" href="/pwa-192.png" />
     <link rel="apple-touch-icon" href="/pwa-192.png" />
     <title>Trukly Mobile</title>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
