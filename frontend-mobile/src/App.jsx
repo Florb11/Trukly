@@ -9,18 +9,22 @@ import FallasPage from "./pages/FallasPage";
 import PerfilPage from "./pages/PerfilPage";
 import HistorialPage from "./pages/HistorialPage";
 import NotificacionesPage from "./pages/NotificacionesPage";
+import MecanicoPage from "./pages/MecanicoPage";
+import { useAuth } from "./context/AuthContext";
 
 function App() {
+  const { usuario } = useAuth();
+  const chofer = (page) => <ProtectedRoute roles={["chofer"]}>{page}</ProtectedRoute>;
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route element={<ProtectedRoute><MobileShell /></ProtectedRoute>}>
-        <Route index element={<HomePage />} />
-        <Route path="viajes" element={<ViajesPage />} />
-        <Route path="historial" element={<HistorialPage />} />
+        <Route index element={usuario?.rol === "mecanico" ? <MecanicoPage /> : <HomePage />} />
+        <Route path="viajes" element={chofer(<ViajesPage />)} />
+        <Route path="historial" element={chofer(<HistorialPage />)} />
         <Route path="notificaciones" element={<NotificacionesPage />} />
-        <Route path="escanear" element={<ScannerPage />} />
-        <Route path="fallas" element={<FallasPage />} />
+        <Route path="escanear" element={chofer(<ScannerPage />)} />
+        <Route path="fallas" element={chofer(<FallasPage />)} />
         <Route path="perfil" element={<PerfilPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

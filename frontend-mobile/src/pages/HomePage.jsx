@@ -32,7 +32,7 @@ export default function HomePage() {
         <div className="section-title"><div><FaRoute /><span>VIAJE ACTUAL</span></div><Link to="/viajes">Ver todos <FaArrowRight /></Link></div>
         {activo ? <><span className="status live">En curso</span><h2>{activo.origen} → {activo.destino}</h2><p>Viaje #{activo.id_viaje}</p></> : <><h2>No hay un viaje en curso</h2><p>{pendientes ? "Tenés viajes pendientes para iniciar." : "Cuando tengas una asignación aparecerá acá."}</p></>}
       </article>
-      <Link className="scan-cta" to="/escanear"><FaQrcode /><div><strong>Escanear punto de control</strong><span>Realizá check-in o check-out</span></div><FaArrowRight /></Link>
+      <Link className="scan-cta" to="/escanear"><FaQrcode /><div><strong>Escanear punto de control</strong><span>Registrá salida o regreso</span></div><FaArrowRight /></Link>
     </section>
   );
 }
