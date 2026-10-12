@@ -22,7 +22,12 @@ export function AuthProvider({ children }) {
     setUsuario(null);
   };
 
-  return <AuthContext.Provider value={{ token, usuario, login, logout }}>{children}</AuthContext.Provider>;
+  const actualizarUsuario = (datos) => {
+    const siguiente = { ...usuario, ...datos };
+    localStorage.setItem("trukly_mobile_user", JSON.stringify(siguiente));
+    setUsuario(siguiente);
+  };
+  return <AuthContext.Provider value={{ token, usuario, login, logout, actualizarUsuario }}>{children}</AuthContext.Provider>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

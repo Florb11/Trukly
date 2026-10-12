@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash, FaGoogle, FaLock, FaTruck } from "react-icons/fa";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, signOut } from "firebase/auth";
 import { useAuth } from "../context/AuthContext";
 import { auth } from "../firebase";
 import { API_URL } from "../utils/api";
@@ -29,7 +29,25 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const data = await response.json();
+      let data = await response.json();
+      if (response.status === 401 && form.username.includes("@")) {
+        try {
+          const credencial = await signInWithEmailAndPassword(auth, form.username, form.password);
+          const firebaseToken = await credencial.user.getIdToken();
+          const firebaseResponse = await fetch(`${API_URL}/api/auth/firebase-login`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: firebaseToken }), signal: AbortSignal.timeout(20000),
+          });
+          const firebaseData = await firebaseResponse.json();
+          if (!firebaseResponse.ok) throw new Error(firebaseData.mensaje || "No se pudo iniciar sesión");
+          if (!["chofer", "mecanico", "operador"].includes(firebaseData.usuario?.rol)) throw new Error("Tu rol no tiene acceso a mobile.");
+          login(firebaseData.token, firebaseData.usuario);
+          navigate("/", { replace: true });
+          return;
+        } catch (err) {
+          throw new Error(err.code ? data.mensaje : err.message, { cause: err });
+        }
+      }
       if (!response.ok) throw new Error(data.mensaje || "No se pudo iniciar sesión");
       if (!["chofer", "mecanico", "operador"].includes(data.usuario?.rol)) throw new Error("Ingresá con una cuenta de chofer, mecánico u operador.");
       login(data.token, data.usuario);
@@ -94,6 +112,7 @@ export default function LoginPage() {
         <button className="button google wide" type="button" onClick={loginGoogle} disabled={googleProcesando || cargando}>
           <FaGoogle /> {googleProcesando ? "Conectando..." : "Continuar con Google"}
         </button>
+        <Link className="button secondary wide" to="/registro">Solicitar acceso</Link>
       </section>
     </main>
   );

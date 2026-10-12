@@ -91,3 +91,12 @@ input:focus, textarea:focus, select:focus { border-color: var(--ui-accent); box-
 :root[data-theme="dark"] .status.pendiente { color: #fcd34d; background: #40331e; }
 :root[data-theme="dark"] .logout-button { color: #fca5a5; }
 :root[data-theme="dark"] .icon-button:disabled { color: var(--ui-muted); background: var(--ui-soft); }
+.profile-form fieldset, .registration-fields { min-width: 0; margin: 0; padding: 0; border: 0; }
+.profile-form legend { font-weight: 800; }
+.profile-form label { display: grid; gap: 7px; margin-top: 14px; font-size: 13px; }
+.profile-avatar { overflow: hidden; }
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.photo-upload { position: relative; margin-top: 16px; cursor: pointer; }
+.photo-upload input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.photo-upload:focus-within { outline: 2px solid var(--ui-accent); outline-offset: 3px; }
+.login-card a.button { text-decoration: none; }
