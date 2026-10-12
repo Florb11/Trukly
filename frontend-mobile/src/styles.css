@@ -9,6 +9,19 @@ button { cursor: pointer; }
 .mobile-topbar div { display: grid; }
 .mobile-topbar strong { font-size: 17px; }
 .mobile-topbar span { color: #718292; font-size: 11px; }
+.notification-bell { position: relative; margin-left: auto; text-decoration: none; }
+.notification-bell b { position: absolute; top: -3px; right: -5px; min-width: 20px; height: 20px; padding: 0 4px; display: grid; place-items: center; border-radius: 10px; color: #fff; background: #be123c; font-size: 10px; }
+.notification-filters { grid-template-columns: repeat(2, 1fr); }
+.notification-list { display: grid; gap: 12px; }
+.notification-list article { min-width: 0; padding: 16px; border: 1px solid #dce6eb; border-radius: 8px; background: #fff; overflow-wrap: anywhere; }
+.notification-list article.unread { border-left: 4px solid #087f8c; }
+.notification-title { display: flex; align-items: flex-start; gap: 8px; }
+.notification-title > svg { flex: 0 0 auto; margin-top: 3px; color: #087f8c; }
+.notification-title h2 { flex: 1; min-width: 0; margin: 0; font-size: 15px; }
+.notification-title .status { flex: 0 0 auto; }
+.notification-list p { font-size: 14px; line-height: 1.5; }
+.notification-list time { display: block; color: #657784; font-size: 12px; }
+.notification-list button { margin-top: 12px; font-size: 12px; }
 .mobile-content { width: min(100%, 720px); margin: 0 auto; padding: 22px 18px 28px; }
 .mobile-bottom-nav { position: fixed; inset: auto 0 0; z-index: 30; height: calc(70px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(5, 1fr); padding: 7px 8px env(safe-area-inset-bottom); border-top: 1px solid #d8e3e8; background: #fff; box-shadow: 0 -8px 24px rgba(23,46,62,.08); }
 .mobile-bottom-nav a { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #70808e; text-decoration: none; font-size: 10px; font-weight: 700; }
