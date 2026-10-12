@@ -10,6 +10,13 @@
     <link rel="apple-touch-icon" href="/pwa-192.png" />
     <title>Trukly Mobile</title>
     <script>
+      let tema = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      try {
+        const guardado = localStorage.getItem("trukly_mobile_theme");
+        if (guardado === "light" || guardado === "dark") tema = guardado;
+      } catch {}
+      document.documentElement.dataset.theme = tema;
+      document.querySelector('meta[name="theme-color"]').content = tema === "dark" ? "#101722" : "#f4f7fb";
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("/sw.js", { scope: "/" });
       }

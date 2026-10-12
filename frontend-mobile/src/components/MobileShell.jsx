@@ -3,6 +3,7 @@ import { FaBell, FaHome, FaQrcode, FaRoute, FaTools, FaUser } from "react-icons/
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { apiFetch } from "../utils/api";
 import { useAuth } from "../context/AuthContext";
+import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
   { to: "/", label: "Inicio", icon: FaHome, end: true },
@@ -60,6 +61,7 @@ export default function MobileShell() {
       <header className="mobile-topbar">
         <img src="/pwa-192.png" alt="" />
         <div><strong>Trukly</strong><span>{mecanico ? "Taller" : gestion ? "Operación" : "Choferes"}</span></div>
+        <ThemeToggle />
         <Link className="notification-bell icon-button" to="/notificaciones" title="Notificaciones" aria-label={`Notificaciones, ${noLeidas} sin leer`}>
           <FaBell />{noLeidas > 0 && <b>{noLeidas > 99 ? "99+" : noLeidas}</b>}
         </Link>
