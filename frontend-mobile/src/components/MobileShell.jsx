@@ -15,7 +15,8 @@ const navItems = [
 export default function MobileShell() {
   const { usuario } = useAuth();
   const mecanico = usuario?.rol === "mecanico";
-  const items = mecanico ? [
+  const gestion = mecanico || usuario?.rol === "operador";
+  const items = gestion ? [
     { to: "/", label: "Reportes", icon: FaTools, end: true },
     { to: "/notificaciones", label: "Avisos", icon: FaBell },
     { to: "/perfil", label: "Perfil", icon: FaUser },
@@ -58,13 +59,13 @@ export default function MobileShell() {
     <div className="mobile-shell">
       <header className="mobile-topbar">
         <img src="/pwa-192.png" alt="" />
-        <div><strong>Trukly</strong><span>{mecanico ? "Taller" : "Choferes"}</span></div>
+        <div><strong>Trukly</strong><span>{mecanico ? "Taller" : gestion ? "Operación" : "Choferes"}</span></div>
         <Link className="notification-bell icon-button" to="/notificaciones" title="Notificaciones" aria-label={`Notificaciones, ${noLeidas} sin leer`}>
           <FaBell />{noLeidas > 0 && <b>{noLeidas > 99 ? "99+" : noLeidas}</b>}
         </Link>
       </header>
       <main className="mobile-content"><Outlet context={{ notificaciones, setNotificaciones, cargando, error, cargar }} /></main>
-      <nav className="mobile-bottom-nav" style={mecanico ? { gridTemplateColumns: "repeat(3, 1fr)" } : undefined} aria-label="Navegación principal">
+      <nav className="mobile-bottom-nav" style={gestion ? { gridTemplateColumns: "repeat(3, 1fr)" } : undefined} aria-label="Navegación principal">
         {items.map(({ to, label, icon: Icon, end, primary }) => (
           <NavLink key={to} to={to} end={end} className={({ isActive }) => `${isActive ? "active" : ""} ${primary ? "primary" : ""}`}>
             <Icon /><span>{label}</span>

@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [googleProcesando, setGoogleProcesando] = useState(false);
   const [error, setError] = useState("");
 
-  if (token && ["chofer", "mecanico"].includes(usuario?.rol)) return <Navigate to="/" replace />;
+  if (token && ["chofer", "mecanico", "operador"].includes(usuario?.rol)) return <Navigate to="/" replace />;
 
   const submit = async (event) => {
     event.preventDefault();
@@ -30,7 +30,7 @@ export default function LoginPage() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.mensaje || "No se pudo iniciar sesión");
-      if (!["chofer", "mecanico"].includes(data.usuario?.rol)) throw new Error("Ingresá con una cuenta de chofer o mecánico.");
+      if (!["chofer", "mecanico", "operador"].includes(data.usuario?.rol)) throw new Error("Ingresá con una cuenta de chofer, mecánico u operador.");
       login(data.token, data.usuario);
       navigate("/", { replace: true });
     } catch (err) { setError(err.message); } finally { setCargando(false); }
@@ -51,9 +51,9 @@ export default function LoginPage() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.mensaje || "No se pudo iniciar sesión con Google");
-      if (!["chofer", "mecanico"].includes(data.usuario?.rol)) {
+      if (!["chofer", "mecanico", "operador"].includes(data.usuario?.rol)) {
         await signOut(auth);
-        throw new Error("Ingresá con una cuenta de chofer o mecánico.");
+        throw new Error("Ingresá con una cuenta de chofer, mecánico u operador.");
       }
       login(data.token, data.usuario);
       navigate("/", { replace: true });
@@ -80,7 +80,7 @@ export default function LoginPage() {
         <p>Consultá viajes, registrá movimientos y reportá fallas desde el celular.</p>
       </section>
       <section className="login-card">
-        <div className="login-card-title"><FaTruck /><div><h2>Iniciar sesión</h2><p>Choferes y mecánicos.</p></div></div>
+        <div className="login-card-title"><FaTruck /><div><h2>Iniciar sesión</h2><p>Choferes, mecánicos y operadores.</p></div></div>
         {(params.get("sesionExpirada") || params.get("rolInvalido")) && <p className="feedback error">Volvé a iniciar sesión con una cuenta habilitada.</p>}
         {error && <p className="feedback error">{error}</p>}
         <form onSubmit={submit}>
