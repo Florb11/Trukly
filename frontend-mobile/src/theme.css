@@ -1,0 +1,93 @@
+:root {
+  --ui-bg: #f4f7fb;
+  --ui-surface: #ffffff;
+  --ui-soft: #f7f9fc;
+  --ui-border: #e3e9f2;
+  --ui-text: #192338;
+  --ui-muted: #69758a;
+  --ui-accent: #5b61dc;
+  --ui-accent-soft: #eef0ff;
+  --ui-shadow: 0 3px 14px rgba(30, 48, 80, .04);
+  --primary-bg: #5b61dc;
+  --primary-text: #ffffff;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --ui-bg: #101722;
+  --ui-surface: #1a2432;
+  --ui-soft: #222e3f;
+  --ui-border: #344154;
+  --ui-text: #eef2f8;
+  --ui-muted: #b3c0d1;
+  --ui-accent: #a1a5ff;
+  --ui-accent-soft: #303758;
+  --ui-shadow: 0 3px 14px rgba(0, 0, 0, .12);
+  --primary-bg: #a1a5ff;
+  --primary-text: #101722;
+  color-scheme: dark;
+}
+:root, body, .login-page { color: var(--ui-text); background: var(--ui-bg); }
+.mobile-topbar, .mobile-bottom-nav, .quick-grid article, .current-trip,
+.scanner-card, .available-card, .profile-card, .trip-list article,
+.failure-list article, .notification-list article, .history-list article,
+.login-card, .modal-sheet, .logout-button, .history-heading > a {
+  background: var(--ui-surface); border-color: var(--ui-border); box-shadow: var(--ui-shadow);
+}
+.mobile-topbar { backdrop-filter: none; }
+.mobile-topbar span, .mobile-bottom-nav a, .page-heading p,
+.quick-grid span, .current-trip p, .trip-meta, .notification-list time,
+.available-card > button span, .available-card > button small,
+.failure-list p, .failure-list small, .assigned-truck p, .assigned-truck small,
+.modal-unit small, .modal-unit span, .modal-sheet p, .profile-card > span,
+.profile-card dt, .history-top time, .history-meta, .history-content > p,
+.login-brand p, .login-card-title p, .password-field > svg, .password-field button {
+  color: var(--ui-muted);
+}
+.mobile-bottom-nav a.active, .page-heading span, .quick-grid svg,
+.section-title > div, .section-title a, .trip-card-top, .camera > div svg,
+.failure-list article > div, .assigned-truck > div, .modal-unit,
+.modal-sheet > span, .history-top span, .history-content > p svg,
+.login-brand > span, .login-card-title > svg, .notification-title > svg {
+  color: var(--ui-accent);
+}
+.button.primary, .icon-button, .profile-avatar, .scan-cta, .mobile-bottom-nav a.primary svg {
+  color: var(--primary-text); background: var(--primary-bg); border-color: var(--primary-bg);
+  box-shadow: var(--ui-shadow);
+}
+.scan-cta span { color: inherit; }
+.button.secondary, .button.google, .manual-code button, .history-heading > a {
+  color: var(--ui-text); background: var(--ui-surface); border-color: var(--ui-border);
+}
+.button.google:hover { background: var(--ui-soft); }
+input, textarea, select { color: var(--ui-text); background: var(--ui-surface); border-color: var(--ui-border); }
+input::placeholder, textarea::placeholder { color: var(--ui-muted); opacity: 1; }
+input:focus, textarea:focus, select:focus { border-color: var(--ui-accent); box-shadow: 0 0 0 2px var(--ui-accent-soft); }
+.segmented, .camera, .empty, .history-content blockquote { background: var(--ui-soft); color: var(--ui-muted); border-color: var(--ui-border); }
+.segmented button { color: var(--ui-muted); }
+.segmented button.active { color: var(--ui-text); background: var(--ui-surface); }
+.available-card > button { color: var(--ui-text); border-color: var(--ui-border); }
+.camera > div { color: var(--ui-muted); }
+.assigned-truck, .modal-unit { background: var(--ui-accent-soft); border-color: var(--ui-border); }
+.assigned-truck { border-left-color: var(--ui-accent); }
+.notification-list article.unread { border-left-color: var(--ui-accent); }
+.trip-meta, .history-meta, .profile-card dl div, .manual-code { border-color: var(--ui-border); }
+.route-line i, .login-divider::before, .login-divider::after { background: var(--ui-border); }
+.history-content blockquote { border-left-color: var(--ui-accent); }
+.login-divider { color: var(--ui-muted); }
+.logout-button { color: #dc2626; }
+.status { color: var(--ui-muted); background: var(--ui-soft); }
+.status.live, .status.en-curso { color: var(--ui-accent); background: var(--ui-accent-soft); }
+.theme-toggle { width: 44px; height: 44px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid var(--ui-border); border-radius: 8px; color: var(--ui-text); background: var(--ui-surface); font-size: 18px; }
+.theme-toggle:hover { background: var(--ui-soft); color: var(--ui-accent); }
+.theme-toggle:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--ui-accent); outline-offset: 3px; }
+.mobile-topbar > .theme-toggle { margin-left: auto; }
+.notification-bell { margin-left: 0; }
+.login-theme { width: min(100%, 440px); margin: 0 auto; display: flex; justify-content: flex-end; }
+.page-stack, .notification-list article, .failure-list article, .trip-list article { overflow-wrap: anywhere; }
+:root[data-theme="dark"] .feedback.error { color: #fca5a5; background: #451f2b; }
+:root[data-theme="dark"] .feedback.ok, :root[data-theme="dark"] .status.finalizado,
+:root[data-theme="dark"] .status.resuelto, :root[data-theme="dark"] .check-in .history-icon { color: #86efac; background: #18392d; }
+:root[data-theme="dark"] .feedback.info, :root[data-theme="dark"] .check-out .history-icon { color: #93c5fd; background: #1d3551; }
+:root[data-theme="dark"] .status.pendiente { color: #fcd34d; background: #40331e; }
+:root[data-theme="dark"] .logout-button { color: #fca5a5; }
+:root[data-theme="dark"] .icon-button:disabled { color: var(--ui-muted); background: var(--ui-soft); }

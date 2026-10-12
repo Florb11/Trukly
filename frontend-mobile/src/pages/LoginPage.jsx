@@ -5,6 +5,7 @@ import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { useAuth } from "../context/AuthContext";
 import { auth } from "../firebase";
 import { API_URL } from "../utils/api";
+import ThemeToggle from "../components/ThemeToggle";
 
 export default function LoginPage() {
   const { token, usuario, login } = useAuth();
@@ -73,6 +74,7 @@ export default function LoginPage() {
   const params = new URLSearchParams(location.search);
   return (
     <main className="login-page">
+      <div className="login-theme"><ThemeToggle /></div>
       <section className="login-brand">
         <img src="/pwa-192.png" alt="Logo de Trukly" />
         <span>TRUKLY MOBILE</span>
