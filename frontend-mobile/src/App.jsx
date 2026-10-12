@@ -8,6 +8,7 @@ import ScannerPage from "./pages/ScannerPage";
 import FallasPage from "./pages/FallasPage";
 import PerfilPage from "./pages/PerfilPage";
 import HistorialPage from "./pages/HistorialPage";
+import NotificacionesPage from "./pages/NotificacionesPage";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="viajes" element={<ViajesPage />} />
         <Route path="historial" element={<HistorialPage />} />
+        <Route path="notificaciones" element={<NotificacionesPage />} />
         <Route path="escanear" element={<ScannerPage />} />
         <Route path="fallas" element={<FallasPage />} />
         <Route path="perfil" element={<PerfilPage />} />
