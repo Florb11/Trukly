@@ -26,6 +26,7 @@ export default function ScannerPage() {
   const [observacion, setObservacion] = useState("");
   const [procesando, setProcesando] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [empresaValidada, setEmpresaValidada] = useState(false);
 
   const disponibles = viajes.filter((viaje) => ["pendiente", "en curso"].includes(viaje.estado?.toLowerCase()));
 
@@ -57,6 +58,15 @@ export default function ScannerPage() {
   }, []);
 
   const validarCodigo = (valor) => {
+    if (String(valor || "").trim() === "TRUKLY:EMPRESA:PRINCIPAL") {
+      detenerCamara();
+      setEmpresaValidada(true);
+      const activos = viajesRef.current.filter((viaje) => viaje.estado?.toLowerCase() === "en curso");
+      const candidatos = activos.length ? activos : viajesRef.current;
+      if (candidatos.length === 1) setSeleccionado(candidatos[0]);
+      setFeedback({ type: candidatos.length ? "ok" : "error", text: candidatos.length ? "Empresa reconocida. Confirmá el viaje a registrar." : "No tenés viajes habilitados para registrar." });
+      return true;
+    }
     const id = extraerIdViaje(valor);
     const viaje = viajesRef.current.find((item) => item.id_viaje === id);
     if (!id || !viaje) {
@@ -108,7 +118,8 @@ export default function ScannerPage() {
       body: JSON.stringify({ tipo_registro: tipo, observacion: observacion.trim() }),
     });
     if (result?.response.ok) {
-      setFeedback({ type: "ok", text: result.data.mensaje });
+      setFeedback({ type: "ok", text: tipo === "ingreso" ? "Salida de la empresa registrada. Viaje en curso." : "Regreso a la empresa registrado. Viaje finalizado." });
+      setEmpresaValidada(false);
       setSeleccionado(null);
       setCodigo("");
       setObservacion("");
@@ -117,7 +128,7 @@ export default function ScannerPage() {
     setProcesando(false);
   };
 
-  const tipo = seleccionado?.estado?.toLowerCase() === "pendiente" ? "Check-in" : "Check-out";
+  const tipo = seleccionado?.estado?.toLowerCase() === "pendiente" ? "Salida de la empresa" : "Regreso a la empresa";
   return (
     <section className="page-stack">
       <header className="page-heading"><span>CONTROL DE VIAJE</span><h1>Escanear QR</h1><p>Registrá el inicio o final de un viaje.</p></header>
@@ -127,7 +138,7 @@ export default function ScannerPage() {
         <button className="button primary wide" onClick={escaneando ? detenerCamara : abrirCamara}>{escaneando ? <><FaStop /> Detener cámara</> : <><FaCamera /> Abrir cámara</>}</button>
         <div className="manual-code"><label htmlFor="codigo"><FaKeyboard /> Ingreso manual</label><div><input id="codigo" inputMode="numeric" value={codigo} onChange={(event) => setCodigo(event.target.value)} placeholder="ID del viaje" /><button onClick={() => validarCodigo(codigo)}>Validar</button></div></div>
       </article>
-      <article className="available-card"><div className="section-title"><div><FaQrcode /><span>HABILITADOS</span></div><b>{disponibles.length}</b></div>{disponibles.length === 0 ? <p className="empty compact">No tenés viajes para registrar.</p> : disponibles.map((viaje) => <button key={viaje.id_viaje} onClick={() => setSeleccionado(viaje)}><span>Viaje #{viaje.id_viaje}</span><strong>{viaje.origen} → {viaje.destino}</strong><small>{viaje.estado === "pendiente" ? "Check-in" : "Check-out"}</small></button>)}</article>
+      {empresaValidada && <article className="available-card"><div className="section-title"><div><FaQrcode /><span>EMPRESA PRINCIPAL</span></div><b>{disponibles.length}</b></div>{disponibles.length === 0 ? <p className="empty compact">No tenés viajes para registrar.</p> : disponibles.filter((viaje) => !disponibles.some((item) => item.estado?.toLowerCase() === "en curso") || viaje.estado?.toLowerCase() === "en curso").map((viaje) => <button key={viaje.id_viaje} onClick={() => setSeleccionado(viaje)}><span>Viaje #{viaje.id_viaje}</span><strong>{viaje.origen} → {viaje.destino}</strong><small>{viaje.estado?.toLowerCase() === "pendiente" ? "Registrar salida" : "Registrar regreso"}</small></button>)}</article>}
       {seleccionado && <div className="modal-backdrop" onMouseDown={() => !procesando && setSeleccionado(null)}><div className="modal-sheet" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><span>{tipo}</span><h2>Confirmar {tipo.toLowerCase()}</h2><p>Viaje #{seleccionado.id_viaje}<br /><strong>{seleccionado.origen} → {seleccionado.destino}</strong></p><label>Observación opcional<textarea maxLength="100" value={observacion} onChange={(event) => setObservacion(event.target.value)} /></label><div><button className="button secondary" onClick={() => setSeleccionado(null)}>Cancelar</button><button className="button primary" onClick={confirmar} disabled={procesando}>{procesando ? "Guardando..." : "Confirmar"}</button></div></div></div>}
     </section>
   );
