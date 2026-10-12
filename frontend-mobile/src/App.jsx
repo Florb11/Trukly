@@ -10,6 +10,7 @@ import PerfilPage from "./pages/PerfilPage";
 import HistorialPage from "./pages/HistorialPage";
 import NotificacionesPage from "./pages/NotificacionesPage";
 import MecanicoPage from "./pages/MecanicoPage";
+import OperadorPage from "./pages/OperadorPage";
 import { useAuth } from "./context/AuthContext";
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route element={<ProtectedRoute><MobileShell /></ProtectedRoute>}>
-        <Route index element={usuario?.rol === "mecanico" ? <MecanicoPage /> : <HomePage />} />
+        <Route index element={usuario?.rol === "mecanico" ? <MecanicoPage /> : usuario?.rol === "operador" ? <OperadorPage /> : <HomePage />} />
         <Route path="viajes" element={chofer(<ViajesPage />)} />
         <Route path="historial" element={chofer(<HistorialPage />)} />
         <Route path="notificaciones" element={<NotificacionesPage />} />
