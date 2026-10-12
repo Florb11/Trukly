@@ -45,8 +45,8 @@ export default function HistorialPage() {
 
       <div className="segmented">
         <button className={filtro === "todos" ? "active" : ""} onClick={() => setFiltro("todos")}>Todos</button>
-        <button className={filtro === "ingreso" ? "active" : ""} onClick={() => setFiltro("ingreso")}>Check-in</button>
-        <button className={filtro === "salida" ? "active" : ""} onClick={() => setFiltro("salida")}>Check-out</button>
+        <button className={filtro === "ingreso" ? "active" : ""} onClick={() => setFiltro("ingreso")}>Salida</button>
+        <button className={filtro === "salida" ? "active" : ""} onClick={() => setFiltro("salida")}>Regreso</button>
       </div>
 
       {error && <p className="feedback error">{error}</p>}
@@ -62,7 +62,7 @@ export default function HistorialPage() {
               <article key={registro.id_registro} className={esIngreso ? "check-in" : "check-out"}>
                 <div className="history-icon"><Icono /></div>
                 <div className="history-content">
-                  <div className="history-top"><span>{esIngreso ? "Check-in" : "Check-out"}</span><time>{fecha.hora}</time></div>
+                  <div className="history-top"><span>{esIngreso ? "Salida" : "Regreso"}</span><time>{fecha.hora}</time></div>
                   <h2>Viaje #{registro.id_viaje}</h2>
                   <p><FaMapMarkerAlt /> {registro.origen} → {registro.destino}</p>
                   <div className="history-meta"><span><FaTruck /> Camión #{registro.id_camion}</span><time>{fecha.fecha}</time></div>

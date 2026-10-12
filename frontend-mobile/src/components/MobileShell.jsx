@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { FaBell, FaHome, FaQrcode, FaRoute, FaTools, FaUser } from "react-icons/fa";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { apiFetch } from "../utils/api";
+import { useAuth } from "../context/AuthContext";
 
 const navItems = [
   { to: "/", label: "Inicio", icon: FaHome, end: true },
@@ -12,6 +13,13 @@ const navItems = [
 ];
 
 export default function MobileShell() {
+  const { usuario } = useAuth();
+  const mecanico = usuario?.rol === "mecanico";
+  const items = mecanico ? [
+    { to: "/", label: "Reportes", icon: FaTools, end: true },
+    { to: "/notificaciones", label: "Avisos", icon: FaBell },
+    { to: "/perfil", label: "Perfil", icon: FaUser },
+  ] : navItems;
   const [notificaciones, setNotificaciones] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
@@ -50,14 +58,14 @@ export default function MobileShell() {
     <div className="mobile-shell">
       <header className="mobile-topbar">
         <img src="/pwa-192.png" alt="" />
-        <div><strong>Trukly</strong><span>App de choferes</span></div>
+        <div><strong>Trukly</strong><span>{mecanico ? "Taller" : "Choferes"}</span></div>
         <Link className="notification-bell icon-button" to="/notificaciones" title="Notificaciones" aria-label={`Notificaciones, ${noLeidas} sin leer`}>
           <FaBell />{noLeidas > 0 && <b>{noLeidas > 99 ? "99+" : noLeidas}</b>}
         </Link>
       </header>
       <main className="mobile-content"><Outlet context={{ notificaciones, setNotificaciones, cargando, error, cargar }} /></main>
-      <nav className="mobile-bottom-nav" aria-label="Navegación principal">
-        {navItems.map(({ to, label, icon: Icon, end, primary }) => (
+      <nav className="mobile-bottom-nav" style={mecanico ? { gridTemplateColumns: "repeat(3, 1fr)" } : undefined} aria-label="Navegación principal">
+        {items.map(({ to, label, icon: Icon, end, primary }) => (
           <NavLink key={to} to={to} end={end} className={({ isActive }) => `${isActive ? "active" : ""} ${primary ? "primary" : ""}`}>
             <Icon /><span>{label}</span>
           </NavLink>
