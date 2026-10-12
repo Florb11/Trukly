@@ -11,6 +11,7 @@ import HistorialPage from "./pages/HistorialPage";
 import NotificacionesPage from "./pages/NotificacionesPage";
 import MecanicoPage from "./pages/MecanicoPage";
 import OperadorPage from "./pages/OperadorPage";
+import RegistroPage from "./pages/RegistroPage";
 import { useAuth } from "./context/AuthContext";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/registro" element={<RegistroPage />} />
       <Route element={<ProtectedRoute><MobileShell /></ProtectedRoute>}>
         <Route index element={usuario?.rol === "mecanico" ? <MecanicoPage /> : usuario?.rol === "operador" ? <OperadorPage /> : <HomePage />} />
         <Route path="viajes" element={chofer(<ViajesPage />)} />
