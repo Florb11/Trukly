@@ -1,7 +1,13 @@
 from flask import Blueprint
 from controllers.notificacion_controller import NotificacionController
+from controllers.push_controller import PushController
 
 notificacion_routes = Blueprint("notificacion_routes", __name__)
+
+
+@notificacion_routes.route("/api/notificaciones/dispositivo", methods=["POST", "DELETE"])
+def ruta_dispositivo_push():
+    return PushController.dispositivo()
 
 
 @notificacion_routes.route("/api/notificaciones", methods=["GET"])

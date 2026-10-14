@@ -83,6 +83,10 @@ export default function PerfilPage() {
         <button className="button primary wide"><FaSave />{ocupado ? "Guardando..." : "Guardar cambios"}</button>
       </fieldset></form>}
     </>}
-    <button className="logout-button" onClick={logout} disabled={ocupado}><FaSignOutAlt /> Cerrar sesión</button>
+    <button className="logout-button" onClick={async () => {
+      setOcupado(true);
+      try { await logout(); } catch { setError("No se pudieron desactivar los avisos de este dispositivo. Revisá tu conexión antes de cerrar sesión."); }
+      finally { setOcupado(false); }
+    }} disabled={ocupado}><FaSignOutAlt /> Cerrar sesión</button>
   </section>;
 }

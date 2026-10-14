@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS PushDispositivo (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  Usuario_idUsuario INT NOT NULL,
+  token_hash VARCHAR(64) NOT NULL UNIQUE,
+  token TEXT NOT NULL,
+  FOREIGN KEY (Usuario_idUsuario) REFERENCES Usuario(id_usuario) ON DELETE CASCADE
+);

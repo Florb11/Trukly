@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { desactivarPush } from "../utils/push";
 
 const AuthContext = createContext(null);
 
@@ -15,7 +16,8 @@ export function AuthProvider({ children }) {
     setUsuario(nextUser);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await desactivarPush();
     localStorage.removeItem("trukly_mobile_token");
     localStorage.removeItem("trukly_mobile_user");
     setToken(null);

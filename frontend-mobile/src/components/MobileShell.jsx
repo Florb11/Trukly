@@ -4,6 +4,7 @@ import { Link, NavLink, Outlet } from "react-router-dom";
 import { apiFetch } from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "./ThemeToggle";
+import { activarPush } from "../utils/push";
 
 const navItems = [
   { to: "/", label: "Inicio", icon: FaHome, end: true },
@@ -48,11 +49,17 @@ export default function MobileShell() {
     const intervalo = setInterval(actualizar, 30000);
     window.addEventListener("focus", actualizar);
     document.addEventListener("visibilitychange", actualizar);
+    const mensajePush = (event) => { if (event.data?.tipo === "trukly-push") cargar(); };
+    navigator.serviceWorker?.addEventListener("message", mensajePush);
+    if (localStorage.getItem("trukly_push_token") && "Notification" in window && Notification.permission === "granted") {
+      activarPush(false).catch(() => {});
+    }
     return () => {
       clearTimeout(inicial);
       clearInterval(intervalo);
       window.removeEventListener("focus", actualizar);
       document.removeEventListener("visibilitychange", actualizar);
+      navigator.serviceWorker?.removeEventListener("message", mensajePush);
     };
   }, [cargar]);
   const noLeidas = notificaciones.filter((aviso) => !aviso.leida).length;

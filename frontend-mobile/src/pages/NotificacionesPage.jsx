@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FaBell, FaCheck, FaSyncAlt } from "react-icons/fa";
 import { useOutletContext } from "react-router-dom";
 import { apiFetch } from "../utils/api";
+import PushSettings from "../components/PushSettings";
 
 export default function NotificacionesPage() {
   const { notificaciones, setNotificaciones, cargando, error, cargar } = useOutletContext();
@@ -41,6 +42,7 @@ export default function NotificacionesPage() {
         <button className={filtro === "todas" ? "active" : ""} onClick={() => setFiltro("todas")}>Todas</button>
         <button className={filtro === "pendientes" ? "active" : ""} onClick={() => setFiltro("pendientes")}>Sin leer</button>
       </div>
+      <PushSettings />
       {(errorGuardar || error) && <p className="feedback error" role="alert">{errorGuardar || error}</p>}
       {cargando ? <p className="empty">Cargando avisos...</p> : visibles.length === 0 ? (
         <p className="empty">{filtro === "todas" ? "Todavía no tenés notificaciones." : "No tenés avisos sin leer."}</p>
