@@ -430,6 +430,7 @@ class ViajeController:
                 "viaje_asignado",
             )
             db.session.commit()
+            NotificacionService.enviar_push_pendientes()
         except Exception:
             db.session.rollback()
             logger.exception("No se pudo crear el viaje")

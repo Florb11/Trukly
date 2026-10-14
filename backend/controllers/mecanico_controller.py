@@ -264,6 +264,7 @@ class MecanicoController:
                 nota_reparacion
             )
             db.session.commit()
+            NotificacionService.enviar_push_pendientes()
         except Exception:
             db.session.rollback()
             logger.exception("No se pudo resolver el reporte")

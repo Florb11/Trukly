@@ -45,4 +45,41 @@ class NotificacionService:
         )
 
         db.session.add(nueva_notificacion)
+        db.session.info.setdefault("push_pendientes", []).append({
+            "usuario": notificacion.id_usuario,
+            "titulo": notificacion.titulo,
+            "mensaje": notificacion.mensaje,
+        })
         return nueva_notificacion
+
+    @staticmethod
+    def enviar_push_pendientes():
+        from firebase_admin import messaging
+        from models.push_dispositivo_model import PushDispositivoModel
+        from services.firebase_service import FirebaseAuthService
+        from utils.app_logger import get_app_logger
+
+        pendientes = db.session.info.pop("push_pendientes", [])
+        try:
+            if not pendientes:
+                return
+            FirebaseAuthService.inicializar()
+            for aviso in pendientes:
+                dispositivos = PushDispositivoModel.query.filter_by(
+                    Usuario_idUsuario=aviso["usuario"]
+                ).all()
+                for dispositivo in dispositivos:
+                    try:
+                        messaging.send(messaging.Message(
+                            token=dispositivo.token,
+                            data={"title": aviso["titulo"], "body": aviso["mensaje"]},
+                            webpush=messaging.WebpushConfig(headers={"TTL": "3600", "Urgency": "high"}),
+                        ))
+                    except messaging.UnregisteredError:
+                        db.session.delete(dispositivo)
+                    except Exception:
+                        get_app_logger().exception("Fallo al enviar push")
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            get_app_logger().exception("No se pudieron enviar los avisos push")

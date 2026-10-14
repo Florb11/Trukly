@@ -462,6 +462,7 @@ class ReporteController:
             reporte_clase.id_reporte = nuevo_reporte.id_reporte
             ReporteController.notificar_reporte_creado(reporte_clase)
             db.session.commit()
+            NotificacionService.enviar_push_pendientes()
         except Exception:
             db.session.rollback()
             logger.exception("No se pudo crear el reporte")
@@ -634,6 +635,7 @@ class ReporteController:
                 mecanico
             )
             db.session.commit()
+            NotificacionService.enviar_push_pendientes()
         except Exception:
             db.session.rollback()
             logger.exception("No se pudo asignar el mecanico")
