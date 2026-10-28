@@ -43,6 +43,11 @@ export const exportarEstadisticasPdf = async (estadisticas, mes) => {
     ["Resueltos (estado actual)", resumen.reportes_resueltos ?? 0],
   ], ["*", 65]);
 
+  agregarTabla(contenido, "Horas en viaje por chofer", ["Chofer", "Horas", "Viajes", "Promedio"],
+    (estadisticas.horas_por_chofer || []).map((fila) => [`${fila.nombre} ${fila.apellido}`, fila.duracion, fila.viajes_confirmados, fila.promedio || "Sin datos"]),
+    ["*", 80, 45, 80]);
+  contenido.push({ text: "Tiempo confirmado entre controles, incluidas paradas y descansos. Cada mes incluye su porción del viaje. Los registros incompletos o inconsistentes no suman y los horarios superpuestos se cuentan una sola vez por chofer.", style: "nota" });
+
   agregarTabla(contenido, "Choferes con más viajes", ["Chofer", "Viajes", "Finalizados", "Cancelados"],
     (estadisticas.choferes_mas_viajes || []).map((fila) => [`${fila.nombre} ${fila.apellido}`, fila.total_viajes, fila.viajes_finalizados, fila.viajes_cancelados]),
     ["*", 55, 65, 65]);

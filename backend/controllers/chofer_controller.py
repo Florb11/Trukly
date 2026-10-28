@@ -1,3 +1,4 @@
+from services.horas_viaje_service import horas_chofer, limites_mes
 import datetime
 
 from flask import g, jsonify, request
@@ -194,7 +195,7 @@ class ChoferController:
         viaje_model = ViajeModel.query.filter_by(
             id_viaje=id_viaje,
             Chofer_Usuario_idUsuario=chofer.id_usuario,
-        ).first()
+        ).with_for_update().first()
 
         if viaje_model is None:
             return jsonify({"mensaje": "Viaje no encontrado o no asignado al chofer"}), 404
@@ -209,6 +210,16 @@ class ChoferController:
             }), 400
 
         ahora = datetime.datetime.now()
+        registros = viaje_model.registros_horarios
+        inicios = [r for r in registros if r.tipo_registro in {"ingreso", "entrada"}]
+        finales = [r for r in registros if r.tipo_registro == "salida"]
+        if tipo_registro == "ingreso" and registros:
+            return jsonify({"mensaje": "El viaje ya tiene controles registrados. Revisá su historial."}), 409
+        if tipo_registro == "salida" and (
+            len(inicios) != 1 or finales or len(registros) != 1
+            or inicios[0].fecha_hora >= ahora
+        ):
+            return jsonify({"mensaje": "Se necesita un único control de inicio válido antes de registrar el regreso."}), 409
         nuevo_estado = "en curso" if tipo_registro == "ingreso" else "finalizado"
         nuevo_registro = RegistroIngresoSalidaModel(
             fecha_hora=ahora,
@@ -256,6 +267,11 @@ class ChoferController:
     @chofer_required
     def obtener_estadisticas():
         chofer = g.chofer_actual
+        mes = request.args.get("mes", datetime.datetime.now().strftime("%Y-%m"))
+        try:
+            limites_mes(mes)
+        except ValueError as error:
+            return jsonify({"mensaje": str(error)}), 400
 
         try:
             viajes = ViajeModel.query.filter_by(
@@ -295,6 +311,7 @@ class ChoferController:
                     "reportes_en_revision": reportes_en_revision,
                     "reportes_resueltos": reportes_resueltos,
                 },
+                "horas_viaje": horas_chofer(chofer.id_usuario, mes),
                 "ultimos_viajes": [v.to_dict() for v in ultimos_viajes],
                 "ultimos_reportes": [r.to_dict() for r in ultimos_reportes],
             }), 200

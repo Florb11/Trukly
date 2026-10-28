@@ -72,6 +72,12 @@ export default function PerfilPage() {
         <h2>{datos?.nombre} {datos?.apellido}</h2><span>{datos?.rol === "chofer" ? "Chofer" : datos?.rol === "mecanico" ? "Mecánico" : "Operador logístico"}</span>
         <label className="button secondary photo-upload"><FaCamera /> {ocupado ? "Procesando..." : "Cambiar foto"}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={ocupado || !perfil} onChange={subirFoto} /></label>
       </div>
+      {perfil?.rol === "chofer" && <article className="profile-card">
+        <h2>Horas en viaje · {perfil.horas_viaje?.mes || "Este mes"}</h2>
+        <strong>{perfil.horas_viaje?.duracion || "Información no disponible"}</strong>
+        <p>{perfil.horas_viaje?.viajes_confirmados ?? "—"} viajes confirmados · {perfil.horas_viaje?.viajes_en_curso ?? "—"} en curso</p>
+        <p>Tiempo entre salida y regreso, incluidas paradas y descansos. Solo suman viajes con ambos controles válidos.</p>
+      </article>}
       {perfil && <form className="profile-form" onSubmit={guardar}><fieldset disabled={ocupado}>
         <legend>Datos personales</legend>
         {[["nombre", "Nombre", "text"], ["apellido", "Apellido", "text"], ["email", "Email", "email"]].map(([campo, texto, tipo]) => <label key={campo}>{texto}<input type={tipo} required value={form[campo]} onChange={(event) => setForm({ ...form, [campo]: event.target.value })} /></label>)}

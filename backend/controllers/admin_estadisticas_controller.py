@@ -1,3 +1,4 @@
+from services.horas_viaje_service import horas_por_chofer
 from datetime import date, datetime
 
 from flask import jsonify, request
@@ -478,5 +479,6 @@ class AdminEstadisticasController:
             ultimos_reportes=ultimos_reportes,
         )
         respuesta["mes"] = mes
+        respuesta["horas_por_chofer"] = horas_por_chofer(mes)
 
         return jsonify(respuesta), 200

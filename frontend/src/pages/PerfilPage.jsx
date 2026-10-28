@@ -1,3 +1,4 @@
+import HorasViajeResumen from "../components/HorasViajeResumen";
 import { useEffect, useRef, useState } from "react";
 import {
   FaCamera,
@@ -299,6 +300,7 @@ function PerfilPage() {
 
       {error && <p className="admin-message admin-message--error">{error}</p>}
 
+      {esChofer && <HorasViajeResumen horas={perfil.horas_viaje} compacto />}
       <div className="admin-perfil-grid">
         <article className="admin-perfil-card admin-perfil-card--identity">
           <div className="admin-perfil-avatar-wrap">

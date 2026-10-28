@@ -1,3 +1,4 @@
+from services.horas_viaje_service import horas_chofer
 import os
 
 from flask import g, jsonify, request
@@ -157,6 +158,10 @@ class PerfilController:
     def _preparar_respuesta_perfil(usuario_db):
         # arma la respuesta del perfil
         datos_usuario = usuario_db.to_dict()
+        if usuario_db.rol == Usuario.ROL_CHOFER:
+            horas = horas_chofer(usuario_db.id_usuario)
+            horas.pop("historial")
+            datos_usuario["horas_viaje"] = horas
 
         return PerfilController._agregar_datos_por_rol(
             datos_usuario,

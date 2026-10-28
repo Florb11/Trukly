@@ -1,4 +1,6 @@
 from db_instance import db
+from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
+from services.horas_viaje_service import tiempo_viaje
 
 
 class ViajeModel(db.Model):
@@ -40,9 +42,12 @@ class ViajeModel(db.Model):
     # En MySQL es DOUBLE, en SQLAlchemy lo usamos como Float
     recorrido = db.Column(db.Float, nullable=False)
 
+    registros_horarios = db.relationship(RegistroIngresoSalidaModel, lazy="selectin", viewonly=True)
+
     def to_dict(self):
         return {
             "id_viaje": self.id_viaje,
+            "tiempo_viaje": tiempo_viaje(self),
             "OperadorLogistico_Usuario_idUsuario": self.OperadorLogistico_Usuario_idUsuario,
             "Chofer_Usuario_idUsuario": self.Chofer_Usuario_idUsuario,
             "Camion_id_camion": self.Camion_id_camion,
