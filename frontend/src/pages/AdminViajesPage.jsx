@@ -389,6 +389,13 @@ function AdminViajesPage() {
             </div>
 
             <div className="admin-viajes-observaciones">
+              <span>Horas en viaje</span>
+              <strong>{viajeDetalle.tiempo_viaje?.duracion || (viajeDetalle.tiempo_viaje?.estado === "en_curso" ? `En curso: ${viajeDetalle.tiempo_viaje.transcurrido} al consultar` : "Sin duración confirmada")}</strong>
+              <p>Inicio: {viajeDetalle.tiempo_viaje?.inicio?.replace("T", " ") || "Sin registro"} · Regreso: {viajeDetalle.tiempo_viaje?.regreso?.replace("T", " ") || "Sin registro"}</p>
+              <p>Tiempo entre controles, incluidas paradas y descansos. Estado: {viajeDetalle.tiempo_viaje?.estado || "sin registro"}.</p>
+            </div>
+
+            <div className="admin-viajes-observaciones">
               <span>Observaciones</span>
               <p>{viajeDetalle.observaciones || "Sin observaciones"}</p>
             </div>

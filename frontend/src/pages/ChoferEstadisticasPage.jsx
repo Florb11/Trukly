@@ -1,3 +1,4 @@
+import HorasViajeResumen from "../components/HorasViajeResumen";
 import { useEffect, useState } from "react";
 import {
   FaChartBar,
@@ -10,32 +11,29 @@ import { fetchConToken } from "../utils/fetchConToken";
 import "./ChoferEstadisticasPage.css";
 
 function ChoferEstadisticasPage() {
+  const [mes, setMes] = useState(() => { const hoy = new Date(); return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`; });
   const [estadisticas, setEstadisticas] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    cargarEstadisticas();
-  }, []);
-
-  const cargarEstadisticas = async () => {
-    try {
-      setCargando(true);
+    const controlador = new AbortController();
+    fetchConToken(
+      `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/choferes/estadisticas?mes=${mes}`,
+      { method: "GET", signal: controlador.signal }
+    ).then((resultado) => {
+      if (!resultado || controlador.signal.aborted) return;
+      if (!resultado.respuesta.ok) throw new Error(resultado.data.mensaje || "Error al cargar estadísticas");
+      setEstadisticas(resultado.data);
       setError("");
-      const resultado = await fetchConToken(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/choferes/estadisticas`,
-        { method: "GET" }
-      );
-      if (!resultado) return;
-      const { respuesta, data } = resultado;
-      if (!respuesta.ok) throw new Error(data.mensaje || "Error al cargar estadísticas");
-      setEstadisticas(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
       setCargando(false);
-    }
-  };
+    }).catch((errorCarga) => {
+      if (controlador.signal.aborted) return;
+      setError(errorCarga.message);
+      setCargando(false);
+    });
+    return () => controlador.abort();
+  }, [mes]);
 
   const formatearFecha = (fecha) => {
     if (!fecha) return "-";
@@ -85,6 +83,8 @@ function ChoferEstadisticasPage() {
         <div className="ch-stats-heading__icon"><FaChartBar /></div>
       </div>
 
+      <label>Mes de horas en viaje <input type="month" value={mes} onChange={(event) => { if (event.target.value) { setCargando(true); setMes(event.target.value); } }} /></label>
+      <HorasViajeResumen horas={estadisticas?.horas_viaje} />
       <div className="ch-stats-summary">
         {cards.map((card) => (
           <article key={card.label} className={`ch-stats-card ch-stats-card--${card.tone}`}>

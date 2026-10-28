@@ -248,6 +248,16 @@ function AdminEstadisticasPage() {
         ))}
       </div>
 
+      <article className="estadisticas-card">
+        <div className="estadisticas-card__header"><div><h2>Horas en viaje por chofer</h2><span>Solo controles válidos. Horas repartidas por mes; incluyen paradas y descansos.</span></div></div>
+        {!estadisticas?.horas_por_chofer ? <p className="estadisticas-feedback">Información pendiente de actualizar en el servidor.</p> : estadisticas.horas_por_chofer.length === 0 ? <p className="estadisticas-feedback">No hay choferes registrados.</p> :
+          <div className="estadisticas-ranking">{estadisticas.horas_por_chofer.map((chofer) => <div key={chofer.id_usuario} className="estadisticas-ranking__item">
+            <div className="estadisticas-ranking__user"><strong>{chofer.nombre} {chofer.apellido}</strong><span>{chofer.viajes_confirmados} viajes confirmados · {chofer.viajes_en_curso} en curso</span></div>
+            <div className="estadisticas-ranking__values"><strong>{chofer.duracion}</strong><span>Promedio: {chofer.promedio || "Sin datos"}</span></div>
+            <div className="estadisticas-ranking__details"><span>Sin registro: {chofer.viajes_sin_registro} · Incompletos: {chofer.viajes_incompletos} · A revisar: {chofer.viajes_inconsistentes}</span>{chofer.segundos_superpuestos > 0 && <span>Horarios superpuestos: tiempo contado una vez.</span>}</div>
+          </div>)}</div>}
+      </article>
+
       <div className="estadisticas-grid">
         <article className="estadisticas-card">
           <div className="estadisticas-card__header">
