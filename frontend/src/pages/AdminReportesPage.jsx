@@ -139,6 +139,9 @@ function AdminReportesPage() {
         const coincideBusqueda =
             reporte.id_reporte?.toString() === textoBusqueda ||
             reporte.descripcion?.toLowerCase().includes(textoBusqueda) ||
+            reporte.camion_nombre?.toLowerCase().includes(textoBusqueda) ||
+            reporte.chofer_nombre?.toLowerCase().includes(textoBusqueda) ||
+            reporte.mecanico_nombre?.toLowerCase().includes(textoBusqueda) ||
             reporte.estado?.toLowerCase().includes(textoBusqueda) ||
             reporte.Camion_id_camion?.toString() === textoBusqueda ||
             reporte.Chofer_Usuario_idUsuario?.toString() === textoBusqueda ||
@@ -176,7 +179,7 @@ function AdminReportesPage() {
                             id="busquedaReporte"
                             value={busqueda}
                             onChange={(e) => setBusqueda(e.target.value)}
-                            placeholder="Buscar por ID, descripción, camión o chofer..."
+                            placeholder="Buscar por ID, descripción, camión, chofer o mecánico..."
                         />
                     </div>
 
@@ -236,12 +239,12 @@ function AdminReportesPage() {
                                                     {reporte.estado}
                                                 </span>
                                             </td>
-                                            <td>#{reporte.Camion_id_camion}</td>
-                                            <td>#{reporte.Chofer_Usuario_idUsuario}</td>
+                                            <td>{reporte.camion_nombre || "No disponible"}</td>
+                                            <td>{reporte.chofer_nombre || "No disponible"}</td>
                                             <td>
                                                 {reporte.Mecanico_Usuario_idUsuario
-                                                    ? `#${reporte.Mecanico_Usuario_idUsuario}`
-                                                    : "-"}
+                                                    ? reporte.mecanico_nombre || "No disponible"
+                                                    : "Sin asignar"}
                                             </td>
                                             <td>
                                                 <div className="reportes-actions">
@@ -278,8 +281,7 @@ function AdminReportesPage() {
                                             </p>
 
                                             <p className="reporte-card-mobile__subtitulo">
-                                                Camión #{reporte.Camion_id_camion} · Chofer #
-                                                {reporte.Chofer_Usuario_idUsuario}
+                                                Camión: {reporte.camion_nombre || "No disponible"} · Chofer: {reporte.chofer_nombre || "No disponible"}
                                             </p>
                                         </div>
 
@@ -303,7 +305,7 @@ function AdminReportesPage() {
                                             <span>Mecánico</span>
                                             <p>
                                                 {reporte.Mecanico_Usuario_idUsuario
-                                                    ? `#${reporte.Mecanico_Usuario_idUsuario}`
+                                                    ? reporte.mecanico_nombre || "No disponible"
                                                     : "Sin asignar"}
                                             </p>
                                         </div>

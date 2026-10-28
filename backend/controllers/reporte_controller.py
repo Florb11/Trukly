@@ -219,6 +219,20 @@ class ReporteController:
         datos["Mecanico_Usuario_idUsuario"] = datos.pop("id_mecanico")
         datos["Chofer_Usuario_idUsuario"] = datos.pop("id_chofer")
 
+        camion = reporte_model.camion
+        chofer = reporte_model.chofer_usuario
+        mecanico = reporte_model.mecanico_usuario
+        datos["camion_nombre"] = (
+            f"{camion.marca} {camion.modelo} ({camion.matricula})"
+            if camion else None
+        )
+        datos["chofer_nombre"] = (
+            f"{chofer.nombre} {chofer.apellido}".strip() if chofer else None
+        )
+        datos["mecanico_nombre"] = (
+            f"{mecanico.nombre} {mecanico.apellido}".strip() if mecanico else None
+        )
+
         return datos
 
     @staticmethod
