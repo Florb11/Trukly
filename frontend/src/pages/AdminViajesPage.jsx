@@ -71,7 +71,41 @@ function AdminViajesPage() {
         throw new Error(data.mensaje || data.msg || "Error al obtener detalle");
       }
 
-      setViajeDetalle(data);
+      let detalle = data;
+      if (!data.chofer_nombre || !data.camion_nombre || !data.operador_nombre) {
+        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const resultados = await Promise.all([
+          fetchConToken(`${apiUrl}/api/admin/usuarios`, { method: "GET" }),
+          fetchConToken(`${apiUrl}/api/admin/camiones`, { method: "GET" }),
+        ]);
+        if (resultados.some((resultado) => !resultado)) return;
+        for (const resultado of resultados) {
+          if (!resultado.respuesta.ok) {
+            throw new Error(resultado.data.mensaje || "Error al cargar los nombres del viaje");
+          }
+        }
+
+        const usuarios = new Map(
+          (resultados[0].data.usuarios || []).map((usuario) => [String(usuario.id_usuario), usuario])
+        );
+        const nombreUsuario = (id) => {
+          const usuario = usuarios.get(String(id));
+          return usuario ? [usuario.nombre, usuario.apellido].filter(Boolean).join(" ") : null;
+        };
+        const camion = (resultados[1].data.camiones || []).find(
+          (camion) => String(camion.id_camion) === String(data.Camion_id_camion)
+        );
+
+        detalle = {
+          ...data,
+          chofer_nombre: data.chofer_nombre || nombreUsuario(data.Chofer_Usuario_idUsuario),
+          operador_nombre: data.operador_nombre || nombreUsuario(data.OperadorLogistico_Usuario_idUsuario),
+          camion_nombre: data.camion_nombre || (camion
+            ? `${camion.marca} ${camion.modelo} (${camion.matricula})` : null),
+        };
+      }
+
+      setViajeDetalle(detalle);
     } catch (err) {
       setError(err.message);
     }
@@ -331,20 +365,20 @@ function AdminViajesPage() {
                 <span>
                   <FaUser /> Chofer
                 </span>
-                <strong>#{viajeDetalle.Chofer_Usuario_idUsuario}</strong>
+                <strong>{viajeDetalle.chofer_nombre || "Chofer no encontrado"}</strong>
               </div>
 
               <div>
                 <span>
                   <FaTruck /> Camión
                 </span>
-                <strong>#{viajeDetalle.Camion_id_camion}</strong>
+                <strong>{viajeDetalle.camion_nombre || "Camión no encontrado"}</strong>
               </div>
 
               <div>
                 <span>Operador</span>
                 <strong>
-                  #{viajeDetalle.OperadorLogistico_Usuario_idUsuario}
+                  {viajeDetalle.operador_nombre || "Operador no encontrado"}
                 </strong>
               </div>
 
