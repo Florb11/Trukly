@@ -44,19 +44,19 @@ function DetalleReporteModal({ reporte, onClose }) {
 
                             <div className="detalle-reporte-item">
                                 <span>Camión</span>
-                                <p>#{reporte.Camion_id_camion}</p>
+                                <p>{reporte.camion_nombre || "No disponible"}</p>
                             </div>
 
                             <div className="detalle-reporte-item">
                                 <span>Chofer</span>
-                                <p>#{reporte.Chofer_Usuario_idUsuario}</p>
+                                <p>{reporte.chofer_nombre || "No disponible"}</p>
                             </div>
 
                             <div className="detalle-reporte-item">
                                 <span>Mecánico</span>
                                 <p>
                                     {reporte.Mecanico_Usuario_idUsuario
-                                        ? `#${reporte.Mecanico_Usuario_idUsuario}`
+                                        ? reporte.mecanico_nombre || "No disponible"
                                         : "Sin asignar"}
                                 </p>
                             </div>

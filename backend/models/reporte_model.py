@@ -29,6 +29,22 @@ class ReporteModel(db.Model):
         nullable=False
     )
 
+    camion = db.relationship("CamionModel", lazy="selectin")
+    chofer_usuario = db.relationship(
+        "UsuarioModel",
+        primaryjoin="ReporteModel.Chofer_Usuario_idUsuario == UsuarioModel.id_usuario",
+        foreign_keys=[Chofer_Usuario_idUsuario],
+        viewonly=True,
+        lazy="selectin",
+    )
+    mecanico_usuario = db.relationship(
+        "UsuarioModel",
+        primaryjoin="ReporteModel.Mecanico_Usuario_idUsuario == UsuarioModel.id_usuario",
+        foreign_keys=[Mecanico_Usuario_idUsuario],
+        viewonly=True,
+        lazy="selectin",
+    )
+
     def to_dict(self):
         return {
             "id_reporte": self.id_reporte,
