@@ -37,7 +37,47 @@ function AdminReportesPage() {
                 throw new Error(data.mensaje || data.msg || "Error al cargar reportes");
             }
 
-            setReportes(data.reportes || []);
+            let reportesCargados = data.reportes || [];
+            const faltanNombres = reportesCargados.some((reporte) =>
+                !reporte.camion_nombre || !reporte.chofer_nombre ||
+                (reporte.Mecanico_Usuario_idUsuario && !reporte.mecanico_nombre)
+            );
+
+            if (faltanNombres) {
+                const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+                const resultados = await Promise.all([
+                    fetchConToken(`${apiUrl}/api/admin/usuarios`, { method: "GET" }),
+                    fetchConToken(`${apiUrl}/api/admin/camiones`, { method: "GET" }),
+                ]);
+                if (resultados.some((resultado) => !resultado)) return;
+                for (const resultado of resultados) {
+                    if (!resultado.respuesta.ok) {
+                        throw new Error(resultado.data.mensaje || "Error al cargar los nombres de los reportes");
+                    }
+                }
+                const usuarios = new Map(
+                    (resultados[0].data.usuarios || []).map((usuario) => [String(usuario.id_usuario), usuario])
+                );
+                const camiones = new Map(
+                    (resultados[1].data.camiones || []).map((camion) => [String(camion.id_camion), camion])
+                );
+                const nombreUsuario = (id) => {
+                    const usuario = usuarios.get(String(id));
+                    return usuario ? [usuario.nombre, usuario.apellido].filter(Boolean).join(" ") : null;
+                };
+                reportesCargados = reportesCargados.map((reporte) => {
+                    const camion = camiones.get(String(reporte.Camion_id_camion));
+                    return {
+                        ...reporte,
+                        camion_nombre: reporte.camion_nombre || (camion
+                            ? `${camion.marca} ${camion.modelo} (${camion.matricula})` : null),
+                        chofer_nombre: reporte.chofer_nombre || nombreUsuario(reporte.Chofer_Usuario_idUsuario),
+                        mecanico_nombre: reporte.mecanico_nombre || nombreUsuario(reporte.Mecanico_Usuario_idUsuario),
+                    };
+                });
+            }
+
+            setReportes(reportesCargados);
         } catch (error) {
             setErrorReportes(error.message);
             setReportes([]);
@@ -115,7 +155,7 @@ function AdminReportesPage() {
             setReportes((prev) =>
                 prev.map((reporte) =>
                     reporte.id_reporte === reporteCambiandoEstado.id_reporte
-                        ? data.reporte
+                        ? { ...reporte, ...data.reporte }
                         : reporte
                 )
             );
