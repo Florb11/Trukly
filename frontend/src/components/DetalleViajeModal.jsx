@@ -1,7 +1,33 @@
+import { useEffect, useState } from "react";
+import { fetchConToken } from "../utils/fetchConToken";
 import "./DetalleViajeModal.css";
 
-function DetalleViajeModal({ viaje, onClose }) {
-  if (!viaje) return null;
+function DetalleViajeModal({ viaje: viajeInicial, onClose }) {
+  const [detalle, setDetalle] = useState(null);
+  const [errorAsignaciones, setErrorAsignaciones] = useState("");
+  const idViaje = viajeInicial?.id_viaje;
+  const faltanAsignaciones = Boolean(viajeInicial && (!viajeInicial.chofer_nombre || !viajeInicial.camion_nombre || !viajeInicial.operador_nombre));
+  useEffect(() => {
+    if (!idViaje || !faltanAsignaciones) return;
+    const controlador = new AbortController();
+    fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/viaje/${idViaje}`, {
+      method: "GET", signal: controlador.signal,
+    }).then((resultado) => {
+      if (!resultado || controlador.signal.aborted) return;
+      if (!resultado.respuesta.ok) throw new Error(resultado.data.mensaje || "No se pudieron cargar las asignaciones del viaje.");
+      const datos = resultado.data;
+      setDetalle(datos);
+      if (!datos.chofer_nombre || !datos.camion_nombre || !datos.operador_nombre) {
+        setErrorAsignaciones("El servidor no devolvió los nombres de las asignaciones. Verificá que Railway tenga desplegado el cambio «modal detalle chofer» o una versión posterior.");
+      } else setErrorAsignaciones("");
+    }).catch((error) => {
+      if (!controlador.signal.aborted) setErrorAsignaciones(error.message);
+    });
+    return () => controlador.abort();
+  }, [idViaje, faltanAsignaciones]);
+  if (!viajeInicial) return null;
+  const viaje = detalle?.id_viaje === idViaje ? { ...viajeInicial, ...detalle } : viajeInicial;
+  const cargandoAsignaciones = faltanAsignaciones && detalle?.id_viaje !== idViaje && !errorAsignaciones;
 
   const formatearFecha = (fechaISO) => {
     if (!fechaISO) return "-";
@@ -66,21 +92,22 @@ function DetalleViajeModal({ viaje, onClose }) {
 
           <div className="detalle-section">
             <h3>Asignaciones Logísticas</h3>
+            {errorAsignaciones && <p role="alert" className="detalle-empty">{errorAsignaciones}</p>}
 
             <div className="detalle-grid">
               <div>
                 <span>Chofer asignado</span>
-                <p>{viaje.chofer_nombre || "Nombre no disponible"}</p>
+                <p>{viaje.chofer_nombre || (cargandoAsignaciones ? "Cargando nombre..." : "Sin datos del chofer")}</p>
               </div>
 
               <div>
                 <span>Camión asignado</span>
-                <p>{viaje.camion_nombre || "Datos del camión no disponibles"}</p>
+                <p>{viaje.camion_nombre || (viaje.camion ? `${viaje.camion.marca} ${viaje.camion.modelo} (${viaje.camion.matricula})` : cargandoAsignaciones ? "Cargando camión..." : "Sin datos del camión")}</p>
               </div>
 
               <div>
                 <span>Operador responsable</span>
-                <p>{viaje.operador_nombre || "Nombre no disponible"}</p>
+                <p>{viaje.operador_nombre || (cargandoAsignaciones ? "Cargando nombre..." : "Sin datos del operador")}</p>
               </div>
             </div>
           </div>
