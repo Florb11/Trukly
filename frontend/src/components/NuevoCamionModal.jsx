@@ -63,7 +63,7 @@ function NuevoCamionModal({ formNuevo, errorNuevo, onChange, onSubmit, onClose }
                         </div>
 
                         <div className="nuevo-camion-field">
-                            <label htmlFor="capacidad_carga">Capacidad de carga</label>
+                            <label htmlFor="capacidad_carga">Capacidad de carga (kg)</label>
                             <input
                                 type="number"
                                 id="capacidad_carga"

@@ -110,7 +110,7 @@ function OperadorCamionesPage() {
                     <td>{camion.matricula}</td>
                     <td>{camion.marca}</td>
                     <td>{camion.modelo}</td>
-                    <td>{camion.capacidad_carga} t</td>
+                    <td>{camion.capacidad_carga} kg</td>
                     <td>{camion.nroTanque}</td>
                     <td>
                       <span className={getBadgeClass(camion.estado)}>
