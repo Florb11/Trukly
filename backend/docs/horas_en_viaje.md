@@ -6,8 +6,9 @@ Requiere desplegar/reiniciar el backend junto con los frontends web y móvil.
 
 ## Reglas
 
-- `ingreso` (o el valor histórico `entrada`) inicia el viaje: salida de la empresa.
-- `salida` cierra el viaje: regreso a la empresa.
+- El QR actual usa `ingreso` al iniciar el viaje y `salida` al regresar.
+- Los pares históricos sin `ingreso` usan `salida` al partir y `entrada` al regresar.
+  La presencia de `entrada` identifica ese esquema; mezclar ambos se marca inconsistente.
 - Se confirma un viaje finalizado con exactamente un inicio y un regreso posterior,
   sin fechas futuras ni otros controles. Los duplicados se marcan para revisión.
 - Un viaje en curso con inicio válido muestra tiempo transcurrido al consultar;

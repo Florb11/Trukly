@@ -29,8 +29,13 @@ def formato_duracion(segundos):
 def tiempo_viaje(viaje, ahora=None):
     ahora = ahora or datetime.now()
     registros = list(viaje.registros_horarios)
-    inicios = [r.fecha_hora for r in registros if r.tipo_registro.strip().lower() in {"ingreso", "entrada"}]
-    finales = [r.fecha_hora for r in registros if r.tipo_registro.strip().lower() == "salida"]
+    tipos = {r.tipo_registro.strip().lower() for r in registros}
+    # El esquema histórico registra salida de empresa y entrada al regresar.
+    # El QR actual usa ingreso al viaje y salida del viaje. No mezclar esquemas.
+    historico = "entrada" in tipos and "ingreso" not in tipos
+    tipo_inicio, tipo_fin = ("salida", "entrada") if historico else ("ingreso", "salida")
+    inicios = [r.fecha_hora for r in registros if r.tipo_registro.strip().lower() == tipo_inicio]
+    finales = [r.fecha_hora for r in registros if r.tipo_registro.strip().lower() == tipo_fin]
     inicio = inicios[0] if len(inicios) == 1 else None
     fin = finales[0] if len(finales) == 1 else None
     estado = "sin_registro"
@@ -126,6 +131,5 @@ def horas_por_chofer(mes):
     filas = []
     for usuario in usuarios:
         resumen = resumen_horas(viajes[usuario.id_usuario], mes)
-        resumen.pop("historial")
         filas.append({"id_usuario": usuario.id_usuario, "nombre": usuario.nombre, "apellido": usuario.apellido, **resumen})
     return sorted(filas, key=lambda fila: (-fila["segundos_confirmados"], fila["apellido"], fila["nombre"]))
