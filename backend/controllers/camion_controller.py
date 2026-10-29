@@ -1,3 +1,4 @@
+from services.carga_service import comprobar_reduccion_capacidad, ErrorCarga
 from flask import g, jsonify, request
 
 from db_instance import db
@@ -284,6 +285,11 @@ class CamionController:
 
         if not datos_validos:
             return jsonify({"mensaje": mensaje_error}), 400
+
+        try:
+            comprobar_reduccion_capacidad(camion_db.id_camion, datos_camion["capacidad_carga"])
+        except ErrorCarga as error:
+            return jsonify({"mensaje": str(error)}), error.codigo
 
         # el admin prepara el objeto modificado
         camion_clase = admin.preparar_modificacion_camion(

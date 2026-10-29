@@ -1,3 +1,4 @@
+from services.carga_service import comprobar_capacidad, ErrorCarga
 from services.viaje_asignaciones_service import obtener_asignaciones
 from services.horas_viaje_service import horas_chofer, limites_mes
 import datetime
@@ -239,6 +240,15 @@ class ChoferController:
             or inicios[0].fecha_hora >= ahora
         ):
             return jsonify({"mensaje": "Se necesita un único control de inicio válido antes de registrar el regreso."}), 409
+        if tipo_registro == "ingreso":
+            camion_carga = CamionModel.query.filter_by(id_camion=viaje_model.Camion_id_camion).populate_existing().with_for_update().first()
+            if camion_carga is None:
+                return jsonify({"mensaje": "Camión no encontrado"}), 404
+            try:
+                comprobar_capacidad(viaje_model.id_viaje, camion_carga)
+            except ErrorCarga as error:
+                return jsonify({"mensaje": str(error)}), error.codigo
+
         nuevo_estado = "en curso" if tipo_registro == "ingreso" else "finalizado"
         nuevo_registro = RegistroIngresoSalidaModel(
             fecha_hora=ahora,
