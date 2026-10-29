@@ -1,3 +1,4 @@
+import { estadoReporte } from "../utils/estadoReporte";
 import { useState, useEffect } from "react";
 import { FaClipboardList } from "react-icons/fa";
 import NuevoReporteModal from "../components/NuevoReporteModal";
@@ -22,11 +23,6 @@ function ChoferReportesPage() {
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todos");
 
-  // 3. Agregamos useEffect para cargar los reportes al entrar a la página
-  useEffect(() => {
-    cargarReportes();
-  }, []);
-
   const cargarReportes = async () => {
     try {
       const resultado = await fetchConToken(
@@ -42,6 +38,11 @@ function ChoferReportesPage() {
       console.error("Error cargando reportes:", error);
     }
   };
+
+  useEffect(() => {
+    const tarea = window.setTimeout(cargarReportes, 0);
+    return () => window.clearTimeout(tarea);
+  }, []);
 
   const abrirDetalle = (reporte) => {
     setReporteDetalle(reporte);
@@ -82,8 +83,6 @@ function ChoferReportesPage() {
     }
 
     try {
-      const token = localStorage.getItem("token");
-
       const resultado = await fetchConToken(
         `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/reportes`,
         {
@@ -117,23 +116,13 @@ function ChoferReportesPage() {
       r.Camion_id_camion?.toString().includes(texto);
 
     const coincideEstado =
-      filtroEstado === "todos" || r.estado === filtroEstado;
+      filtroEstado === "todos" || estadoReporte(r.estado).valor === filtroEstado;
 
     return coincideTexto && coincideEstado;
   });
 
-  const getBadgeClass = (estado) => {
-    if (estado === "resuelto") return "estado-badge estado-badge--resuelto";
-    if (estado === "en_reparacion")
-      return "estado-badge estado-badge--en-reparacion";
-    return "estado-badge estado-badge--pendiente";
-  };
-
-  const getEstadoLabel = (estado) => {
-    if (estado === "resuelto") return "Resuelto";
-    if (estado === "en_reparacion") return "En reparación";
-    return "Pendiente";
-  };
+  const getBadgeClass = (estado) => `estado-badge estado-badge--${estadoReporte(estado).clase}`;
+  const getEstadoLabel = (estado) => estadoReporte(estado).label;
 
   const renderAcciones = (reporte) => (
     <div className="acciones-group">
@@ -196,8 +185,9 @@ function ChoferReportesPage() {
             >
               <option value="todos">Todos</option>
               <option value="pendiente">Pendiente</option>
-              <option value="en_reparacion">En reparación</option>
+              <option value="en revision">En revisión</option>
               <option value="resuelto">Resuelto</option>
+              <option value="cancelado">Cancelado</option>
             </select>
           </div>
         </div>
