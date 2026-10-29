@@ -73,7 +73,7 @@ function EditarCamionModal({
                         </div>
 
                         <div className="editar-camion-field">
-                            <label htmlFor="editar-capacidad">Capacidad de carga</label>
+                            <label htmlFor="editar-capacidad">Capacidad de carga (kg)</label>
                             <input
                                 type="number"
                                 id="editar-capacidad"

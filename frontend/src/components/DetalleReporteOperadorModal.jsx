@@ -22,11 +22,11 @@ function DetalleReporteOperadorModal({ reporte, onClose }) {
               <div><span>ID</span><p>#{reporte.id_reporte}</p></div>
               <div><span>Fecha y hora</span><p>{reporte.fecha_hora}</p></div>
               <div><span>Estado</span><p>{reporte.estado}</p></div>
-              <div><span>Camión</span><p>#{reporte.Camion_id_camion}</p></div>
-              <div><span>Chofer</span><p>#{reporte.Chofer_Usuario_idUsuario}</p></div>
+              <div><span>Camión</span><p>{reporte.camion_nombre || "Camión sin datos"}</p></div>
+              <div><span>Chofer</span><p>{reporte.chofer_nombre || "Chofer sin datos"}</p></div>
               <div>
                 <span>Mecánico</span>
-                <p>{reporte.Mecanico_Usuario_idUsuario ? `#${reporte.Mecanico_Usuario_idUsuario}` : "Sin asignar"}</p>
+                <p>{reporte.Mecanico_Usuario_idUsuario ? reporte.mecanico_nombre || "Mecánico sin datos" : "Sin asignar"}</p>
               </div>
             </div>
           </div>
