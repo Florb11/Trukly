@@ -4,11 +4,39 @@ from flask import g, jsonify, request
 from db_instance import db
 from models.viaje_model import ViajeModel
 from services import carga_service
-from utils.auth_decorators import operador_required
+from utils.auth_decorators import operador_required, roles_required
+from services.auth_service import AuthService
 from utils.app_logger import get_app_logger
 
 
 class CargaController:
+    @staticmethod
+    @roles_required("admin", "operador", "chofer")
+    def consultar(id_viaje):
+        try:
+            rol = AuthService.obtener_rol_actual()
+            id_usuario = AuthService.obtener_id_usuario_actual()
+            consulta = ViajeModel.query.filter_by(id_viaje=id_viaje)
+            if rol == "operador":
+                consulta = consulta.filter_by(OperadorLogistico_Usuario_idUsuario=id_usuario)
+            elif rol == "chofer":
+                consulta = consulta.filter_by(Chofer_Usuario_idUsuario=id_usuario)
+            elif rol != "admin":
+                return jsonify({"mensaje": "No tenés permiso para consultar las cargas"}), 403
+            viaje = consulta.one_or_none()
+            if viaje is None:
+                return jsonify({"mensaje": "Viaje no encontrado o no asignado al usuario"}), 404
+            datos = carga_service.resumen(viaje)
+            datos["editable"] = False
+            return jsonify(datos), 200
+        except carga_service.ErrorCarga as error:
+            return jsonify({"mensaje": str(error)}), error.codigo
+        except Exception:
+            db.session.rollback()
+            referencia = uuid4().hex[:12]
+            get_app_logger().exception("Error al consultar cargas ref=%s viaje=%s", referencia, id_viaje)
+            return jsonify({"mensaje": f"No se pudieron consultar las cargas. Referencia: {referencia}"}), 500
+
     @staticmethod
     @operador_required
     def gestionar(id_viaje, id_carga=None):

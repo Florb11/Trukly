@@ -1,3 +1,4 @@
+import CargasViajeDetalle from "../components/CargasViajeDetalle";
 import { useSearchParams } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -409,6 +410,8 @@ function AdminViajesPage() {
               <p>Inicio: {viajeDetalle.tiempo_viaje?.inicio?.replace("T", " ") || "Sin registro"} · Regreso: {viajeDetalle.tiempo_viaje?.regreso?.replace("T", " ") || "Sin registro"}</p>
               <p>Tiempo entre controles, incluidas paradas y descansos. Estado: {viajeDetalle.tiempo_viaje?.estado || "sin registro"}.</p>
             </div>
+
+            <div className="admin-viajes-cargas"><CargasViajeDetalle idViaje={viajeDetalle.id_viaje} /></div>
 
             <div className="admin-viajes-observaciones">
               <span>Observaciones</span>

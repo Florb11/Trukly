@@ -83,6 +83,49 @@ class CargasApiTest(unittest.TestCase):
         self.assertEqual(len(respuesta["referencia"]), 12)
         self.assertEqual(CargaModel.query.filter_by(Viaje_id_viaje=50).count(), 0)
 
+    def consultar(self, rol, id_usuario):
+        with self.fixture.app.test_request_context("/"), patch("controllers.carga_controller.AuthService.obtener_rol_actual", return_value=rol), patch("controllers.carga_controller.AuthService.obtener_id_usuario_actual", return_value=id_usuario):
+            respuesta, codigo = CargaController.consultar.__wrapped__(50)
+            return respuesta.get_json(), codigo
+
+    def test_detalle_para_operador_chofer_y_admin(self):
+        self.pedir("POST", datos("400.125", bultos=20, remito="R-1"))
+        for rol, id_usuario in [("operador", 2), ("chofer", 1), ("admin", 100)]:
+            with self.subTest(rol=rol):
+                r, codigo = self.consultar(rol, id_usuario)
+                self.assertEqual(codigo, 200)
+                self.assertFalse(r["editable"])
+                self.assertEqual(r["peso_total_kg"], 400.125)
+                self.assertEqual(r["disponible_kg"], 599.875)
+                self.assertEqual(r["cargas"][0]["bultos"], 20)
+                self.assertEqual(r["cargas"][0]["remito"], "R-1")
+
+    def test_detalle_no_expone_cargas_de_viajes_ajenos(self):
+        for rol in ["operador", "chofer"]:
+            self.assertEqual(self.consultar(rol, 999)[1], 404)
+        self.assertEqual(self.consultar("mecanico", 3)[1], 403)
+
+    def test_detalle_vacio_y_finalizado(self):
+        r, codigo = self.consultar("chofer", 1)
+        self.assertEqual(codigo, 200)
+        self.assertEqual(r["cargas"], [])
+        self.assertEqual(r["peso_total_kg"], 0)
+        self.pedir("POST", datos("300"))
+        db.session.get(ViajeModel, 50).estado = "finalizado"
+        db.session.commit()
+        r, codigo = self.consultar("chofer", 1)
+        self.assertEqual(codigo, 200)
+        self.assertEqual(r["peso_total_kg"], 300)
+        self.assertFalse(r["editable"])
+
+    def test_ruta_de_consulta_no_admite_escrituras(self):
+        from flask import Flask
+        from routes.viaje_routes import viaje_routes
+        app = Flask("consulta")
+        app.register_blueprint(viaje_routes)
+        for metodo in ["POST", "PUT", "DELETE"]:
+            self.assertEqual(app.test_client().open("/api/viaje/50/cargas", method=metodo).status_code, 405)
+
     def test_suma_edicion_y_eliminacion_recalculan(self):
         r, codigo = self.pedir("POST", datos("400", bultos=20, remito="R-1"))
         self.assertEqual(codigo, 201)

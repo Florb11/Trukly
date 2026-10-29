@@ -1,3 +1,4 @@
+import CargasViajeDetalle from "./CargasViajeDetalle";
 import { useEffect, useState } from "react";
 import { fetchConToken } from "../utils/fetchConToken";
 import "./DetalleViajeModal.css";
@@ -111,6 +112,8 @@ function DetalleViajeModal({ viaje: viajeInicial, onClose }) {
               </div>
             </div>
           </div>
+
+          <div className="detalle-section"><CargasViajeDetalle idViaje={viaje.id_viaje} /></div>
 
           <div className="detalle-section">
             <h3>Observaciones</h3>

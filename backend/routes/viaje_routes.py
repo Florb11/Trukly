@@ -1,3 +1,4 @@
+from controllers.carga_controller import CargaController
 from flask import Blueprint
 from controllers.viaje_controller import ViajeController
 
@@ -36,3 +37,8 @@ def ruta_obtener_viaje_admin(id_viaje):
 def ruta_cancelar_viaje_admin(id_viaje):
     return ViajeController.cancelar_viaje_admin(id_viaje)
 
+
+
+@viaje_routes.route("/api/viaje/<int:id_viaje>/cargas", methods=["GET"])
+def ruta_consultar_cargas(id_viaje):
+    return CargaController.consultar(id_viaje)
