@@ -1,0 +1,19 @@
+.cargas-detalle { min-width: 0; color: var(--ui-text, #0b2d4d); }
+.cargas-detalle > h3 { font-size: 14px; margin: 0 0 16px; }
+.cargas-detalle__resumen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0 0 16px; }
+.cargas-detalle__resumen > div { padding: 12px; min-width: 0; border: 1px solid var(--ui-border, #dceaf3); border-radius: 8px; background: var(--ui-surface-soft, #f7fafc); }
+.cargas-detalle dt { font-size: 11px; font-weight: 500; color: var(--ui-muted, #527086); }
+.cargas-detalle dd { margin: 6px 0 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.cargas-detalle__lista { display: grid; gap: 10px; }
+.cargas-detalle__lista article { border: 1px solid var(--ui-border, #dceaf3); padding: 14px; border-radius: 8px; }
+.cargas-detalle__cabecera { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; }
+.cargas-detalle__cabecera strong { min-width: 0; overflow-wrap: anywhere; }
+.cargas-detalle__cabecera > span { color: #1683bd; font-weight: 700; }
+.cargas-detalle__datos { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 14px 0 0; }
+.cargas-detalle__datos > div { min-width: 0; max-width: 100%; }
+.cargas-detalle__datos dd { font-size: 12px; font-weight: 500; }
+.cargas-detalle__vacio, .cargas-detalle > p { font-size: 13px; color: var(--ui-muted, #527086); }
+.cargas-detalle__error { font-size: 13px; color: #b91c1c; }
+.cargas-detalle__error button { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--ui-border, #dceaf3); background: var(--ui-surface, #fff); color: var(--ui-text, #0b2d4d); cursor: pointer; }
+.admin-viajes-cargas { padding: 0 1.5rem 1.5rem; }
+@media (max-width: 500px) { .cargas-detalle__resumen { grid-template-columns: 1fr; } }
