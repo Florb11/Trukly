@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+from services.carga_service import comprobar_capacidad, ErrorCarga
 from services.admin_notificacion_service import AdminNotificacionService
 import math
 from datetime import date, datetime
@@ -284,19 +286,35 @@ class OperadorController:
         if any(len(datos.get(campo) or "") > 255 for campo in ("origen", "destino")):
             return jsonify({"mensaje": "La dirección supera los 255 caracteres"}), 400
 
-        viaje_model = ViajeModel.query.get(id_viaje)
+        viaje_model = ViajeModel.query.filter_by(id_viaje=id_viaje, OperadorLogistico_Usuario_idUsuario=operador.id_usuario).with_for_update().first()
         if viaje_model is None:
             return jsonify({"mensaje": "Viaje no encontrado"}), 404
 
         id_chofer = datos.get("Chofer_Usuario_idUsuario")
         id_camion = datos.get("Camion_id_camion")
         id_chofer_anterior = viaje_model.Chofer_Usuario_idUsuario
+        id_camion_anterior = viaje_model.Camion_id_camion
 
         if id_chofer and not ChoferModel.query.get(id_chofer):
             return jsonify({"mensaje": "El chofer no existe"}), 400
 
         if id_camion and not CamionModel.query.get(id_camion):
             return jsonify({"mensaje": "El camión no existe"}), 400
+
+        if id_camion and id_camion != viaje_model.Camion_id_camion:
+            if viaje_model.estado not in {"pendiente", "aceptado"}:
+                return jsonify({"mensaje": "No se puede cambiar el camión de un viaje iniciado"}), 409
+            camion_destino = CamionModel.query.filter_by(id_camion=id_camion).populate_existing().with_for_update().first()
+            if camion_destino.estado != Camion.ESTADO_DISPONIBLE:
+                return jsonify({"mensaje": "El camión no está disponible"}), 409
+            ocupado = ViajeModel.query.filter(ViajeModel.Camion_id_camion == id_camion,
+                ViajeModel.id_viaje != id_viaje, ViajeModel.estado.in_(ESTADOS_VIAJE_OCUPADO)).first()
+            if ocupado:
+                return jsonify({"mensaje": "El camión ya tiene otro viaje activo"}), 409
+            try:
+                comprobar_capacidad(id_viaje, camion_destino)
+            except ErrorCarga as error:
+                return jsonify({"mensaje": str(error)}), error.codigo
 
         viaje_dict = viaje_model.to_dict()
         viaje_dict["id_operador"] = viaje_dict.get("OperadorLogistico_Usuario_idUsuario")
@@ -317,14 +335,18 @@ class OperadorController:
         viaje_model.estado = viaje.estado
         viaje_model.origen = viaje.origen
         viaje_model.destino = viaje.destino
-        viaje_model.fecha_salida = viaje.fecha_salida
-        viaje_model.fecha_llegada = viaje.fecha_llegada
+        viaje_model.fecha_salida = Viaje.convertir_fecha(viaje.fecha_salida)
+        viaje_model.fecha_llegada = Viaje.convertir_fecha(viaje.fecha_llegada)
         viaje_model.recorrido = viaje.recorrido
         viaje_model.observaciones = viaje.observaciones
         viaje_model.Chofer_Usuario_idUsuario = viaje.id_chofer
         viaje_model.Camion_id_camion = viaje.id_camion
 
         try:
+            if viaje.id_camion != id_camion_anterior:
+                camion_destino.estado = Camion.ESTADO_EN_VIAJE
+                actualizar_camion_tras_cancelacion(SimpleNamespace(
+                    Camion_id_camion=id_camion_anterior, id_viaje=id_viaje))
             if viaje.id_chofer != id_chofer_anterior:
                 NotificacionService.crear(
                     viaje.id_chofer,

@@ -130,9 +130,11 @@ CREATE TABLE `viaje` (
 
 CREATE TABLE `carga` (
   `id_carga`     INT(11)     NOT NULL AUTO_INCREMENT,
-  `descripcion`  VARCHAR(45) NOT NULL,
+  `descripcion`  VARCHAR(255) NOT NULL,
   `tipo`         VARCHAR(45) NOT NULL,
-  `peso`         DOUBLE      NOT NULL,
+  `peso`         DECIMAL(12,3) NOT NULL,
+  `bultos`       INT DEFAULT NULL,
+  `remito`       VARCHAR(80) DEFAULT NULL,
   `estado`       VARCHAR(45) NOT NULL,
   `Viaje_id_viaje` INT(11)   NOT NULL,
   PRIMARY KEY (`id_carga`),

@@ -1,0 +1,31 @@
+.cargas-modal-backdrop { position: fixed; inset: 0; z-index: 100; background: #14213699; backdrop-filter: blur(3px); display: grid; place-items: center; padding: 20px; }
+.cargas-modal { width: min(900px, 100%); max-height: 92vh; overflow: auto; border-radius: 14px; border: 1px solid var(--ui-border, #dceaf3); border-top: 4px solid #1683bd; background: var(--ui-surface, #fff); color: var(--ui-text, #0b2d4d); box-shadow: 0 16px 60px #10203533; }
+.cargas-modal > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 24px; border-bottom: 1px solid var(--ui-border, #dceaf3); }
+.cargas-modal > header span { color: #1683bd; font-size: 11px; font-weight: 700; letter-spacing: .06em; }
+.cargas-modal h2 { font-size: 22px; margin: 6px 0; }
+.cargas-modal h3 { font-size: 16px; margin: 26px 0 16px; }
+.cargas-modal > header p { margin: 0; font-size: 13px; color: var(--ui-muted, #527086); overflow-wrap: anywhere; }
+.cargas-modal__body { padding: 24px; }
+.cargas-modal button { padding: 9px 13px; border: 1px solid var(--ui-border, #dceaf3); border-radius: 7px; background: var(--ui-surface, #fff); color: var(--ui-text, #0b2d4d); cursor: pointer; font-size: 13px; font-weight: 600; }
+.cargas-modal button:disabled { opacity: .5; cursor: not-allowed; }
+.cargas-modal button:focus-visible, .cargas-modal input:focus-visible { outline: 2px solid #1683bd; outline-offset: 2px; }
+.cargas-modal__camion { font-size: 14px; font-weight: 600; margin: 0 0 18px; }
+.cargas-modal__resumen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.cargas-modal__resumen div { border: 1px solid var(--ui-border, #dceaf3); border-radius: 8px; padding: 16px; min-width: 0; }
+.cargas-modal dt { font-size: 12px; color: var(--ui-muted, #527086); font-weight: 500; }
+.cargas-modal dd { margin: 8px 0 0; font-size: 21px; font-weight: 700; overflow-wrap: anywhere; }
+.cargas-modal__lista { display: grid; gap: 10px; }
+.cargas-modal__lista article { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; border: 1px solid var(--ui-border, #dceaf3); border-radius: 8px; font-size: 14px; }
+.cargas-modal__lista article > div:first-child { flex: 1 1 250px; overflow-wrap: anywhere; min-width: 0; }
+.cargas-modal__lista p { font-size: 12px; color: var(--ui-muted, #527086); margin: 6px 0 0; }
+.cargas-modal__acciones { display: flex; gap: 8px; }
+.cargas-modal fieldset { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 0; border: 0; margin: 0; }
+.cargas-modal label { display: grid; gap: 7px; font-size: 13px; }
+.cargas-modal input { width: 100%; min-width: 0; padding: 11px 12px; border: 1px solid var(--ui-border, #dceaf3); border-radius: 7px; color: var(--ui-text, #0b2d4d); background: var(--ui-surface, #fff); }
+.cargas-modal__nota, .cargas-modal__error, .cargas-modal__ok { font-size: 13px; line-height: 1.7; padding: 12px; border-radius: 7px; margin: 16px 0; background: var(--ui-surface-soft, #f5f9fc); color: var(--ui-muted, #527086); }
+.cargas-modal__error { background: #fef2f2; color: #b91c1c; }
+.cargas-modal__ok { background: #ecfdf5; color: #047857; }
+.cargas-modal__pie-form, .cargas-modal > footer { display: flex; justify-content: flex-end; gap: 12px; }
+.cargas-modal .cargas-modal__principal { background: #1683bd; color: white; border-color: #1683bd; }
+.cargas-modal > footer { padding: 18px 24px; border-top: 1px solid var(--ui-border, #dceaf3); }
+@media (max-width: 600px) { .cargas-modal-backdrop { padding: 10px; } .cargas-modal__body, .cargas-modal > header { padding: 18px; } .cargas-modal__resumen { grid-template-columns: 1fr; } .cargas-modal fieldset { grid-template-columns: 1fr; } }

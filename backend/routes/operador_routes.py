@@ -1,3 +1,4 @@
+from controllers.carga_controller import CargaController
 from flask import Blueprint
 from controllers.operador_controller import OperadorController
 
@@ -52,3 +53,12 @@ def ruta_estadisticas():
 @operador_routes.route("/api/operador/mecanicos", methods=["GET"])
 def ruta_listar_mecanicos():
     return OperadorController.listar_mecanicos()
+
+@operador_routes.route("/api/operador/viajes/<int:id_viaje>/cargas", methods=["GET", "POST"])
+def ruta_cargas_viaje(id_viaje):
+    return CargaController.gestionar(id_viaje)
+
+
+@operador_routes.route("/api/operador/viajes/<int:id_viaje>/cargas/<int:id_carga>", methods=["PUT", "DELETE"])
+def ruta_modificar_carga(id_viaje, id_carga):
+    return CargaController.gestionar(id_viaje, id_carga)

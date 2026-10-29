@@ -1,3 +1,4 @@
+import CargasViajeModal from "../components/CargasViajeModal";
 import { hoyOperativo } from "../utils/fechaOperativa";
 import { useState, useMemo, useEffect } from "react";
 import "./OperadorViajePage.css";
@@ -48,6 +49,7 @@ function OperadorViajesPage() {
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [viajeDetalle, setViajeDetalle] = useState(null);
+  const [viajeCargas, setViajeCargas] = useState(null);
   const [modalCrear, setModalCrear] = useState(false);
   const [form, setForm] = useState(camposVaciosCrear);
   const [errorForm, setErrorForm] = useState("");
@@ -463,6 +465,8 @@ function OperadorViajesPage() {
                           <FaEye /> Ver
                         </button>
 
+                        <button type="button" className="op-viajes-btn-editar" onClick={() => setViajeCargas(viaje)}>Cargas</button>
+
                         {puedeEditarse && (
                           <>
                             <button
@@ -517,6 +521,8 @@ function OperadorViajesPage() {
           camiones={camiones}
         />
       )}
+
+      {viajeCargas && <CargasViajeModal viaje={viajeCargas} onClose={() => setViajeCargas(null)} />}
 
       {viajeDetalle && (
         <DetalleViajeModal
