@@ -43,10 +43,37 @@ class ViajeModel(db.Model):
     recorrido = db.Column(db.Float, nullable=False)
 
     registros_horarios = db.relationship(RegistroIngresoSalidaModel, lazy="selectin", viewonly=True)
+    camion = db.relationship("CamionModel", lazy="selectin", viewonly=True)
+    chofer_usuario = db.relationship(
+        "UsuarioModel",
+        primaryjoin="ViajeModel.Chofer_Usuario_idUsuario == UsuarioModel.id_usuario",
+        foreign_keys=[Chofer_Usuario_idUsuario],
+        viewonly=True,
+        lazy="selectin",
+    )
+    operador_usuario = db.relationship(
+        "UsuarioModel",
+        primaryjoin="ViajeModel.OperadorLogistico_Usuario_idUsuario == UsuarioModel.id_usuario",
+        foreign_keys=[OperadorLogistico_Usuario_idUsuario],
+        viewonly=True,
+        lazy="selectin",
+    )
 
     def to_dict(self):
         return {
             "id_viaje": self.id_viaje,
+            "chofer_nombre": (
+                f"{self.chofer_usuario.nombre} {self.chofer_usuario.apellido}".strip()
+                if self.chofer_usuario else None
+            ),
+            "operador_nombre": (
+                f"{self.operador_usuario.nombre} {self.operador_usuario.apellido}".strip()
+                if self.operador_usuario else None
+            ),
+            "camion_nombre": (
+                f"{self.camion.marca} {self.camion.modelo} ({self.camion.matricula})"
+                if self.camion else None
+            ),
             "tiempo_viaje": tiempo_viaje(self),
             "OperadorLogistico_Usuario_idUsuario": self.OperadorLogistico_Usuario_idUsuario,
             "Chofer_Usuario_idUsuario": self.Chofer_Usuario_idUsuario,

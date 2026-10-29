@@ -69,18 +69,18 @@ function DetalleViajeModal({ viaje, onClose }) {
 
             <div className="detalle-grid">
               <div>
-                <span>ID Chofer asignado</span>
-                <p>#{viaje.Chofer_Usuario_idUsuario}</p>
+                <span>Chofer asignado</span>
+                <p>{viaje.chofer_nombre || "Nombre no disponible"}</p>
               </div>
 
               <div>
-                <span>ID Camión asignado</span>
-                <p>#{viaje.Camion_id_camion}</p>
+                <span>Camión asignado</span>
+                <p>{viaje.camion_nombre || "Datos del camión no disponibles"}</p>
               </div>
 
               <div>
-                <span>ID Operador responsable</span>
-                <p>#{viaje.OperadorLogistico_Usuario_idUsuario}</p>
+                <span>Operador responsable</span>
+                <p>{viaje.operador_nombre || "Nombre no disponible"}</p>
               </div>
             </div>
           </div>
