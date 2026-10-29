@@ -1,0 +1,24 @@
+.horas-resumen { min-width: 0; width: 100%; padding: 24px; border: 1px solid var(--ui-border, #dceaf3); border-radius: 12px; background: var(--ui-surface, #fff); color: var(--ui-text, #0b2d4d); }
+.horas-resumen__heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.horas-resumen__heading h2 { margin: 0; font-size: 19px; }
+.horas-resumen__heading p { margin: 6px 0 0; color: var(--ui-muted, #527086); font-size: 13px; }
+.horas-resumen__heading > svg { color: #1683bd; font-size: 24px; flex-shrink: 0; }
+.horas-resumen__metricas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; margin: 24px 0; }
+.horas-resumen dt { font-size: 12px; font-weight: 500; color: var(--ui-muted, #527086); }
+.horas-resumen dd { margin: 8px 0 0; font-size: 22px; font-weight: 700; overflow-wrap: anywhere; }
+.horas-resumen__nota, .horas-resumen__aviso { margin: 14px 0 0; font-size: 13px; line-height: 1.7; color: var(--ui-muted, #527086); }
+.horas-resumen__aviso { padding: 12px; border: 1px solid var(--ui-border, #e3e9f2); border-radius: 8px; }
+.horas-resumen__detalle { margin-top: 20px; border-top: 1px solid var(--ui-border, #dceaf3); padding-top: 18px; }
+.horas-resumen__detalle summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #1683bd; cursor: pointer; list-style: none; font-size: 14px; font-weight: 600; }
+.horas-resumen__detalle summary::-webkit-details-marker { display: none; }
+.horas-resumen__detalle summary:focus-visible { outline: 2px solid #1683bd; outline-offset: 4px; }
+.horas-resumen__detalle[open] summary svg { transform: rotate(180deg); }
+.horas-resumen__historial { display: grid; gap: 16px; margin-top: 20px; }
+.horas-resumen__viaje { min-width: 0; padding: 18px; border: 1px solid var(--ui-border, #dceaf3); border-radius: 8px; }
+.horas-resumen__viaje h3 { font-size: 14px; margin: 0; }
+.horas-resumen__ruta { margin: 8px 0 18px; font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.horas-resumen__controles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0; }
+.horas-resumen__controles dd { font-size: 13px; font-weight: 500; }
+.horas-resumen__duracion { color: var(--ui-muted, #527086); font-size: 13px; margin: 18px 0 0; }
+@media (max-width: 1100px) { .horas-resumen__metricas { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .horas-resumen { padding: 18px; } .horas-resumen__controles { grid-template-columns: 1fr; } .horas-resumen dd { font-size: 18px; } }

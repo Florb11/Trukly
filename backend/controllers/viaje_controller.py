@@ -1,3 +1,4 @@
+from services.viaje_asignaciones_service import obtener_asignaciones
 from services.admin_notificacion_service import AdminNotificacionService
 from flask import jsonify, request
 
@@ -302,7 +303,9 @@ class ViajeController:
                 "mensaje": "No tenes permiso para ver este viaje"
             }), 403
 
-        return jsonify(viaje_model.to_dict()), 200
+        datos = viaje_model.to_dict()
+        datos.update(obtener_asignaciones(viaje_model))
+        return jsonify(datos), 200
 
     @staticmethod
     @roles_required(
