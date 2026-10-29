@@ -216,6 +216,9 @@ class ReporteFalla:
         if nuevo_estado not in self.ESTADOS_VALIDOS:
             return False
 
+        if nuevo_estado == self.ESTADO_EN_REVISION and not self.tiene_mecanico_asignado():
+            return False
+
         if nuevo_estado == self.ESTADO_PENDIENTE and self.tiene_mecanico_asignado():
             return False
 

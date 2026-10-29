@@ -43,7 +43,8 @@ function AdminMantenimientoPage() {
   };
 
   useEffect(() => {
-    cargarReportes();
+    const tarea = window.setTimeout(cargarReportes, 0);
+    return () => window.clearTimeout(tarea);
   }, []);
 
   const reportesPendientes = reportes.filter(
@@ -154,15 +155,15 @@ function AdminMantenimientoPage() {
                           <td>
                             <span className="mantenimiento-inline">
                               <FaTruck />
-                              #{reporte.Camion_id_camion}
+                              {reporte.camion_nombre || "Camión sin datos"}
                             </span>
                           </td>
-                          <td>#{reporte.Chofer_Usuario_idUsuario}</td>
+                          <td>{reporte.chofer_nombre || "Chofer sin datos"}</td>
                           <td>
                             <span className="mantenimiento-inline">
                               <FaUserCog />
                               {reporte.Mecanico_Usuario_idUsuario
-                                ? `#${reporte.Mecanico_Usuario_idUsuario}`
+                                ? reporte.mecanico_nombre || "Mecánico sin datos"
                                 : "Sin asignar"}
                             </span>
                           </td>
@@ -200,19 +201,19 @@ function AdminMantenimientoPage() {
                       <div className="mantenimiento-card-mobile__grid">
                         <div>
                           <span>Camión</span>
-                          <strong>#{reporte.Camion_id_camion}</strong>
+                          <strong>{reporte.camion_nombre || "Camión sin datos"}</strong>
                         </div>
 
                         <div>
                           <span>Chofer</span>
-                          <strong>#{reporte.Chofer_Usuario_idUsuario}</strong>
+                          <strong>{reporte.chofer_nombre || "Chofer sin datos"}</strong>
                         </div>
 
                         <div>
                           <span>Mecánico</span>
                           <strong>
                             {reporte.Mecanico_Usuario_idUsuario
-                              ? `#${reporte.Mecanico_Usuario_idUsuario}`
+                              ? reporte.mecanico_nombre || "Mecánico sin datos"
                               : "Sin asignar"}
                           </strong>
                         </div>

@@ -1,0 +1,18 @@
+.tiempo-viaje { padding: 20px; min-width: 0; border: 1px solid var(--ui-border, #dceaf3); border-radius: 10px; background: var(--ui-surface, #fff); color: var(--ui-text, #192338); }
+.tiempo-viaje__cabecera { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; }
+.tiempo-viaje__cabecera h3 { margin: 0; font-size: 15px; line-height: 1.5; }
+.tiempo-viaje__estado { display: inline-flex; align-items: center; padding: 6px 10px; font-size: 11px; font-weight: 600; border-radius: 6px; color: var(--ui-accent, #5b61dc); background: var(--ui-accent-soft, #eef0ff); }
+.tiempo-viaje__estado--confirmado { color: var(--ui-success-text, #047857); background: var(--ui-success-soft, #ecfdf5); }
+.tiempo-viaje__estado--inconsistente { color: var(--ui-danger-text, #b91c1c); background: var(--ui-danger-soft, #fef2f2); }
+.tiempo-viaje__duracion { display: grid; gap: 8px; margin-bottom: 20px; }
+.tiempo-viaje__duracion > span { color: var(--ui-muted, #657186); font-size: 12px; }
+.tiempo-viaje__duracion strong { color: var(--ui-text, #192338); font-size: 21px; line-height: 1.5; overflow-wrap: anywhere; }
+.tiempo-viaje__controles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.tiempo-viaje__controles > div { min-width: 0; padding: 14px; border-radius: 8px; border: 1px solid var(--ui-border, #dceaf3); background: var(--ui-soft, #f7f9fc); }
+.tiempo-viaje dt { margin: 0 0 9px; font-size: 12px; font-weight: 500; color: var(--ui-muted, #657186); }
+.tiempo-viaje dd { margin: 0; color: var(--ui-text, #192338); font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.tiempo-viaje time { display: block; }
+.tiempo-viaje dd small { display: block; margin-top: 5px; font-size: 13px; font-weight: 500; color: var(--ui-muted, #657186); }
+.tiempo-viaje .tiempo-viaje__nota { margin: 20px 0 0; padding-top: 16px; border-top: 1px solid var(--ui-border, #dceaf3); color: var(--ui-muted, #657186); font-size: 12px; line-height: 1.8; }
+.admin-viajes-tiempo { padding: 0 1.5rem 1.5rem; }
+@media (max-width: 480px) { .tiempo-viaje { padding: 16px; } .tiempo-viaje__controles { grid-template-columns: 1fr; } .tiempo-viaje__duracion strong { font-size: 18px; } }

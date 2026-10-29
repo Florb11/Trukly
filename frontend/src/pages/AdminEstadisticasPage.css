@@ -522,8 +522,8 @@
 .estadisticas-vistas strong, .estadisticas-vistas small { display: block; }
 .estadisticas-vistas strong { font-size: 14px; }
 .estadisticas-vistas small { margin-top: 3px; font-size: 12px; }
-.estadisticas-vistas button[aria-pressed="true"] { background: var(--ui-surface-soft, #f1efff); color: var(--action-primary, #6458e8); border-color: var(--ui-border, #e3e9f2); }
-.estadisticas-vistas button:hover { background: var(--ui-surface-soft, #f5f6fc); }
+.estadisticas-vistas button[aria-pressed="true"] { background: var(--ui-soft, #f1efff); color: var(--ui-accent, #6458e8); border-color: var(--ui-border, #e3e9f2); }
+.estadisticas-vistas button:hover { background: var(--ui-soft, #f5f6fc); }
 .estadisticas-vistas button:focus-visible, .estadisticas-horas-detalle summary:focus-visible { outline: 2px solid #7063ef; outline-offset: 3px; }
 .estadisticas-seccion, .estadisticas-horas { display: grid; gap: 24px; min-width: 0; }
 .estadisticas-seccion__heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
@@ -535,9 +535,9 @@
 .estadisticas-horas__buscar:focus-within { outline: 2px solid #7063ef; outline-offset: 2px; }
 .estadisticas-horas__buscar input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ui-text, #192338); font-size: 14px; }
 .estadisticas-horas__filtro { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ui-muted, #69758a); cursor: pointer; }
-.estadisticas-horas__filtro input { accent-color: #7063ef; width: 16px; height: 16px; }
+.estadisticas-horas__filtro input { accent-color: var(--ui-accent, #7063ef); width: 16px; height: 16px; }
 .estadisticas-horas__nota { display: flex; align-items: flex-start; gap: 10px; margin: -6px 0 0; color: var(--ui-muted, #69758a); font-size: 13px; line-height: 1.7; }
-.estadisticas-horas__nota svg { flex-shrink: 0; margin-top: 5px; color: #7063ef; }
+.estadisticas-horas__nota svg { flex-shrink: 0; margin-top: 5px; color: var(--ui-accent, #7063ef); }
 .estadisticas-horas__lista { display: grid; gap: 20px; }
 @media (min-width: 1200px) {
   .estadisticas-horas__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
@@ -546,16 +546,16 @@
 .estadisticas-chofer { min-width: 0; padding: 24px; border: 1px solid var(--ui-border, #e3e9f2); border-radius: 12px; background: var(--ui-surface, #fff); box-shadow: 0 4px 16px rgba(15, 23, 42, .025); }
 .estadisticas-chofer__cabecera, .estadisticas-chofer__identidad { display: flex; align-items: center; gap: 14px; }
 .estadisticas-chofer__cabecera { justify-content: space-between; flex-wrap: wrap; }
-.estadisticas-chofer__avatar { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; border-radius: 12px; color: #7063ef; background: var(--ui-surface-soft, #f1efff); }
+.estadisticas-chofer__avatar { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; border-radius: 12px; color: var(--ui-accent, #7063ef); background: var(--ui-soft, #f1efff); }
 .estadisticas-chofer h3 { margin: 0; font-size: 16px; color: var(--ui-text, #192338); }
 .estadisticas-chofer__identidad p { margin: 5px 0 0; font-size: 13px; color: var(--ui-muted, #69758a); }
-.estadisticas-chofer__metricas { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 24px 0 0; padding: 20px; border: 1px solid var(--ui-border, #e3e9f2); border-radius: 8px; background: var(--ui-surface-soft, #f8f9fe); }
+.estadisticas-chofer__metricas { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 24px 0 0; padding: 20px; border: 1px solid var(--ui-border, #e3e9f2); border-radius: 8px; background: var(--ui-soft, #f8f9fe); }
 .estadisticas-chofer dt, .estadisticas-horas-detalle dt { color: var(--ui-muted, #69758a); font-size: 12px; font-weight: 500; }
 .estadisticas-chofer dd { margin: 8px 0 0; font-size: 22px; font-weight: 700; color: var(--ui-text, #192338); }
 .estadisticas-chofer__metricas > div + div { padding-left: 20px; border-left: 1px solid var(--ui-border, #e3e9f2); }
-.estadisticas-chofer__aviso { margin: 18px 0 0; padding: 12px; border-radius: 8px; font-size: 12px; line-height: 1.6; background: var(--ui-surface-soft, #fff8eb); color: var(--ui-muted, #876228); }
+.estadisticas-chofer__aviso { margin: 18px 0 0; padding: 12px; border-radius: 8px; font-size: 12px; line-height: 1.6; background: var(--ui-soft, #fff8eb); color: var(--ui-muted, #876228); }
 .estadisticas-horas-detalle { margin-top: 20px; color: var(--ui-text, #192338); font-size: 13px; }
-.estadisticas-horas-detalle summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; color: #7063ef; font-weight: 600; list-style: none; padding: 6px 0; }
+.estadisticas-horas-detalle summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; color: var(--ui-accent, #7063ef); font-weight: 600; list-style: none; padding: 6px 0; }
 .estadisticas-horas-detalle summary::-webkit-details-marker { display: none; }
 .estadisticas-horas-detalle[open] summary svg { transform: rotate(180deg); }
 .estadisticas-horas-detalle__contenido > p { color: var(--ui-muted, #69758a); line-height: 1.6; margin: 18px 0; }

@@ -5,9 +5,13 @@
   --ui-soft: #f7f9fc;
   --ui-border: #e3e9f2;
   --ui-text: #192338;
-  --ui-muted: #69758a;
+  --ui-muted: #657186;
   --ui-accent: #5b61dc;
   --ui-accent-soft: #eef0ff;
+  --ui-danger-text: #b91c1c;
+  --ui-danger-soft: #fef2f2;
+  --ui-success-text: #047857;
+  --ui-success-soft: #ecfdf5;
   --ui-shadow: 0 3px 14px rgba(30, 48, 80, 0.04);
   --action-success: #22c55e;
   --action-success-hover: #16a34a;
@@ -31,6 +35,10 @@
   --ui-muted: #b3c0d1;
   --ui-accent: #a1a5ff;
   --ui-accent-soft: #303758;
+  --ui-danger-text: #fca5a5;
+  --ui-danger-soft: #42272d;
+  --ui-success-text: #86efac;
+  --ui-success-soft: #183c32;
   --ui-shadow: 0 3px 14px rgba(0, 0, 0, 0.12);
   --dash-primary: #a1a5ff;
   --dash-primary-hover: #b7baff;
@@ -1272,4 +1280,40 @@
   .app-shell--chofer .reportes-page__heading-actions .btn-nuevo-reporte {
     flex: 1;
   }
+}
+
+/* Los componentes compartidos heredan el tema de cada panel. */
+.app-shell--dashboard[data-theme="dark"] .cargas-detalle__error p {
+  color: var(--ui-danger-text) !important;
+}
+
+/* Estadísticas: superficies y selección con contraste en modo oscuro. */
+.app-shell--dashboard[data-theme="dark"] .estadisticas-page :is(
+  .estadisticas-filtros, .estadisticas-vistas, .estadisticas-chofer
+) {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border-color: var(--ui-border);
+}
+.app-shell--dashboard[data-theme="dark"] .estadisticas-page :is(
+  .estadisticas-chofer__metricas, .estadisticas-chofer__aviso
+) {
+  background: var(--ui-soft);
+  color: var(--ui-text);
+  border-color: var(--ui-border);
+}
+.app-shell--dashboard[data-theme="dark"] .estadisticas-vistas button[aria-pressed="true"],
+.app-shell--dashboard[data-theme="dark"] .estadisticas-chofer__avatar {
+  background: var(--ui-accent-soft);
+  color: var(--ui-accent);
+}
+.app-shell--dashboard[data-theme="dark"] .estadisticas-vistas button[aria-pressed="true"] :is(strong, small, svg) {
+  color: var(--ui-accent) !important;
+}
+.app-shell--dashboard[data-theme="dark"] .estadisticas-chofer__metricas dd {
+  color: var(--ui-text);
+}
+.app-shell--dashboard[data-theme="dark"] .estadisticas-chofer__metricas dt,
+.app-shell--dashboard[data-theme="dark"] .estadisticas-chofer__aviso {
+  color: var(--ui-muted);
 }

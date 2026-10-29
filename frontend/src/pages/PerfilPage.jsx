@@ -1,3 +1,4 @@
+import FotoPerfil from "../components/FotoPerfil";
 import HorasViajeResumen from "../components/HorasViajeResumen";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -254,7 +255,7 @@ function PerfilPage() {
   const obtenerFotoPerfil = () => {
     if (!perfil?.foto_perfil) return null;
 
-    return `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${perfil.foto_perfil}`;
+    return new URL(perfil.foto_perfil, import.meta.env.VITE_API_URL || "http://localhost:5000").href;
   };
 
   const esChofer = perfil?.rol === "chofer";
@@ -305,11 +306,7 @@ function PerfilPage() {
         <article className="admin-perfil-card admin-perfil-card--identity">
           <div className="admin-perfil-avatar-wrap">
             <div className="admin-perfil-avatar">
-              {obtenerFotoPerfil() ? (
-                <img src={obtenerFotoPerfil()} alt="Foto de perfil" />
-              ) : (
-                <span>{perfil.nombre?.charAt(0).toUpperCase() || "U"}</span>
-              )}
+              <FotoPerfil src={obtenerFotoPerfil()} />
             </div>
 
             <button

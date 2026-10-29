@@ -158,6 +158,7 @@ CREATE TABLE `registroingresosalida` (
 
 CREATE TABLE `reportefalla` (
   `id_reporte`                INT(11)      NOT NULL AUTO_INCREMENT,
+  `motivo_cancelacion` VARCHAR(255) DEFAULT NULL,
   `fecha_hora`                DATETIME     NOT NULL,
   `descripcion`               VARCHAR(200) NOT NULL,
   `estado`                    VARCHAR(45)  NOT NULL,

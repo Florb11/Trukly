@@ -1,3 +1,4 @@
+import FotoPerfil from "./FotoPerfil";
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
@@ -248,7 +249,7 @@ function DashboardSidebar({ isOpen, onClose }) {
   const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:5000"}`;
 
   const fotoPerfil = usuario?.foto_perfil
-    ? `${API_URL}${usuario.foto_perfil}`
+    ? new URL(usuario.foto_perfil, API_URL).href
     : null;
 
   useEffect(() => {
@@ -317,9 +318,7 @@ function DashboardSidebar({ isOpen, onClose }) {
     navigate("/login");
   };
 
-  const inicialUsuario = usuario?.nombre
-    ? usuario.nombre.charAt(0).toUpperCase()
-    : menu.avatar;
+
 
   return (
     <>
@@ -397,11 +396,7 @@ function DashboardSidebar({ isOpen, onClose }) {
         <div className="sidebar__footer">
           <div className="sidebar__user">
             <div className="sidebar__avatar">
-              {fotoPerfil ? (
-                <img src={fotoPerfil} alt="Foto de perfil" />
-              ) : (
-                inicialUsuario
-              )}
+              <FotoPerfil src={fotoPerfil} />
             </div>
 
             <div className="sidebar__user-info">

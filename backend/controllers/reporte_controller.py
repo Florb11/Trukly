@@ -219,6 +219,7 @@ class ReporteController:
         datos["Camion_id_camion"] = datos.pop("id_camion")
         datos["Mecanico_Usuario_idUsuario"] = datos.pop("id_mecanico")
         datos["Chofer_Usuario_idUsuario"] = datos.pop("id_chofer")
+        datos["motivo_cancelacion"] = reporte_model.motivo_cancelacion
 
         camion = reporte_model.camion
         chofer = reporte_model.chofer_usuario
@@ -519,87 +520,70 @@ class ReporteController:
         Usuario.ROL_OPERADOR,
     )
     def cambiar_estado_reporte(id_reporte):
-        # cambia el estado de un reporte
-        reporte_db = ReporteModel.query.get(id_reporte)
-
+        reporte_db = ReporteModel.query.filter_by(id_reporte=id_reporte).populate_existing().with_for_update().first()
         if reporte_db is None:
             return jsonify({"mensaje": "Reporte no encontrado"}), 404
-
-        datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
-            campos_texto=["estado"],
-        )
-
-        datos["estado"] = str(datos.get("estado") or "").strip().lower()
-
-        # valida que venga el estado
-        validador = ReporteController.crear_validador_cambio_estado()
-        datos_validos, mensaje_error = validador.validar(datos)
-
-        if not datos_validos:
-            return jsonify({"mensaje": mensaje_error}), 400
-
-        nuevo_estado = datos.get("estado")
-
-        reporte_clase = ReporteController.crear_objeto_reporte(reporte_db)
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict):
+            return jsonify({"mensaje": "Los datos del cambio de estado no son válidos"}), 400
+        nuevo_estado = str(cuerpo.get("estado") or "").strip().lower()
+        if nuevo_estado not in ReporteFalla.ESTADOS_VALIDOS:
+            return jsonify({"mensaje": "Estado inválido"}), 400
         rol = AuthService.obtener_rol_actual()
-
+        motivo = cuerpo.get("motivo_cancelacion")
+        if nuevo_estado == ReporteFalla.ESTADO_CANCELADO:
+            if motivo is None and reporte_db.estado == ReporteFalla.ESTADO_CANCELADO:
+                motivo = reporte_db.motivo_cancelacion
+            if (rol == Usuario.ROL_ADMIN or motivo is not None) and (not isinstance(motivo, str) or not motivo.strip() or len(motivo.strip()) > 255):
+                return jsonify({"mensaje": "Ingresá un motivo de cancelación de hasta 255 caracteres"}), 400
+            motivo = motivo.strip() if isinstance(motivo, str) else None
+        mecanico_asignado = None
+        reporte_clase = ReporteController.crear_objeto_reporte(reporte_db)
+        if nuevo_estado == ReporteFalla.ESTADO_EN_REVISION:
+            id_mecanico = cuerpo.get("Mecanico_Usuario_idUsuario", reporte_db.Mecanico_Usuario_idUsuario)
+            if isinstance(id_mecanico, bool) or not str(id_mecanico or "").isdigit() or int(id_mecanico) <= 0:
+                return jsonify({"mensaje": "Para poner el reporte en revisión, seleccioná un mecánico activo"}), 400
+            id_mecanico = int(id_mecanico)
+            usuario_mecanico = UsuarioModel.query.filter_by(id_usuario=id_mecanico, rol=Usuario.ROL_MECANICO, estado=Usuario.ESTADO_ACTIVO).first()
+            mecanico = ReporteController.obtener_mecanico_clase(id_mecanico) if usuario_mecanico else None
+            if mecanico is None:
+                return jsonify({"mensaje": "El mecánico seleccionado no existe o no está activo"}), 400
+            if id_mecanico != reporte_db.Mecanico_Usuario_idUsuario:
+                if rol != Usuario.ROL_ADMIN:
+                    return jsonify({"mensaje": "Asigná el mecánico desde la gestión del reporte"}), 403
+                if not mecanico.asignar_reporte(reporte_clase):
+                    return jsonify({"mensaje": "No se puede asignar un mecánico a un reporte cerrado"}), 409
+                mecanico_asignado = mecanico
         if rol == Usuario.ROL_ADMIN:
             admin = obtener_admin_actual_desde_token()
-            estado_cambiado = (
-                admin.cambiar_estado_reporte(
-                    reporte_clase,
-                    nuevo_estado
-                )
-                if admin
-                else False
-            )
+            cambiado = admin.cambiar_estado_reporte(reporte_clase, nuevo_estado) if admin else False
         else:
-            estado_cambiado = reporte_clase.cambiar_estado(nuevo_estado)
-
-        if not estado_cambiado:
-            return jsonify({"mensaje": "Estado invalido"}), 400
-
-        # aplica cambios al modelo
-        ReporteController.actualizar_modelo_reporte(
-            reporte_db,
-            reporte_clase
-        )
-
-        camion_liberado = ReporteController.liberar_camion_si_corresponde(
-            reporte_clase
-        )
-
-        camion_en_mantenimiento = (
-            ReporteController.marcar_camion_en_mantenimiento_si_corresponde(
-                reporte_clase
-            )
-        )
-
+            cambiado = reporte_clase.cambiar_estado(nuevo_estado)
+        if not cambiado:
+            return jsonify({"mensaje": "No se puede aplicar ese estado al reporte"}), 400
         try:
+            ReporteController.actualizar_modelo_reporte(reporte_db, reporte_clase)
+            if nuevo_estado == ReporteFalla.ESTADO_CANCELADO and motivo is not None:
+                reporte_db.motivo_cancelacion = motivo
+            camion_liberado = ReporteController.liberar_camion_si_corresponde(reporte_clase)
+            camion_en_mantenimiento = ReporteController.marcar_camion_en_mantenimiento_si_corresponde(reporte_clase)
+            if mecanico_asignado:
+                ReporteController.notificar_reporte_asignado(reporte_clase, mecanico_asignado)
             db.session.commit()
+            NotificacionService.enviar_push_pendientes()
         except Exception:
             db.session.rollback()
             logger.exception("No se pudo modificar el estado del reporte")
-
-            return jsonify({
-                "mensaje": "No se pudo modificar el estado del reporte"
-            }), 500
-
-        return jsonify({
-            "mensaje": "Estado del reporte modificado correctamente",
-            "reporte": ReporteController.preparar_respuesta_reporte(
-                reporte_db
-            ),
-            "camion_liberado": camion_liberado,
-            "camion_en_mantenimiento": camion_en_mantenimiento,
-        }), 200
+            return jsonify({"mensaje": "No se pudo modificar el estado del reporte"}), 500
+        return jsonify({"mensaje": "Estado del reporte actualizado correctamente",
+            "reporte": ReporteController.preparar_respuesta_reporte(reporte_db),
+            "camion_liberado": camion_liberado, "camion_en_mantenimiento": camion_en_mantenimiento}), 200
 
     @staticmethod
     @roles_required(Usuario.ROL_OPERADOR)
     def asignar_mecanico(id_reporte):
         # asigna un mecanico a un reporte
-        reporte_db = ReporteModel.query.get(id_reporte)
+        reporte_db = ReporteModel.query.filter_by(id_reporte=id_reporte).populate_existing().with_for_update().first()
 
         if reporte_db is None:
             return jsonify({"mensaje": "Reporte no encontrado"}), 404
@@ -618,7 +602,8 @@ class ReporteController:
 
         id_mecanico = datos.get("Mecanico_Usuario_idUsuario")
 
-        mecanico = ReporteController.obtener_mecanico_clase(id_mecanico)
+        usuario_mecanico = UsuarioModel.query.filter_by(id_usuario=id_mecanico, rol=Usuario.ROL_MECANICO, estado=Usuario.ESTADO_ACTIVO).first()
+        mecanico = ReporteController.obtener_mecanico_clase(id_mecanico) if usuario_mecanico else None
 
         if mecanico is None:
             return jsonify({"mensaje": "Mecanico no encontrado"}), 404
@@ -667,3 +652,14 @@ class ReporteController:
             ),
             "camion_en_mantenimiento": camion_en_mantenimiento,
         }), 200
+
+
+    @staticmethod
+    @roles_required(Usuario.ROL_ADMIN)
+    def listar_mecanicos_activos():
+        filas = db.session.query(MecanicoModel, UsuarioModel).join(
+            UsuarioModel, MecanicoModel.Usuario_idUsuario == UsuarioModel.id_usuario
+        ).filter(UsuarioModel.rol == Usuario.ROL_MECANICO, UsuarioModel.estado == Usuario.ESTADO_ACTIVO).order_by(UsuarioModel.apellido, UsuarioModel.nombre).all()
+        return jsonify({"mecanicos": [{"id_usuario": usuario.id_usuario, "nombre": usuario.nombre,
+            "apellido": usuario.apellido, "especialidad": mecanico.especialidad}
+            for mecanico, usuario in filas]}), 200

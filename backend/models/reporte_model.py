@@ -8,6 +8,7 @@ class ReporteModel(db.Model):
     fecha_hora = db.Column(db.DateTime, nullable=False)
     descripcion = db.Column(db.String(200), nullable=False)
     estado = db.Column(db.String(45), nullable=False)
+    motivo_cancelacion = db.Column(db.String(255), nullable=True)
     nota_reparacion = db.Column(db.String(255), nullable=True)
     fecha_resolucion = db.Column(db.DateTime, nullable=True)
 
@@ -55,6 +56,7 @@ class ReporteModel(db.Model):
             "Mecanico_Usuario_idUsuario": self.Mecanico_Usuario_idUsuario,
             "Chofer_Usuario_idUsuario": self.Chofer_Usuario_idUsuario,
             "nota_reparacion": self.nota_reparacion,
+            "motivo_cancelacion": self.motivo_cancelacion,
             "fecha_resolucion": (
                 self.fecha_resolucion.strftime("%Y-%m-%d %H:%M:%S")
                 if self.fecha_resolucion
