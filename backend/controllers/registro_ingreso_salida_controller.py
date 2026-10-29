@@ -1,3 +1,5 @@
+from services.admin_notificacion_service import AdminNotificacionService
+from services.notificacion_service import NotificacionService
 from datetime import datetime
 
 from flask import jsonify, request
@@ -176,7 +178,9 @@ class RegistroIngresoSalidaController:
 
         try:
             db.session.add(nuevo_registro)
+            AdminNotificacionService.revisar_controles(viaje_model)
             db.session.commit()
+            NotificacionService.enviar_push_pendientes()
         except Exception:
             db.session.rollback()
             logger.exception("No se pudo crear el registro")

@@ -1,3 +1,4 @@
+from services.admin_notificacion_service import AdminNotificacionService
 import math
 from datetime import date, datetime
 
@@ -250,7 +251,9 @@ class OperadorController:
             viaje_model.estado = viaje.estado
             viaje_model.observaciones = viaje.observaciones
             actualizar_camion_tras_cancelacion(viaje_model)
+            AdminNotificacionService.viaje_cancelado(viaje_model, motivo)
             db.session.commit()
+            NotificacionService.enviar_push_pendientes()
             return jsonify({"mensaje": "Viaje cancelado correctamente"}), 200
 
         except Exception:

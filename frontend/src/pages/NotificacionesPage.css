@@ -229,3 +229,4 @@
     justify-content: center;
   }
 }
+.notificacion-item__content .notificacion-action { margin: 8px 10px 0 0; text-decoration: none; }

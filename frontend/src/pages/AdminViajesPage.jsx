@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
 import {
   FaEye,
   FaTimesCircle,
@@ -12,6 +13,8 @@ import { fetchConToken } from "../utils/fetchConToken";
 import "./AdminViajesPage.css";
 
 function AdminViajesPage() {
+  const [parametros, setParametros] = useSearchParams();
+  const idViajeEnlace = parametros.get("viaje");
   const [viajes, setViajes] = useState([]);
   const [viajeDetalle, setViajeDetalle] = useState(null);
   const [viajeCancelar, setViajeCancelar] = useState(null);
@@ -50,10 +53,11 @@ function AdminViajesPage() {
   };
 
   useEffect(() => {
-    cargarViajes();
+    const tarea = window.setTimeout(cargarViajes, 0);
+    return () => window.clearTimeout(tarea);
   }, []);
 
-  const abrirDetalle = async (idViaje) => {
+  const abrirDetalle = useCallback(async (idViaje) => {
     try {
       setError("");
       setMensaje("");
@@ -109,7 +113,13 @@ function AdminViajesPage() {
     } catch (err) {
       setError(err.message);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!idViajeEnlace || !/^\d+$/.test(idViajeEnlace)) return;
+    const tarea = window.setTimeout(() => abrirDetalle(idViajeEnlace), 0);
+    return () => window.clearTimeout(tarea);
+  }, [idViajeEnlace, abrirDetalle]);
 
   const abrirCancelar = (viaje) => {
     setViajeCancelar(viaje);
@@ -119,6 +129,11 @@ function AdminViajesPage() {
   };
 
   const cerrarModales = () => {
+    if (idViajeEnlace) {
+      const nuevos = new URLSearchParams(parametros);
+      nuevos.delete("viaje");
+      setParametros(nuevos, { replace: true });
+    }
     setViajeDetalle(null);
     setViajeCancelar(null);
     setMotivoCancelacion("");

@@ -1,3 +1,5 @@
+from services.admin_notificacion_service import AdminNotificacionService
+from services.notificacion_service import NotificacionService
 from services.horas_viaje_service import horas_chofer, limites_mes
 import datetime
 
@@ -399,7 +401,9 @@ class ChoferController:
                     else Camion.ESTADO_DISPONIBLE
                 )
 
+            AdminNotificacionService.revisar_controles(viaje_model)
             db.session.commit()
+            NotificacionService.enviar_push_pendientes()
             return jsonify({"mensaje": "Viaje finalizado correctamente", "viaje": viaje_model.to_dict()}), 200
         except Exception:
             db.session.rollback()
