@@ -511,3 +511,13 @@
     width: 100%;
   }
 }
+
+.estadisticas-horas-detalle {
+  grid-column: 1 / -1;
+  min-width: 0;
+  color: #514365;
+  font-size: 0.9rem;
+}
+.estadisticas-horas-detalle summary { cursor: pointer; color: #5144b5; font-weight: 600; }
+.estadisticas-horas-detalle p { margin: 0.5rem 0; overflow-wrap: anywhere; }
+.estadisticas-horas-detalle__viaje { padding: 0.75rem 0; border-top: 1px solid #e8e2f0; }

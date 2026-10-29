@@ -21,9 +21,26 @@ class HorasViajeTest(unittest.TestCase):
         for inicio, fin, mes1, mes2 in [
             ("2026-09-30T23:00", "2026-10-01T02:00", "2026-09", "2026-10"),
             ("2025-12-31T23:00", "2026-01-01T02:00", "2025-12", "2026-01")]:
-            v = viaje([("entrada", inicio), ("salida", fin)])
+            v = viaje([("ingreso", inicio), ("salida", fin)])
             self.assertEqual(resumen_horas([v], mes1, AHORA)["segundos_confirmados"], 3600)
             self.assertEqual(resumen_horas([v], mes2, AHORA)["segundos_confirmados"], 7200)
+
+    def test_registros_historicos_salida_entrada(self):
+        v = viaje([("salida", "2026-09-30T08:00"), ("entrada", "2026-09-30T10:00")])
+        self.assertEqual(tiempo_viaje(v, AHORA)["duracion"], "2 h 00 min")
+        self.assertEqual(resumen_horas([v], "2026-09", AHORA)["segundos_confirmados"], 7200)
+
+    def test_esquemas_mezclados_no_suman(self):
+        v = viaje([("ingreso", "2026-09-30T08:00"), ("entrada", "2026-09-30T09:00"), ("salida", "2026-09-30T10:00")])
+        self.assertEqual(tiempo_viaje(v, AHORA)["estado"], "inconsistente")
+
+    def test_promedio_de_la_captura(self):
+        viajes = [viaje([("ingreso", f"2026-09-{dia}T08:00"), ("salida", f"2026-09-{dia}T{fin}")], id_viaje=i)
+                  for i, (dia, fin) in enumerate([("20", "15:00"), ("21", "15:00"), ("22", "15:40")], 1)]
+        r = resumen_horas(viajes, "2026-09", AHORA)
+        self.assertEqual(r["duracion"], "21 h 40 min")
+        self.assertEqual(r["promedio"], "7 h 13 min")
+        self.assertEqual(len(r["historial"]), 3)
 
     def test_en_curso_separado_del_total(self):
         v = viaje([("ingreso", "2026-09-30T08:00")], "en curso")
