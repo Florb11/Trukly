@@ -353,6 +353,10 @@ class ViajeController:
             return jsonify({"mensaje": mensaje_error}), 400
 
         # valida reglas propias del viaje
+        fechas_validas, error_fechas = Viaje.validar_fechas_creacion(datos)
+        if not fechas_validas:
+            return jsonify({"mensaje": error_fechas}), 400
+
         datos_validos, mensaje_error = Viaje.validar_datos_viaje(datos)
 
         if not datos_validos:

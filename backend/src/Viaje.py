@@ -1,3 +1,4 @@
+from utils.fecha_operativa import hoy_operativo
 from datetime import date, datetime
 
 from src.Usuario import Usuario
@@ -231,6 +232,22 @@ class Viaje:
             return Viaje.ESTADO_EN_CURSO
 
         return estado_limpio
+
+    @staticmethod
+    def validar_fechas_creacion(datos, hoy=None):
+        salida = Viaje.convertir_fecha(datos.get("fecha_salida"))
+        if salida is None:
+            return False, "La fecha de salida no es válida"
+        if salida < (hoy or hoy_operativo()):
+            return False, "La fecha de salida debe ser hoy o una fecha futura"
+        llegada = datos.get("fecha_llegada") or datos.get("fecha_estimada_llegada")
+        if llegada:
+            llegada = Viaje.convertir_fecha(llegada)
+            if llegada is None:
+                return False, "La fecha de llegada no es válida"
+            if llegada < salida:
+                return False, "La fecha de llegada no puede ser anterior a la salida"
+        return True, None
 
     @staticmethod
     def validar_datos_viaje(datos):

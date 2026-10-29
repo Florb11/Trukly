@@ -1,3 +1,4 @@
+import { hoyOperativo } from "../utils/fechaOperativa";
 import { useState, useMemo, useEffect } from "react";
 import "./OperadorViajePage.css";
 import {
@@ -249,6 +250,14 @@ function OperadorViajesPage() {
 
   const crearViaje = async (e) => {
     e.preventDefault();
+    if (form.fecha_salida && form.fecha_salida < hoyOperativo()) {
+      setErrorForm("La fecha de salida debe ser hoy o una fecha futura.");
+      return;
+    }
+    if (form.fecha_llegada && form.fecha_llegada < form.fecha_salida) {
+      setErrorForm("La fecha de llegada no puede ser anterior a la salida.");
+      return;
+    }
 
     if (!lugares.origen || !lugares.destino || !ruta || cargandoRuta || cargandoLugarMapa) {
       setErrorForm("Elegí dos ubicaciones y esperá a que se calcule la ruta.");
