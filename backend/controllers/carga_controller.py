@@ -1,3 +1,5 @@
+from uuid import uuid4
+from sqlalchemy.exc import DBAPIError
 from flask import g, jsonify, request
 from db_instance import db
 from models.viaje_model import ViajeModel
@@ -27,7 +29,16 @@ class CargaController:
         except carga_service.ErrorCarga as error:
             db.session.rollback()
             return jsonify({"mensaje": str(error)}), error.codigo
-        except Exception:
+        except Exception as error:
             db.session.rollback()
-            get_app_logger().exception("No se pudo gestionar la carga del viaje")
-            return jsonify({"mensaje": "No se pudo guardar la carga. Intentá nuevamente."}), 500
+            referencia = uuid4().hex[:12]
+            get_app_logger().exception(
+                "Error de cargas ref=%s metodo=%s viaje=%s operador=%s",
+                referencia, request.method, id_viaje, g.operador_actual.id_usuario,
+            )
+            codigo_db = error.orig.args[0] if isinstance(error, DBAPIError) and getattr(error.orig, "args", ()) else None
+            if codigo_db in {1054, 1146}:
+                mensaje = "La base de datos no tiene el esquema de cargas actualizado. Aplicá la migración de cargas en la base conectada al backend."
+            else:
+                mensaje = "No se pudieron cargar los datos del viaje." if request.method == "GET" else "No se pudo guardar la carga."
+            return jsonify({"mensaje": f"{mensaje} Referencia: {referencia}", "referencia": referencia}), 500

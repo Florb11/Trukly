@@ -2,6 +2,8 @@ import unittest
 from decimal import Decimal
 from datetime import date
 from types import SimpleNamespace
+from unittest.mock import patch
+from sqlalchemy.exc import OperationalError
 from flask import g
 from db_instance import db
 from models.carga_model import CargaModel
@@ -63,6 +65,23 @@ class CargasApiTest(unittest.TestCase):
             g.operador_actual = SimpleNamespace(id_usuario=operador)
             respuesta, codigo = CargaController.gestionar.__wrapped__(50, carga)
             return respuesta.get_json(), codigo
+
+    def test_error_de_esquema_informa_migracion_y_referencia(self):
+        fallo = OperationalError("consulta", {}, Exception(1054, "detalle interno"))
+        with patch("controllers.carga_controller.carga_service.resumen", side_effect=fallo), patch("controllers.carga_controller.get_app_logger") as logger:
+            respuesta, codigo = self.pedir()
+        self.assertEqual(codigo, 500)
+        self.assertIn("migración", respuesta["mensaje"])
+        self.assertEqual(len(respuesta["referencia"]), 12)
+        self.assertNotIn("detalle interno", respuesta["mensaje"])
+        logger.return_value.exception.assert_called_once()
+
+    def test_error_de_guardado_hace_rollback_y_da_referencia(self):
+        with patch.object(db.session, "commit", side_effect=RuntimeError("fallo interno")), patch("controllers.carga_controller.get_app_logger"):
+            respuesta, codigo = self.pedir("POST", datos())
+        self.assertEqual(codigo, 500)
+        self.assertEqual(len(respuesta["referencia"]), 12)
+        self.assertEqual(CargaModel.query.filter_by(Viaje_id_viaje=50).count(), 0)
 
     def test_suma_edicion_y_eliminacion_recalculan(self):
         r, codigo = self.pedir("POST", datos("400", bultos=20, remito="R-1"))
