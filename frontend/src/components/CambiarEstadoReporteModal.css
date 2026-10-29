@@ -12,9 +12,10 @@
 .cambiar-estado-reporte-modal {
     width: 100%;
     max-width: 520px;
+    max-height: 90vh;
     background: #ffffff;
     border-radius: 16px;
-    overflow: hidden;
+    overflow-y: auto;
     box-shadow: 0 18px 40px rgba(17, 24, 39, 0.28);
 }
 
