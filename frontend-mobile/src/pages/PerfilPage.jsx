@@ -1,5 +1,6 @@
+import FotoPerfil from "../components/FotoPerfil";
 import { useEffect, useState } from "react";
-import { FaCamera, FaSave, FaSignOutAlt, FaUser } from "react-icons/fa";
+import { FaCamera, FaSave, FaSignOutAlt } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { API_URL, apiFetch } from "../utils/api";
 
@@ -11,7 +12,6 @@ export default function PerfilPage() {
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
-  const [fotoFallida, setFotoFallida] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     const id = setTimeout(async () => {
@@ -57,7 +57,7 @@ export default function PerfilPage() {
       if (!resultado) return;
       if (!resultado.response.ok) throw new Error(resultado.data.mensaje || "No se pudo guardar la foto.");
       const cambio = { foto_perfil: resultado.data.foto_perfil };
-      setPerfil((actual) => ({ ...actual, ...cambio })); actualizarUsuario(cambio); setFotoFallida(false);
+      setPerfil((actual) => ({ ...actual, ...cambio })); actualizarUsuario(cambio);
       setMensaje("Foto actualizada.");
     } catch (err) { setError(["TypeError", "TimeoutError"].includes(err.name) ? "No se pudo confirmar la foto. Revisá tu conexión y recargá el perfil." : err.message); }
     finally { setOcupado(false); }
@@ -68,7 +68,7 @@ export default function PerfilPage() {
     <header className="page-heading"><span>MI CUENTA</span><h1>Perfil</h1></header>
     {error && <p className="feedback error" role="alert">{error}</p>}{mensaje && <p className="feedback ok" role="status">{mensaje}</p>}
     {cargando ? <p className="empty">Cargando perfil...</p> : <>
-      <div className="profile-card"><div className="profile-avatar">{foto && !fotoFallida ? <img src={foto} alt="Foto de perfil" onError={() => setFotoFallida(true)} /> : <FaUser />}</div>
+      <div className="profile-card"><div className="profile-avatar"><FotoPerfil src={foto} /></div>
         <h2>{datos?.nombre} {datos?.apellido}</h2><span>{datos?.rol === "chofer" ? "Chofer" : datos?.rol === "mecanico" ? "Mecánico" : "Operador logístico"}</span>
         <label className="button secondary photo-upload"><FaCamera /> {ocupado ? "Procesando..." : "Cambiar foto"}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={ocupado || !perfil} onChange={subirFoto} /></label>
       </div>

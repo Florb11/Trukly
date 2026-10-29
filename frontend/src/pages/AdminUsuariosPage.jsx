@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import ConfirmarEstadoUsuarioModal from "../components/ConfirmarEstadoUsuarioModal";
+import { useCallback, useEffect, useState } from "react";
 import { FaUsers } from "react-icons/fa";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { fetchConToken } from "../utils/fetchConToken";
@@ -10,6 +11,8 @@ import { obtenerMensajeAuth } from "../utils/authErrors";
 import "./AdminUsuariosPage.css";
 
 function AdminUsuariosPage() {
+    const [confirmacionEstado, setConfirmacionEstado] = useState(null);
+    const cerrarConfirmacionEstado = useCallback(() => setConfirmacionEstado(null), []);
     const [usuarios, setUsuarios] = useState([]);
     const [cargandoUsuarios, setCargandoUsuarios] = useState(true);
     const [errorUsuarios, setErrorUsuarios] = useState("");
@@ -81,64 +84,26 @@ function AdminUsuariosPage() {
         }
     };
 
-    const activarUsuario = async (idUsuario) => {
-        try {
-            setMensajeUsuarios("");
-            setErrorUsuarios("");
-
-            const resultado = await fetchConToken(
-                `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/admin/usuarios/${idUsuario}/activar`,
-                { method: "PUT" }
-            );
-
-            if (!resultado) return;
-
-            const { respuesta, data } = resultado;
-
-            if (!respuesta.ok) {
-                throw new Error(data.mensaje || data.msg || "Error al activar usuario");
-            }
-
-            setMensajeUsuarios(data.mensaje || "Usuario activado correctamente");
-
-            setUsuarios((prev) =>
-                prev.map((u) =>
-                    u.id_usuario === idUsuario ? { ...u, estado: "activo" } : u
-                )
-            );
-        } catch (error) {
-            setErrorUsuarios(error.message);
+    const confirmarCambioEstado = async () => {
+        const cambio = confirmacionEstado;
+        if (!cambio) return;
+        if (cambio.form) {
+            await guardarCambiosUsuario(cambio.usuario, cambio.form);
+            return;
         }
-    };
-
-    const desactivarUsuario = async (idUsuario) => {
-        try {
-            setMensajeUsuarios("");
-            setErrorUsuarios("");
-
-            const resultado = await fetchConToken(
-                `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/admin/usuarios/${idUsuario}/desactivar`,
-                { method: "PUT" }
-            );
-
-            if (!resultado) return;
-
-            const { respuesta, data } = resultado;
-
-            if (!respuesta.ok) {
-                throw new Error(data.mensaje || data.msg || "Error al desactivar usuario");
-            }
-
-            setMensajeUsuarios(data.mensaje || "Usuario desactivado correctamente");
-
-            setUsuarios((prev) =>
-                prev.map((u) =>
-                    u.id_usuario === idUsuario ? { ...u, estado: "inactivo" } : u
-                )
-            );
-        } catch (error) {
-            setErrorUsuarios(error.message);
-        }
+        setMensajeUsuarios("");
+        setErrorUsuarios("");
+        const accion = cambio.estado === "activo" ? "activar" : "desactivar";
+        const resultado = await fetchConToken(
+            `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/admin/usuarios/${cambio.usuario.id_usuario}/${accion}`,
+            { method: "PUT", signal: AbortSignal.timeout(20000) }
+        );
+        if (!resultado) throw new Error("La sesión terminó. Volvé a iniciar sesión.");
+        const { respuesta, data } = resultado;
+        if (!respuesta.ok) throw new Error(data.mensaje || data.msg || "No se pudo cambiar el estado del usuario");
+        setUsuarios((prev) => prev.map((usuario) => usuario.id_usuario === cambio.usuario.id_usuario
+            ? { ...usuario, ...(data.usuario || { estado: cambio.estado }) } : usuario));
+        setMensajeUsuarios(data.mensaje || "Estado del usuario actualizado correctamente");
     };
 
     const abrirDetalleUsuario = (usuario) => {
@@ -196,51 +161,30 @@ function AdminUsuariosPage() {
         });
     };
 
+    const guardarCambiosUsuario = async (usuario, formulario) => {
+        setMensajeUsuarios(""); setErrorUsuarios(""); setErrorEditar("");
+        const resultado = await fetchConToken(
+            `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/admin/usuarios/${usuario.id_usuario}`,
+            { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formulario), signal: AbortSignal.timeout(20000) }
+        );
+        if (!resultado) throw new Error("La sesión terminó. Volvé a iniciar sesión.");
+        const { respuesta, data } = resultado;
+        if (!respuesta.ok) throw new Error(data.mensaje || data.msg || "Error al modificar usuario");
+        setUsuarios((prev) => prev.map((actual) => actual.id_usuario === usuario.id_usuario
+            ? { ...actual, ...formulario, ...(data.usuario || {}) } : actual));
+        setMensajeUsuarios(data.mensaje || "Usuario modificado correctamente");
+        cerrarEditarUsuario();
+    };
+
     const guardarEdicionUsuario = async (e) => {
         e.preventDefault();
-
         if (!usuarioEditando) return;
-
-        try {
-            setMensajeUsuarios("");
-            setErrorUsuarios("");
-            setErrorEditar("");
-
-            const resultado = await fetchConToken(
-                `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/admin/usuarios/${usuarioEditando.id_usuario}`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(formEditar),
-                }
-            );
-
-            if (!resultado) return;
-
-            const { respuesta, data } = resultado;
-
-            if (!respuesta.ok) {
-                throw new Error(data.mensaje || data.msg || "Error al modificar usuario");
-            }
-
-            setUsuarios((prev) =>
-                prev.map((usuario) =>
-                    usuario.id_usuario === usuarioEditando.id_usuario
-                        ? {
-                              ...usuario,
-                              ...formEditar,
-                          }
-                        : usuario
-                )
-            );
-
-            setMensajeUsuarios(data.mensaje || "Usuario modificado correctamente");
-            cerrarEditarUsuario();
-        } catch (error) {
-            setErrorEditar(error.message);
+        if (formEditar.estado !== usuarioEditando.estado) {
+            setConfirmacionEstado({ usuario: usuarioEditando, estado: formEditar.estado, form: { ...formEditar } });
+            return;
         }
+        try { await guardarCambiosUsuario(usuarioEditando, formEditar); }
+        catch (error) { setErrorEditar(error.message); }
     };
 
     const abrirNuevoUsuario = () => {
@@ -346,7 +290,8 @@ function AdminUsuariosPage() {
     };
 
     useEffect(() => {
-        cargarUsuarios();
+        const tarea = window.setTimeout(cargarUsuarios, 0);
+        return () => window.clearTimeout(tarea);
     }, []);
 
     const getBadgeClass = (estado) => {
@@ -377,7 +322,7 @@ function AdminUsuariosPage() {
                 <button
                     type="button"
                     className="btn-accion btn-accion--activar"
-                    onClick={() => activarUsuario(usuario.id_usuario)}
+                    onClick={() => setConfirmacionEstado({ usuario, estado: "activo" })}
                 >
                     Activar
                 </button>
@@ -387,7 +332,7 @@ function AdminUsuariosPage() {
                 <button
                     type="button"
                     className="btn-accion btn-accion--desactivar"
-                    onClick={() => desactivarUsuario(usuario.id_usuario)}
+                    onClick={() => setConfirmacionEstado({ usuario, estado: "inactivo" })}
                 >
                     Desactivar
                 </button>
@@ -638,6 +583,12 @@ function AdminUsuariosPage() {
                     onClose={cerrarDetalleUsuario}
                 />
             )}
+            {confirmacionEstado && <ConfirmarEstadoUsuarioModal
+                usuario={confirmacionEstado.usuario}
+                estadoDestino={confirmacionEstado.estado}
+                onConfirm={confirmarCambioEstado}
+                onClose={cerrarConfirmacionEstado}
+            />}
         </section>
     );
 }

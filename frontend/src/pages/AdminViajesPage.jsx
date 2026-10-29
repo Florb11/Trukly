@@ -1,3 +1,5 @@
+import TiempoViajeDetalle from "../components/TiempoViajeDetalle";
+import ConfirmarAccionModal from "../components/ConfirmarAccionModal";
 import CargasViajeDetalle from "../components/CargasViajeDetalle";
 import { useSearchParams } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
@@ -19,6 +21,9 @@ function AdminViajesPage() {
   const [viajes, setViajes] = useState([]);
   const [viajeDetalle, setViajeDetalle] = useState(null);
   const [viajeCancelar, setViajeCancelar] = useState(null);
+  const [confirmacionCancelacion, setConfirmacionCancelacion] = useState(null);
+  const [errorCancelacion, setErrorCancelacion] = useState("");
+  const cerrarConfirmacionCancelacion = useCallback(() => setConfirmacionCancelacion(null), []);
   const [motivoCancelacion, setMotivoCancelacion] = useState("");
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -123,6 +128,7 @@ function AdminViajesPage() {
   }, [idViajeEnlace, abrirDetalle]);
 
   const abrirCancelar = (viaje) => {
+    setErrorCancelacion("");
     setViajeCancelar(viaje);
     setMotivoCancelacion("");
     setError("");
@@ -136,50 +142,39 @@ function AdminViajesPage() {
       setParametros(nuevos, { replace: true });
     }
     setViajeDetalle(null);
+    setConfirmacionCancelacion(null);
+    setErrorCancelacion("");
     setViajeCancelar(null);
     setMotivoCancelacion("");
   };
 
-  const cancelarViaje = async () => {
+  const prepararCancelacion = () => {
+    if (!viajeCancelar) return;
     if (!motivoCancelacion.trim()) {
-      setError("Tenés que ingresar un motivo de cancelación");
+      setErrorCancelacion("Tenés que ingresar un motivo de cancelación");
       return;
     }
+    setErrorCancelacion("");
+    setConfirmacionCancelacion({ viaje: viajeCancelar, motivo: motivoCancelacion.trim() });
+  };
 
+  const cancelarViaje = async () => {
+    const confirmacion = confirmacionCancelacion;
+    if (!confirmacion) return;
     try {
       setGuardando(true);
       setError("");
       setMensaje("");
-
       const resultado = await fetchConToken(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/admin/viajes/${viajeCancelar.id_viaje}/cancelar`,
-        {
-          method: "PUT",
-          body: JSON.stringify({
-            motivo: motivoCancelacion,
-          }),
-        }
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/admin/viajes/${confirmacion.viaje.id_viaje}/cancelar`,
+        { method: "PUT", body: JSON.stringify({ motivo: confirmacion.motivo }), signal: AbortSignal.timeout(20000) }
       );
-
-      if (!resultado) return;
-
+      if (!resultado) throw new Error("La sesión terminó. Volvé a iniciar sesión.");
       const { respuesta, data } = resultado;
-
-      if (!respuesta.ok) {
-        throw new Error(data.mensaje || data.msg || "Error al cancelar viaje");
-      }
-
+      if (!respuesta.ok) throw new Error(data.mensaje || data.msg || "Error al cancelar viaje");
       setMensaje(data.mensaje || "Viaje cancelado correctamente");
-
-      setViajes((prevViajes) =>
-        prevViajes.map((viaje) =>
-          viaje.id_viaje === viajeCancelar.id_viaje ? data.viaje : viaje
-        )
-      );
-
+      setViajes((prevViajes) => prevViajes.map((viaje) => viaje.id_viaje === confirmacion.viaje.id_viaje ? data.viaje : viaje));
       cerrarModales();
-    } catch (err) {
-      setError(err.message);
     } finally {
       setGuardando(false);
     }
@@ -404,12 +399,7 @@ function AdminViajesPage() {
               </div>
             </div>
 
-            <div className="admin-viajes-observaciones">
-              <span>Horas en viaje</span>
-              <strong>{viajeDetalle.tiempo_viaje?.duracion || (viajeDetalle.tiempo_viaje?.estado === "en_curso" ? `En curso: ${viajeDetalle.tiempo_viaje.transcurrido} al consultar` : "Sin duración confirmada")}</strong>
-              <p>Inicio: {viajeDetalle.tiempo_viaje?.inicio?.replace("T", " ") || "Sin registro"} · Regreso: {viajeDetalle.tiempo_viaje?.regreso?.replace("T", " ") || "Sin registro"}</p>
-              <p>Tiempo entre controles, incluidas paradas y descansos. Estado: {viajeDetalle.tiempo_viaje?.estado || "sin registro"}.</p>
-            </div>
+            <div className="admin-viajes-tiempo"><TiempoViajeDetalle tiempo={viajeDetalle.tiempo_viaje} /></div>
 
             <div className="admin-viajes-cargas"><CargasViajeDetalle idViaje={viajeDetalle.id_viaje} /></div>
 
@@ -436,7 +426,7 @@ function AdminViajesPage() {
           <div className="admin-viajes-modal">
             <div className="admin-viajes-modal__header">
               <h2>Cancelar viaje #{viajeCancelar.id_viaje}</h2>
-              <button type="button" onClick={cerrarModales}>
+              <button type="button" disabled={guardando} onClick={cerrarModales}>
                 x
               </button>
             </div>
@@ -446,9 +436,12 @@ function AdminViajesPage() {
               motivo para dejarlo registrado en observaciones.
             </p>
 
+            {errorCancelacion && <p role="alert" className="admin-message admin-message--error">{errorCancelacion}</p>}
+
             <label className="admin-viajes-field">
               <span>Motivo de cancelación</span>
               <textarea
+                disabled={guardando}
                 value={motivoCancelacion}
                 onChange={(e) => setMotivoCancelacion(e.target.value)}
                 placeholder="Ej: El camión tuvo una falla mecánica"
@@ -469,15 +462,25 @@ function AdminViajesPage() {
               <button
                 type="button"
                 className="admin-viajes-btn admin-viajes-btn--cancel"
-                onClick={cancelarViaje}
+                onClick={prepararCancelacion}
                 disabled={guardando}
               >
-                {guardando ? "Cancelando..." : "Confirmar cancelación"}
+                {guardando ? "Cancelando..." : "Continuar"}
               </button>
             </div>
           </div>
         </div>
       )}
+      {confirmacionCancelacion && <ConfirmarAccionModal
+        titulo={`Cancelar viaje #${confirmacionCancelacion.viaje.id_viaje}`}
+        textoConfirmar="Sí, cancelar viaje"
+        descripcion={<>¿Estás seguro de que querés cancelar el viaje <strong>#{confirmacionCancelacion.viaje.id_viaje}</strong>?</>}
+        identidad={<span>{confirmacionCancelacion.viaje.origen} → {confirmacionCancelacion.viaje.destino}</span>}
+        detalle={<>El viaje quedará cancelado y se notificará a los administradores. Motivo: <strong>{confirmacionCancelacion.motivo}</strong></>}
+        icono={<FaTimesCircle aria-hidden="true" />}
+        onClose={cerrarConfirmacionCancelacion}
+        onConfirm={cancelarViaje}
+      />}
     </section>
   );
 }

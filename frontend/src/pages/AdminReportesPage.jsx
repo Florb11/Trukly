@@ -1,5 +1,6 @@
+import ConfirmarAccionModal from "../components/ConfirmarAccionModal";
 import { useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FaClipboardList } from "react-icons/fa";
 import { fetchConToken } from "../utils/fetchConToken";
 import DetalleReporteModal from "../components/DetalleReporteModal";
@@ -21,6 +22,12 @@ function AdminReportesPage() {
     const [reporteCambiandoEstado, setReporteCambiandoEstado] = useState(null);
     const [nuevoEstado, setNuevoEstado] = useState("");
     const [errorEstado, setErrorEstado] = useState("");
+    const [idMecanico, setIdMecanico] = useState("");
+    const [motivoCancelacion, setMotivoCancelacion] = useState("");
+    const [confirmacionReporte, setConfirmacionReporte] = useState(null);
+    const [guardandoEstado, setGuardandoEstado] = useState(false);
+    const ocupadoEstado = useRef(false);
+    const cerrarConfirmacionReporte = useCallback(() => setConfirmacionReporte(null), []);
 
     const cargarReportes = async () => {
         try {
@@ -126,6 +133,8 @@ function AdminReportesPage() {
 
     const abrirCambiarEstadoReporte = (reporte) => {
         setReporteCambiandoEstado(reporte);
+        setIdMecanico(reporte.Mecanico_Usuario_idUsuario ? String(reporte.Mecanico_Usuario_idUsuario) : "");
+        setMotivoCancelacion(reporte.estado === "cancelado" ? reporte.motivo_cancelacion || "" : "");
         setNuevoEstado(
             reporte.Mecanico_Usuario_idUsuario && reporte.estado === "pendiente"
                 ? "en revision"
@@ -136,53 +145,43 @@ function AdminReportesPage() {
     };
 
     const cerrarCambiarEstadoReporte = () => {
+        if (ocupadoEstado.current) return;
+        setConfirmacionReporte(null);
         setReporteCambiandoEstado(null);
         setNuevoEstado("");
         setErrorEstado("");
     };
 
+    const enviarCambioEstado = async (reporte, cuerpo) => {
+        if (ocupadoEstado.current) return;
+        ocupadoEstado.current = true; setGuardandoEstado(true); setErrorEstado("");
+        try {
+            const resultado = await fetchConToken(
+                `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/reportes/${reporte.id_reporte}/estado`,
+                { method: "PUT", body: JSON.stringify(cuerpo), signal: AbortSignal.timeout(20000) }
+            );
+            if (!resultado) throw new Error("La sesión terminó. Volvé a iniciar sesión.");
+            if (!resultado.respuesta.ok) throw new Error(resultado.data.mensaje || "No se pudo cambiar el estado");
+            const actualizado = resultado.data.reporte;
+            setReportes((prev) => prev.map((r) => r.id_reporte === reporte.id_reporte ? { ...r, ...actualizado } : r));
+            setReporteDetalle((prev) => prev?.id_reporte === reporte.id_reporte ? { ...prev, ...actualizado } : prev);
+            setReporteCambiandoEstado(null); setConfirmacionReporte(null);
+        } finally { ocupadoEstado.current = false; setGuardandoEstado(false); }
+    };
+
     const guardarCambioEstadoReporte = async (e) => {
         e.preventDefault();
-
-        if (!reporteCambiandoEstado) return;
-
-        try {
-            setErrorEstado("");
-            setErrorReportes("");
-
-            const resultado = await fetchConToken(
-                `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/reportes/${reporteCambiandoEstado.id_reporte}/estado`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        estado: nuevoEstado,
-                    }),
-                }
-            );
-
-            if (!resultado) return;
-
-            const { respuesta, data } = resultado;
-
-            if (!respuesta.ok) {
-                throw new Error(data.mensaje || data.msg || "Error al cambiar estado");
-            }
-
-            setReportes((prev) =>
-                prev.map((reporte) =>
-                    reporte.id_reporte === reporteCambiandoEstado.id_reporte
-                        ? { ...reporte, ...data.reporte }
-                        : reporte
-                )
-            );
-
-            cerrarCambiarEstadoReporte();
-        } catch (error) {
-            setErrorEstado(error.message);
+        if (!reporteCambiandoEstado || ocupadoEstado.current) return;
+        setErrorEstado("");
+        if (nuevoEstado === "cancelado") {
+            if (!motivoCancelacion.trim()) { setErrorEstado("Ingresá un motivo de cancelación"); return; }
+            setConfirmacionReporte({ reporte: reporteCambiandoEstado, cuerpo: { estado: "cancelado", motivo_cancelacion: motivoCancelacion.trim() } });
+            return;
         }
+        if (nuevoEstado === "en revision" && !idMecanico) { setErrorEstado("Seleccioná un mecánico activo"); return; }
+        try { await enviarCambioEstado(reporteCambiandoEstado, { estado: nuevoEstado,
+            ...(nuevoEstado === "en revision" ? { Mecanico_Usuario_idUsuario: Number(idMecanico) } : {}) }); }
+        catch (error) { setErrorEstado(error.message); }
     };
 
     const reportesFiltrados = reportes.filter((reporte) => {
@@ -405,12 +404,27 @@ function AdminReportesPage() {
                 <CambiarEstadoReporteModal
                     reporte={reporteCambiandoEstado}
                     nuevoEstado={nuevoEstado}
+                    idMecanico={idMecanico}
+                    onMecanicoChange={setIdMecanico}
+                    motivo={motivoCancelacion}
+                    onMotivoChange={setMotivoCancelacion}
+                    guardando={guardandoEstado}
                     errorEstado={errorEstado}
                     onChange={(e) => setNuevoEstado(e.target.value)}
                     onSubmit={guardarCambioEstadoReporte}
                     onClose={cerrarCambiarEstadoReporte}
                 />
             )}
+            {confirmacionReporte && <ConfirmarAccionModal
+                titulo={`Cancelar reporte #${confirmacionReporte.reporte.id_reporte}`}
+                textoConfirmar="Sí, cancelar reporte"
+                descripcion={<>¿Estás seguro de que querés cancelar este reporte? <strong>{confirmacionReporte.reporte.descripcion}</strong></>}
+                identidad={<span>{confirmacionReporte.reporte.camion_nombre}</span>}
+                detalle={<>El reporte quedará cancelado. Motivo: <strong>{confirmacionReporte.cuerpo.motivo_cancelacion}</strong></>}
+                icono={<FaClipboardList aria-hidden="true" />}
+                onClose={cerrarConfirmacionReporte}
+                onConfirm={() => enviarCambioEstado(confirmacionReporte.reporte, confirmacionReporte.cuerpo)}
+            />}
         </section>
     );
 }

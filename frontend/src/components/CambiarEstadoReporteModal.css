@@ -159,3 +159,6 @@
         width: 100%;
     }
 }
+.cambiar-estado-reporte-field textarea { width: 100%; padding: 12px; border: 1px solid var(--ui-border, #e3e9f2); border-radius: 7px; background: var(--ui-soft, #f7f9fc); color: var(--ui-text, #192338); font: inherit; resize: vertical; }
+.cambiar-estado-reporte-ayuda { font-size: 12px; line-height: 1.7; color: var(--ui-muted, #657186); margin: 10px 0 0; }
+.cambiar-estado-reporte-btn:disabled { opacity: .5; cursor: not-allowed; }

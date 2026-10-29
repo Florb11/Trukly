@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import ConfirmarAccionModal from "../components/ConfirmarAccionModal";
+import { useCallback, useEffect, useState } from "react";
 import { FaTruck } from "react-icons/fa";
 import { fetchConToken } from "../utils/fetchConToken";
 import DetalleCamionModal from "../components/DetalleCamionModal";
@@ -7,6 +8,8 @@ import EditarCamionModal from "../components/EditarCamionModal";
 import "./AdminCamionesPage.css";
 
 function AdminCamionesPage() {
+    const [desactivacion, setDesactivacion] = useState(null);
+    const cerrarDesactivacion = useCallback(() => setDesactivacion(null), []);
     const [camiones, setCamiones] = useState([]);
     const [cargandoCamiones, setCargandoCamiones] = useState(true);
     const [errorCamiones, setErrorCamiones] = useState("");
@@ -68,7 +71,8 @@ function AdminCamionesPage() {
     };
 
     useEffect(() => {
-        cargarCamiones();
+        const tarea = window.setTimeout(cargarCamiones, 0);
+        return () => window.clearTimeout(tarea);
     }, []);
 
     const getEstadoClass = (estado) => {
@@ -197,55 +201,32 @@ function AdminCamionesPage() {
         });
     };
 
-    const guardarEdicionCamion = async (e) => {
-        e.preventDefault();
-
-        if (!camionEditando) return;
-
-        try {
-            setErrorEditar("");
-            setErrorCamiones("");
-
-            const datosCamion = {
-                ...formEditar,
-                capacidad_carga: Number(formEditar.capacidad_carga),
-                nroTanque: Number(formEditar.nroTanque),
-            };
-
-            const resultado = await fetchConToken(
-                `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/admin/camiones/${camionEditando.id_camion}`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(datosCamion),
-                }
-            );
-
-            if (!resultado) return;
-
-            const { respuesta, data } = resultado;
-
-            if (!respuesta.ok) {
-                throw new Error(data.mensaje || data.msg || "Error al modificar camión");
-            }
-
-            setCamiones((prev) =>
-                prev.map((camion) =>
-                    camion.id_camion === camionEditando.id_camion
-                        ? data.camion
-                        : camion
-                )
-            );
-
-            cerrarEditarCamion();
-        } catch (error) {
-            setErrorEditar(error.message);
-        }
+    const guardarCambiosCamion = async (camion, formulario) => {
+        setErrorEditar(""); setErrorCamiones("");
+        const datosCamion = { ...formulario, capacidad_carga: Number(formulario.capacidad_carga), nroTanque: Number(formulario.nroTanque) };
+        const resultado = await fetchConToken(
+            `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/admin/camiones/${camion.id_camion}`,
+            { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(datosCamion), signal: AbortSignal.timeout(20000) }
+        );
+        if (!resultado) throw new Error("La sesión terminó. Volvé a iniciar sesión.");
+        const { respuesta, data } = resultado;
+        if (!respuesta.ok) throw new Error(data.mensaje || data.msg || "Error al modificar camión");
+        setCamiones((prev) => prev.map((actual) => actual.id_camion === camion.id_camion ? data.camion : actual));
+        cerrarEditarCamion();
     };
 
-    const cambiarEstadoCamion = async (idCamion, nuevoEstado) => {
+    const guardarEdicionCamion = async (e) => {
+        e.preventDefault();
+        if (!camionEditando) return;
+        if (formEditar.estado === "inactivo" && camionEditando.estado !== "inactivo") {
+            setDesactivacion({ camion: camionEditando, formulario: { ...formEditar } });
+            return;
+        }
+        try { await guardarCambiosCamion(camionEditando, formEditar); }
+        catch (error) { setErrorEditar(error.message); }
+    };
+
+    const cambiarEstadoCamion = async (idCamion, nuevoEstado, confirmarEnModal = false) => {
         try {
             setErrorCamiones("");
 
@@ -257,10 +238,11 @@ function AdminCamionesPage() {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({ estado: nuevoEstado }),
+                    signal: AbortSignal.timeout(20000),
                 }
             );
 
-            if (!resultado) return;
+            if (!resultado) throw new Error("La sesión terminó. Volvé a iniciar sesión.");
 
             const { respuesta, data } = resultado;
 
@@ -276,6 +258,7 @@ function AdminCamionesPage() {
                 )
             );
         } catch (error) {
+            if (confirmarEnModal) throw error;
             setErrorCamiones(error.message);
         }
     };
@@ -292,7 +275,7 @@ function AdminCamionesPage() {
 
         const esNumero = !Number.isNaN(Number(textoBusqueda));
 
-        let coincideBusqueda = false;
+        let coincideBusqueda;
 
         if (esNumero) {
             coincideBusqueda =
@@ -348,7 +331,7 @@ function AdminCamionesPage() {
                     <button
                         type="button"
                         className="btn-camion btn-camion--desactivar"
-                        onClick={() => cambiarEstadoCamion(camion.id_camion, "inactivo")}
+                        onClick={() => setDesactivacion({ camion })}
                     >
                         Desactivar
                     </button>
@@ -534,6 +517,17 @@ function AdminCamionesPage() {
                     onClose={cerrarEditarCamion}
                 />
             )}
+            {desactivacion && <ConfirmarAccionModal
+                titulo="Desactivar camión" textoConfirmar="Desactivar camión"
+                descripcion={<>¿Estás seguro de que querés desactivar el camión <strong>{desactivacion.camion.matricula}</strong>?</>}
+                identidad={<span>{desactivacion.camion.marca} {desactivacion.camion.modelo}</span>}
+                detalle="El camión quedará inactivo y no estará disponible para asignarle nuevos viajes. Podrás volver a activarlo cuando corresponda."
+                icono={<FaTruck aria-hidden="true" />}
+                onClose={cerrarDesactivacion}
+                onConfirm={() => desactivacion.formulario
+                    ? guardarCambiosCamion(desactivacion.camion, desactivacion.formulario)
+                    : cambiarEstadoCamion(desactivacion.camion.id_camion, "inactivo", true)}
+            />}
         </section>
     );
 }

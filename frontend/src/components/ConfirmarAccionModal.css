@@ -1,0 +1,17 @@
+.confirmar-accion-backdrop { position: fixed; inset: 0; z-index: 160; display: grid; place-items: center; padding: 20px; background: #14213699; backdrop-filter: blur(3px); }
+.confirmar-accion { width: min(460px, 100%); max-height: 90vh; overflow-y: auto; padding: 28px; border-radius: 14px; border: 1px solid var(--ui-border, #e2e8f0); background: var(--ui-surface, #fff); color: var(--ui-text, #192338); box-shadow: 0 20px 60px #10203533; }
+.confirmar-accion__icono { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 12px; font-size: 22px; color: var(--ui-danger-text, #b91c1c); background: var(--ui-danger-soft, #fef2f2); }
+.confirmar-accion--activar .confirmar-accion__icono { color: var(--ui-success-text, #047857); background: var(--ui-success-soft, #ecfdf5); }
+.confirmar-accion h2 { font-size: 21px; margin: 20px 0 12px; }
+.confirmar-accion p { font-size: 14px; line-height: 1.7; margin: 12px 0; overflow-wrap: anywhere; }
+.confirmar-accion__identidad { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; color: var(--ui-muted, #69758a); }
+.confirmar-accion__identidad span:last-child { text-transform: capitalize; }
+.confirmar-accion__efecto { padding: 14px; border: 1px solid var(--ui-border, #e2e8f0); border-radius: 8px; color: var(--ui-muted, #69758a); background: var(--ui-soft, #f8f9fc); }
+.confirmar-accion__error { padding: 12px; border-radius: 7px; color: var(--ui-danger-text, #b91c1c); background: var(--ui-danger-soft, #fef2f2); }
+.confirmar-accion footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+.confirmar-accion button { padding: 10px 16px; border: 1px solid var(--ui-border, #e2e8f0); border-radius: 7px; font-size: 13px; font-weight: 600; background: var(--ui-surface, #fff); color: var(--ui-text, #192338); cursor: pointer; }
+.confirmar-accion button:focus-visible { outline: 2px solid #7063ef; outline-offset: 3px; }
+.confirmar-accion button:disabled { opacity: .55; cursor: not-allowed; }
+.confirmar-accion .confirmar-accion__confirmar { color: #fff; background: #b91c1c; border-color: #b91c1c; }
+.confirmar-accion--activar .confirmar-accion__confirmar { background: #2563eb; border-color: #2563eb; }
+@media (max-width: 480px) { .confirmar-accion { padding: 22px; } .confirmar-accion footer { flex-direction: column-reverse; } }

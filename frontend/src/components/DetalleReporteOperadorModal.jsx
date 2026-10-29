@@ -31,6 +31,8 @@ function DetalleReporteOperadorModal({ reporte, onClose }) {
             </div>
           </div>
 
+          {reporte.estado === "cancelado" && reporte.motivo_cancelacion && <div className="det-rep-section"><h3>Motivo de cancelación</h3><p>{reporte.motivo_cancelacion}</p></div>}
+
           <div className="det-rep-section">
             <h3>Descripción de la falla</h3>
             <div className="det-rep-description"><p>{reporte.descripcion}</p></div>

@@ -1,3 +1,4 @@
+import TiempoViajeDetalle from "./TiempoViajeDetalle";
 import CargasViajeDetalle from "./CargasViajeDetalle";
 import { useEffect, useState } from "react";
 import { fetchConToken } from "../utils/fetchConToken";
@@ -112,6 +113,8 @@ function DetalleViajeModal({ viaje: viajeInicial, onClose }) {
               </div>
             </div>
           </div>
+
+          {viaje.tiempo_viaje && <div className="detalle-section"><TiempoViajeDetalle tiempo={viaje.tiempo_viaje} /></div>}
 
           <div className="detalle-section"><CargasViajeDetalle idViaje={viaje.id_viaje} /></div>
 

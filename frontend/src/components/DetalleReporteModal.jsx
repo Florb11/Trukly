@@ -88,6 +88,8 @@ function DetalleReporteModal({ reporte: reporteInicial, onClose }) {
                         </div>
                     </div>
 
+          {reporte.estado === "cancelado" && reporte.motivo_cancelacion && <div className="detalle-reporte-section"><h3>Motivo de cancelación</h3><p>{reporte.motivo_cancelacion}</p></div>}
+
                     <div className="detalle-reporte-section">
                         <h3>Descripción de la falla</h3>
 

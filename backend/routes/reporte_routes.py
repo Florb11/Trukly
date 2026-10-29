@@ -27,3 +27,7 @@ def ruta_cambiar_estado_reporte(id_reporte):
 @reporte_routes.route("/api/reportes/<int:id_reporte>/asignar-mecanico", methods=["PUT"])
 def ruta_asignar_mecanico(id_reporte):
     return ReporteController.asignar_mecanico(id_reporte)
+
+@reporte_routes.route("/api/reportes/mecanicos-activos", methods=["GET"])
+def ruta_mecanicos_activos_reportes():
+    return ReporteController.listar_mecanicos_activos()

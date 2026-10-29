@@ -54,15 +54,15 @@ class NotificacionService:
 
     @staticmethod
     def enviar_push_pendientes():
-        from firebase_admin import messaging
-        from models.push_dispositivo_model import PushDispositivoModel
-        from services.firebase_service import FirebaseAuthService
         from utils.app_logger import get_app_logger
 
         pendientes = db.session.info.pop("push_pendientes", [])
         try:
             if not pendientes:
                 return
+            from firebase_admin import messaging
+            from models.push_dispositivo_model import PushDispositivoModel
+            from services.firebase_service import FirebaseAuthService
             FirebaseAuthService.inicializar()
             for aviso in pendientes:
                 dispositivos = PushDispositivoModel.query.filter_by(
