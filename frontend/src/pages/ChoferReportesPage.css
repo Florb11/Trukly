@@ -447,3 +447,9 @@
     justify-content: center;
   }
 }
+.reportes-page .estado-badge--cancelado { background: #fef2f2; color: #b91c1c; }
+.reportes-page .estado-badge--cancelado::before { background: #dc2626; }
+.reportes-page .estado-badge--en-reparacion { background: #eff6ff; color: #1d4ed8; }
+.reportes-page .estado-badge--en-reparacion::before { background: #2563eb; }
+.reportes-page .estado-badge--desconocido { background: #f1f5f9; color: #475569; }
+.reportes-page .estado-badge--desconocido::before { background: #64748b; }
