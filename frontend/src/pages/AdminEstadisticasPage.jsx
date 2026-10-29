@@ -1,6 +1,8 @@
+import HorasChoferesPanel from "../components/HorasChoferesPanel";
 import { useEffect, useState } from "react";
 import {
   FaChartBar,
+  FaClock,
   FaChevronLeft,
   FaChevronRight,
   FaClipboardCheck,
@@ -46,6 +48,7 @@ function Paginacion({ pagina, total, onChange, nombre }) {
 }
 
 function AdminEstadisticasPage() {
+  const [vista, setVista] = useState("resumen");
   const [mes, setMes] = useState(mesActual);
   const [estadisticas, setEstadisticas] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -207,6 +210,7 @@ function AdminEstadisticasPage() {
         </div>
       </div>
 
+      <div className="estadisticas-filtros">
       <div className="estadisticas-periodo">
         <div className="estadisticas-periodo__selector">
           <button type="button" onClick={() => seleccionarMes(cambiarMes(mes, -1))} aria-label="Mes anterior" title="Mes anterior">
@@ -224,7 +228,8 @@ function AdminEstadisticasPage() {
         </button>
       </div>
 
-      <p className="estadisticas-periodo__nota">Los estados muestran la situación actual de los registros de este mes; no son una foto del cierre mensual.</p>
+      <p className="estadisticas-periodo__nota">Los estados reflejan la situación actual de los registros del mes seleccionado.</p>
+      </div>
 
       {cargando && <p className="admin-message">Cargando estadísticas...</p>}
       {error && <p className="admin-message admin-message--error">{error}</p>}
@@ -248,26 +253,23 @@ function AdminEstadisticasPage() {
         ))}
       </div>
 
-      <article className="estadisticas-card">
-        <div className="estadisticas-card__header"><div><h2>Horas en viaje por chofer</h2><span>Solo controles válidos. Horas repartidas por mes; incluyen paradas y descansos.</span></div></div>
-        {!estadisticas?.horas_por_chofer ? <p className="estadisticas-feedback">Información pendiente de actualizar en el servidor.</p> : estadisticas.horas_por_chofer.length === 0 ? <p className="estadisticas-feedback">No hay choferes registrados.</p> :
-          <div className="estadisticas-ranking">{estadisticas.horas_por_chofer.map((chofer) => <div key={chofer.id_usuario} className="estadisticas-ranking__item">
-            <div className="estadisticas-ranking__user"><strong>{chofer.nombre} {chofer.apellido}</strong><span>{chofer.viajes_confirmados} viajes confirmados · {chofer.viajes_en_curso} en curso</span></div>
-            <div className="estadisticas-ranking__values"><strong>{chofer.duracion}</strong><span>Promedio: {chofer.promedio || "Sin datos"}</span></div>
-            <div className="estadisticas-ranking__details"><span>Sin registro: {chofer.viajes_sin_registro} · Incompletos: {chofer.viajes_incompletos} · A revisar: {chofer.viajes_inconsistentes}</span>{chofer.segundos_superpuestos > 0 && <span>Horarios superpuestos: tiempo contado una vez.</span>}</div>
-            <details className="estadisticas-horas-detalle">
-              <summary>Ver horarios y duración de cada viaje</summary>
-              <p>El total incluye todos los viajes confirmados del mes. El promedio se muestra sin segundos.</p>
-              {(chofer.historial || []).map((viaje) => <div key={viaje.id_viaje} className="estadisticas-horas-detalle__viaje">
-                <strong>Viaje #{viaje.id_viaje} · {viaje.origen} → {viaje.destino}</strong>
-                <p>Inicio: {viaje.inicio?.replace("T", " ") || "Sin registro"} · Regreso: {viaje.regreso?.replace("T", " ") || "Sin registro"}</p>
-                <p>{viaje.estado === "confirmado" ? `${viaje.duracion_mes} en este mes · ${viaje.duracion} en total` : viaje.estado === "en_curso" ? `En curso: ${viaje.transcurrido} al consultar · No suma al total` : `${viaje.estado.replaceAll("_", " ")} · No suma al total`}</p>
-              </div>)}
-              {!chofer.historial?.length && <p>No hay registros para mostrar en este período.</p>}
-            </details>
-          </div>)}</div>}
-      </article>
+      <nav className="estadisticas-vistas" aria-label="Secciones de estadísticas">
+        {[
+          { id: "resumen", titulo: "Resumen", descripcion: "Actividad del equipo", icono: <FaChartBar /> },
+          { id: "horas", titulo: "Horas por chofer", descripcion: "Tiempos y controles", icono: <FaClock /> },
+          { id: "historial", titulo: "Historiales", descripcion: "Viajes y reportes", icono: <FaRoute /> },
+        ].map((item) => <button key={item.id} type="button" aria-pressed={vista === item.id}
+          aria-controls={`estadisticas-vista-${item.id}`} onClick={() => setVista(item.id)}>
+          {item.icono}<span><strong>{item.titulo}</strong><small>{item.descripcion}</small></span>
+        </button>)}
+      </nav>
 
+      {vista === "horas" && <section id="estadisticas-vista-horas" aria-label="Horas por chofer">
+        <HorasChoferesPanel key={mes} choferes={estadisticas.horas_por_chofer} nombreMes={nombreMes} />
+      </section>}
+
+      {vista === "resumen" && <section id="estadisticas-vista-resumen" className="estadisticas-seccion" aria-label="Resumen del equipo">
+        <div className="estadisticas-seccion__heading"><div><h2>Actividad del equipo</h2><p>Viajes y reportes de {nombreMes}.</p></div></div>
       <div className="estadisticas-grid">
         <article className="estadisticas-card">
           <div className="estadisticas-card__header">
@@ -491,6 +493,10 @@ function AdminEstadisticasPage() {
         )}
       </article>
 
+      </section>}
+
+      {vista === "historial" && <section id="estadisticas-vista-historial" className="estadisticas-seccion" aria-label="Historiales del mes">
+        <div className="estadisticas-seccion__heading"><div><h2>Movimientos del mes</h2><p>Consultá los viajes y reportes registrados en {nombreMes}.</p></div></div>
       <div className="estadisticas-history-grid">
         <article className="estadisticas-card">
           <div className="estadisticas-card__header">
@@ -589,6 +595,7 @@ function AdminEstadisticasPage() {
           <Paginacion pagina={paginaReportes} total={ultimosReportes.length} onChange={setPaginaReportes} nombre="reportes" />
         </article>
       </div>
+      </section>}
       </>
       )}
     </section>
