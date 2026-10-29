@@ -58,8 +58,6 @@ function ChoferEstadisticasPage() {
     return "ch-badge ch-badge--cancelado";
   };
 
-  if (cargando) return <section className="ch-stats-page"><p className="admin-message">Cargando estadísticas...</p></section>;
-  if (error) return <section className="ch-stats-page"><p className="admin-message admin-message--error">{error}</p></section>;
 
   const resumen = estadisticas?.resumen || {};
   const ultimosViajes = estadisticas?.ultimos_viajes || [];
@@ -83,8 +81,11 @@ function ChoferEstadisticasPage() {
         <div className="ch-stats-heading__icon"><FaChartBar /></div>
       </div>
 
-      <label>Mes de horas en viaje <input type="month" value={mes} onChange={(event) => { if (event.target.value) { setCargando(true); setMes(event.target.value); } }} /></label>
-      <HorasViajeResumen horas={estadisticas?.horas_viaje} />
+      <div className="ch-stats-periodo"><label htmlFor="chofer-horas-mes">Mes de horas en viaje</label><input id="chofer-horas-mes" type="month" disabled={cargando} value={mes} onChange={(event) => { if (event.target.value && event.target.value !== mes) { setCargando(true); setMes(event.target.value); } }} /><span>El historial reciente muestra tu actividad general.</span></div>
+      {cargando && <p role="status" className="admin-message">Cargando estadísticas...</p>}
+      {error && <p role="alert" className="admin-message admin-message--error">{error}</p>}
+      {!cargando && !error && estadisticas && <>
+      <HorasViajeResumen horas={estadisticas.horas_viaje} />
       <div className="ch-stats-summary">
         {cards.map((card) => (
           <article key={card.label} className={`ch-stats-card ch-stats-card--${card.tone}`}>
@@ -113,7 +114,7 @@ function ChoferEstadisticasPage() {
                   <div className="ch-stats-history__icon"><FaTruckLoading /></div>
                   <div className="ch-stats-history__content">
                     <strong>{viaje.origen} → {viaje.destino}</strong>
-                    <span>Viaje #{viaje.id_viaje} · Camión #{viaje.Camion_id_camion}</span>
+                    <span>Viaje #{viaje.id_viaje} · {viaje.camion_nombre || "Camión sin datos"}</span>
                     <small>Salida: {formatearFecha(viaje.fecha_salida)}</small>
                   </div>
                   <span className={getBadgeViaje(viaje.estado)}>{viaje.estado}</span>
@@ -147,6 +148,7 @@ function ChoferEstadisticasPage() {
           )}
         </article>
       </div>
+      </>}
     </section>
   );
 }

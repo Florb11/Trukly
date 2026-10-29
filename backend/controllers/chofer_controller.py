@@ -1,3 +1,4 @@
+from services.viaje_asignaciones_service import obtener_asignaciones
 from services.admin_notificacion_service import AdminNotificacionService
 from services.notificacion_service import NotificacionService
 from services.horas_viaje_service import horas_chofer, limites_mes
@@ -95,10 +96,14 @@ class ChoferController:
     @staticmethod
     @chofer_required
     def listar_reportes_propios():
+        from controllers.reporte_controller import ReporteController
         chofer = g.chofer_actual
         try:
             reportes = chofer.obtener_mis_reportes(ReporteModel.query)
-            return jsonify([r.to_dict() for r in reportes]), 200
+            return jsonify([
+                ReporteController.preparar_respuesta_reporte(reporte)
+                for reporte in reportes
+            ]), 200
         except Exception:
             logger.exception(f"Error al listar reportes del chofer {chofer.id_usuario}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
@@ -122,6 +127,7 @@ class ChoferController:
             respuesta = []
             for viaje in viajes:
                 datos_viaje = viaje.to_dict()
+                datos_viaje.update(obtener_asignaciones(viaje))
                 datos_viaje["camion"] = camiones.get(
                     viaje.Camion_id_camion
                 )

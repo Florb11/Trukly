@@ -18,7 +18,7 @@ function DetalleViajeModal({ viaje: viajeInicial, onClose }) {
       const datos = resultado.data;
       setDetalle(datos);
       if (!datos.chofer_nombre || !datos.camion_nombre || !datos.operador_nombre) {
-        setErrorAsignaciones("El servidor no devolvió los nombres de las asignaciones. Verificá que Railway tenga desplegado el cambio «modal detalle chofer» o una versión posterior.");
+        setErrorAsignaciones("No se pudieron obtener todas las asignaciones de este viaje. Volvé a abrir el detalle para reintentar.");
       } else setErrorAsignaciones("");
     }).catch((error) => {
       if (!controlador.signal.aborted) setErrorAsignaciones(error.message);

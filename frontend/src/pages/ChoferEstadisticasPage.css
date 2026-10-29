@@ -170,3 +170,9 @@
   .ch-stats-history__item { grid-template-columns: auto minmax(0, 1fr); }
   .ch-stats-history__item > .ch-badge { grid-column: 2; text-align: left; }
 }
+.ch-stats-page > *, .ch-stats-grid > *, .ch-stats-history__content { min-width: 0; }
+.ch-stats-history__content strong { overflow-wrap: anywhere; }
+.ch-stats-periodo { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; padding: 18px 22px; border: 1px solid var(--ui-border, #dceaf3); border-radius: 10px; background: var(--ui-surface, #fff); }
+.ch-stats-periodo label { font-weight: 600; font-size: 14px; }
+.ch-stats-periodo input { max-width: 100%; padding: 9px 12px; border: 1px solid var(--ui-border, #dceaf3); border-radius: 6px; background: var(--ui-surface, #fff); color: var(--ui-text, #0b2d4d); }
+.ch-stats-periodo > span { color: var(--ui-muted, #527086); font-size: 12px; }

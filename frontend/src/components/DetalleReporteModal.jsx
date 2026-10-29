@@ -1,7 +1,31 @@
+import { useEffect, useState } from "react";
+import { fetchConToken } from "../utils/fetchConToken";
 import "./DetalleReporteModal.css";
 
-function DetalleReporteModal({ reporte, onClose }) {
-    if (!reporte) return null;
+function DetalleReporteModal({ reporte: reporteInicial, onClose }) {
+    const [detalle, setDetalle] = useState(null);
+    const [error, setError] = useState("");
+    const idReporte = reporteInicial?.id_reporte;
+    const faltanNombres = Boolean(reporteInicial && (!reporteInicial.camion_nombre || !reporteInicial.chofer_nombre || (reporteInicial.Mecanico_Usuario_idUsuario && !reporteInicial.mecanico_nombre)));
+    useEffect(() => {
+        if (!idReporte || !faltanNombres) return;
+        const controlador = new AbortController();
+        fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/reportes/${idReporte}`, {
+            method: "GET", signal: controlador.signal,
+        }).then((resultado) => {
+            if (!resultado || controlador.signal.aborted) return;
+            if (!resultado.respuesta.ok) throw new Error(resultado.data.mensaje || "No se pudo obtener el detalle del reporte.");
+            if (!resultado.data.reporte) throw new Error("No se recibió el detalle del reporte.");
+            setDetalle(resultado.data.reporte);
+            setError("");
+        }).catch((errorCarga) => {
+            if (!controlador.signal.aborted) setError(errorCarga.message);
+        });
+        return () => controlador.abort();
+    }, [idReporte, faltanNombres]);
+    if (!reporteInicial) return null;
+    const reporte = detalle?.id_reporte === idReporte ? { ...reporteInicial, ...detalle } : reporteInicial;
+    const cargando = faltanNombres && detalle?.id_reporte !== idReporte && !error;
 
     return (
         <div className="detalle-reporte-backdrop">
@@ -25,6 +49,7 @@ function DetalleReporteModal({ reporte, onClose }) {
                 <div className="detalle-reporte-body">
                     <div className="detalle-reporte-section">
                         <h3>Datos del reporte</h3>
+                        {error && <p role="alert">{error}</p>}
 
                         <div className="detalle-reporte-grid">
                             <div className="detalle-reporte-item">
@@ -44,19 +69,19 @@ function DetalleReporteModal({ reporte, onClose }) {
 
                             <div className="detalle-reporte-item">
                                 <span>Camión</span>
-                                <p>{reporte.camion_nombre || "No disponible"}</p>
+                                <p>{reporte.camion_nombre || (cargando ? "Cargando camión..." : "Camión sin datos")}</p>
                             </div>
 
                             <div className="detalle-reporte-item">
                                 <span>Chofer</span>
-                                <p>{reporte.chofer_nombre || "No disponible"}</p>
+                                <p>{reporte.chofer_nombre || (cargando ? "Cargando nombre..." : "Chofer sin datos")}</p>
                             </div>
 
                             <div className="detalle-reporte-item">
                                 <span>Mecánico</span>
                                 <p>
                                     {reporte.Mecanico_Usuario_idUsuario
-                                        ? reporte.mecanico_nombre || "No disponible"
+                                        ? reporte.mecanico_nombre || (cargando ? "Cargando nombre..." : "Mecánico sin datos")
                                         : "Sin asignar"}
                                 </p>
                             </div>
