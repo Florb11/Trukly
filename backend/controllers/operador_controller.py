@@ -140,6 +140,10 @@ class OperadorController:
         if not valido:
             return jsonify({"mensaje": error}), 400
 
+        valido, error = Viaje.validar_fechas_creacion(datos)
+        if not valido:
+            return jsonify({"mensaje": error}), 400
+
         chofer_model = ChoferModel.query.get(id_chofer)
         if not chofer_model:
             return jsonify({"mensaje": "El chofer no existe"}), 400

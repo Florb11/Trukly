@@ -1,3 +1,4 @@
+import { hoyOperativo } from "../utils/fechaOperativa";
 import { lazy, Suspense } from "react";
 import "./CrearViajeModal.css";
 import GeoapifyPlaceField from "./GeoapifyPlaceField";
@@ -88,6 +89,7 @@ function CrearViajeModal({
                 type="date"
                 id="fecha_salida"
                 name="fecha_salida"
+                min={hoyOperativo()}
                 value={form.fecha_salida}
                 onChange={onChange}
               />
@@ -99,6 +101,7 @@ function CrearViajeModal({
                 type="date"
                 id="fecha_llegada"
                 name="fecha_llegada"
+                min={form.fecha_salida && form.fecha_salida > hoyOperativo() ? form.fecha_salida : hoyOperativo()}
                 value={form.fecha_llegada}
                 onChange={onChange}
               />
