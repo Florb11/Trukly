@@ -36,6 +36,7 @@ def ruta_estadisticas():
 @chofer_required
 def ruta_listar_camiones_chofer():
     return ChoferController.listar_camiones()
+@chofer_routes.route("/api/choferes/viajes/<int:id_viaje>/aceptar", methods=["PUT"])
 @chofer_routes.route("/api/choferes/viajes/<int:id_viaje>/iniciar", methods=["PUT"])
 def ruta_iniciar_viaje(id_viaje):
     return ChoferController.iniciar_viaje(id_viaje)

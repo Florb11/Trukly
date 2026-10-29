@@ -130,7 +130,6 @@ class RegistroIngresoSalidaController:
     @roles_required(
         Usuario.ROL_ADMIN,
         Usuario.ROL_OPERADOR,
-        Usuario.ROL_CHOFER,
     )
     def crear_registro():
         datos = RegistroIngresoSalidaController._sanitizar_datos_registro(

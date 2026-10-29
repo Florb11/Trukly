@@ -136,6 +136,7 @@ class OperadorController:
         if not OperadorController._ubicaciones_validas(datos):
             return jsonify({"mensaje": "Coordenadas de origen o destino inválidas"}), 400
 
+        datos["estado"] = Viaje.ESTADO_PENDIENTE
         valido, error = Viaje.validar_datos_viaje(datos)
         if not valido:
             return jsonify({"mensaje": error}), 400
@@ -313,6 +314,7 @@ class OperadorController:
                 setattr(viaje_model, f"{prefijo}_lat", datos.get(f"{prefijo}_lat"))
                 setattr(viaje_model, f"{prefijo}_lon", datos.get(f"{prefijo}_lon"))
 
+        viaje_model.estado = viaje.estado
         viaje_model.origen = viaje.origen
         viaje_model.destino = viaje.destino
         viaje_model.fecha_salida = viaje.fecha_salida

@@ -428,5 +428,5 @@ class Viaje:
     def aceptar(self):
         if not self.puede_aceptarse():
             return False
-        self.estado = self.ESTADO_EN_CURSO
+        self.estado = self.ESTADO_ACEPTADO
         return True

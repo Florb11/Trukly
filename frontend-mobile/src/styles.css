@@ -165,3 +165,6 @@ input:focus, textarea:focus { border-color: #087f8c; box-shadow: 0 0 0 3px rgba(
   .mobile-bottom-nav { left: 50%; width: 720px; transform: translateX(-50%); border-left: 1px solid #d8e3e8; border-right: 1px solid #d8e3e8; }
   .modal-backdrop { align-items: center; }
 }
+
+.status.aceptado { color: #1d4ed8; background: #eff6ff; }
+.trip-list .button { margin-top: 16px; }

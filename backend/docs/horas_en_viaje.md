@@ -39,3 +39,19 @@ Las fechas programadas del viaje no se usan para inventar duración.
 Desde backend: `python -m unittest discover -s tests -p test_horas_viaje.py`.
 Cubre intervalos, cruces de mes/año, incompletos, duplicados, futuros, cancelados,
 superposiciones, persistencia, aislamiento por chofer y el ciclo de doble escaneo.
+
+## Aceptación y controles
+
+Flujo: pendiente → aceptado → en curso → finalizado.
+`PUT /api/choferes/viajes/:id/aceptar` solo acepta la asignación; el antiguo
+`/iniciar` se conserva como alias de aceptación y no crea un registro horario.
+El QR (`POST .../:id/registro`, tipo ingreso) solo inicia viajes aceptados.
+El segundo control (tipo salida) solo finaliza viajes en curso con inicio válido.
+El antiguo `PUT .../:id/finalizar` responde 409 para requerir el QR de regreso.
+Los choferes no pueden insertar controles con fecha libre por el endpoint genérico;
+ese endpoint se reserva a administración y operación.
+La aceptación no suma horas ni se cuenta como control faltante.
+Si se reasigna un viaje aceptado, vuelve a pendiente para el nuevo chofer.
+No se reasignan choferes mientras el viaje esté en curso.
+No se modifican automáticamente los estados o controles históricos.
+Desplegar backend, frontend web y frontend móvil juntos; no requiere migración SQL.

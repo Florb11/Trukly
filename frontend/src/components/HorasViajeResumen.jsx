@@ -26,7 +26,7 @@ export default function HorasViajeResumen({ horas, compacto = false }) {
         <section key={viaje.id_viaje} className="horas-resumen__viaje">
           <h3>Viaje #{viaje.id_viaje}</h3><p className="horas-resumen__ruta">{viaje.origen} → {viaje.destino}</p>
           <dl className="horas-resumen__controles"><div><dt>Inicio</dt><dd>{fecha(viaje.inicio)}</dd></div><div><dt>Regreso</dt><dd>{fecha(viaje.regreso)}</dd></div></dl>
-          <p className="horas-resumen__duracion">{viaje.estado === "confirmado" ? `${viaje.duracion_mes} en este mes · ${viaje.duracion} en total` : viaje.estado === "en_curso" ? `En curso: ${viaje.transcurrido} al consultar` : viaje.estado === "sin_registro" ? "Sin registro horario" : "Registro incompleto o inconsistente: revisar controles"}</p>
+          <p className="horas-resumen__duracion">{viaje.estado === "confirmado" ? `${viaje.duracion_mes} en este mes · ${viaje.duracion} en total` : viaje.estado === "en_curso" ? `En curso: ${viaje.transcurrido} al consultar` : viaje.estado === "aceptado" ? "Aceptado · Pendiente de QR de salida; todavía no suma horas" : viaje.estado === "sin_registro" ? "Sin registro horario" : "Registro incompleto o inconsistente: revisar controles"}</p>
         </section>)}{!horas.historial?.length && <p>No hay viajes para este período.</p>}</div>
     </details>}
   </article>;

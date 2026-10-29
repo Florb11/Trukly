@@ -66,7 +66,7 @@ function ChoferEstadisticasPage() {
   const cards = [
     { label: "Viajes totales", value: resumen.total_viajes ?? 0, detail: `${resumen.viajes_en_curso ?? 0} en curso`, icon: <FaRoute />, tone: "blue" },
     { label: "Finalizados", value: resumen.viajes_finalizados ?? 0, detail: `${resumen.viajes_cancelados ?? 0} cancelados`, icon: <FaTruckLoading />, tone: "green" },
-    { label: "Pendientes", value: resumen.viajes_pendientes ?? 0, detail: "Sin iniciar", icon: <FaClipboardCheck />, tone: "violet" },
+    { label: "Pendientes", value: resumen.viajes_pendientes ?? 0, detail: `${resumen.viajes_aceptados ?? 0} aceptados, sin iniciar`, icon: <FaClipboardCheck />, tone: "violet" },
     { label: "Reportes activos", value: (resumen.reportes_pendientes ?? 0) + (resumen.reportes_en_revision ?? 0), detail: `${resumen.reportes_resueltos ?? 0} resueltos`, icon: <FaExclamationTriangle />, tone: "orange" },
   ];
 

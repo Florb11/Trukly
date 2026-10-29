@@ -1,6 +1,4 @@
 from services.viaje_asignaciones_service import obtener_asignaciones
-from services.admin_notificacion_service import AdminNotificacionService
-from services.notificacion_service import NotificacionService
 from services.horas_viaje_service import horas_chofer, limites_mes
 import datetime
 
@@ -200,6 +198,7 @@ class ChoferController:
         if tipo_registro not in {"ingreso", "salida"}:
             return jsonify({"mensaje": "El tipo debe ser ingreso o salida"}), 400
 
+        ChoferModel.query.filter_by(Usuario_idUsuario=chofer.id_usuario).with_for_update().first()
         viaje_model = ViajeModel.query.filter_by(
             id_viaje=id_viaje,
             Chofer_Usuario_idUsuario=chofer.id_usuario,
@@ -209,13 +208,25 @@ class ChoferController:
             return jsonify({"mensaje": "Viaje no encontrado o no asignado al chofer"}), 404
 
         estado_actual = (viaje_model.estado or "").strip().lower()
-        estado_esperado = "pendiente" if tipo_registro == "ingreso" else "en curso"
+        estado_esperado = "aceptado" if tipo_registro == "ingreso" else "en curso"
+
+        if tipo_registro == "ingreso" and estado_actual == "pendiente":
+            return jsonify({"mensaje": "Primero aceptá el viaje en Mis viajes antes de escanear la salida."}), 400
 
         if estado_actual != estado_esperado:
             accion = "iniciar" if tipo_registro == "ingreso" else "finalizar"
             return jsonify({
                 "mensaje": f"El viaje no se puede {accion} desde el estado {viaje_model.estado}"
             }), 400
+
+        if tipo_registro == "ingreso":
+            otro_en_curso = ViajeModel.query.filter(
+                ViajeModel.Chofer_Usuario_idUsuario == chofer.id_usuario,
+                ViajeModel.id_viaje != id_viaje,
+                ViajeModel.estado == "en curso",
+            ).with_for_update().first()
+            if otro_en_curso:
+                return jsonify({"mensaje": "Registrá el regreso del viaje en curso antes de iniciar otro."}), 409
 
         ahora = datetime.datetime.now()
         registros = viaje_model.registros_horarios
@@ -289,6 +300,7 @@ class ChoferController:
             total_viajes = len(viajes)
             viajes_pendientes = sum(1 for v in viajes if v.estado.lower() == "pendiente")
             viajes_en_curso = sum(1 for v in viajes if v.estado.lower() == "en curso")
+            viajes_aceptados = sum(1 for v in viajes if v.estado.lower() == "aceptado")
             viajes_finalizados = sum(1 for v in viajes if v.estado.lower() == "finalizado")
             viajes_cancelados = sum(1 for v in viajes if v.estado.lower() == "cancelado")
 
@@ -313,6 +325,7 @@ class ChoferController:
                     "total_viajes": total_viajes,
                     "viajes_pendientes": viajes_pendientes,
                     "viajes_en_curso": viajes_en_curso,
+                    "viajes_aceptados": viajes_aceptados,
                     "viajes_finalizados": viajes_finalizados,
                     "viajes_cancelados": viajes_cancelados,
                     "reportes_pendientes": reportes_pendientes,
@@ -341,7 +354,7 @@ class ChoferController:
     def iniciar_viaje(id_viaje):
         chofer = g.chofer_actual
 
-        viaje_model = ViajeModel.query.get(id_viaje)
+        viaje_model = ViajeModel.query.filter_by(id_viaje=id_viaje, Chofer_Usuario_idUsuario=chofer.id_usuario).with_for_update().first()
         if viaje_model is None:
             return jsonify({"mensaje": "Viaje no encontrado"}), 404
 
@@ -369,49 +382,10 @@ class ChoferController:
     @staticmethod
     @chofer_required
     def finalizar_viaje(id_viaje):
-        chofer = g.chofer_actual
-
-        viaje_model = ViajeModel.query.get(id_viaje)
-        if viaje_model is None:
-            return jsonify({"mensaje": "Viaje no encontrado"}), 404
-
-        viaje_dict = viaje_model.to_dict()
-        viaje_dict["id_chofer"] = viaje_dict.get("Chofer_Usuario_idUsuario")
-        viaje_dict["id_camion"] = viaje_dict.get("Camion_id_camion")
-        viaje_dict["id_operador"] = viaje_dict.get("OperadorLogistico_Usuario_idUsuario")
-
-        viaje = Viaje.crear_desde_datos(viaje_dict)
-        finalizado, mensaje_error = chofer.finalizar_viaje(viaje)
-
-        if not finalizado:
-            return jsonify({"mensaje": mensaje_error}), 400
-
-        viaje_model.estado = viaje.estado
-        if not viaje_model.fecha_llegada:
-            viaje_model.fecha_llegada = datetime.datetime.now().date()
-
-        try:
-            camion_model = CamionModel.query.get(viaje_model.Camion_id_camion)
-            if camion_model is None:
-                db.session.rollback()
-                return jsonify({"mensaje": "Camión del viaje no encontrado"}), 404
-
-            if camion_model.estado == Camion.ESTADO_EN_VIAJE:
-                tiene_reportes_activos = ReporteModel.query.filter(
-                    ReporteModel.Camion_id_camion == camion_model.id_camion,
-                    ReporteModel.estado.in_(ReporteFalla.ESTADOS_ACTIVOS),
-                ).first() is not None
-                camion_model.estado = (
-                    Camion.ESTADO_EN_MANTENIMIENTO
-                    if tiene_reportes_activos
-                    else Camion.ESTADO_DISPONIBLE
-                )
-
-            AdminNotificacionService.revisar_controles(viaje_model)
-            db.session.commit()
-            NotificacionService.enviar_push_pendientes()
-            return jsonify({"mensaje": "Viaje finalizado correctamente", "viaje": viaje_model.to_dict()}), 200
-        except Exception:
-            db.session.rollback()
-            logger.exception(f"Error al finalizar viaje {id_viaje}")
-            return jsonify({"mensaje": "Error interno del servidor"}), 500
+        # Compatibilidad con clientes antiguos: el cierre se registra por QR.
+        viaje = ViajeModel.query.filter_by(
+            id_viaje=id_viaje, Chofer_Usuario_idUsuario=g.chofer_actual.id_usuario
+        ).first()
+        if viaje is None:
+            return jsonify({"mensaje": "Viaje no encontrado o no asignado al chofer"}), 404
+        return jsonify({"mensaje": "Para finalizar el viaje, escaneá el QR de regreso en la app móvil."}), 409

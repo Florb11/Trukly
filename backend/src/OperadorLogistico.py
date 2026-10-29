@@ -1,3 +1,4 @@
+from src.Viaje import Viaje
 from src.Usuario import Usuario
 
 
@@ -134,6 +135,12 @@ class OperadorLogistico(Usuario):
 
         if not viaje.puede_editarse():
             return False, "No se puede editar un viaje cancelado o finalizado"
+
+        nuevo_chofer = datos.get("Chofer_Usuario_idUsuario")
+        if nuevo_chofer and nuevo_chofer != viaje.id_chofer:
+            if viaje.estado == Viaje.ESTADO_EN_CURSO:
+                return False, "No se puede reasignar el chofer de un viaje en curso"
+            viaje.estado = Viaje.ESTADO_PENDIENTE
 
         if datos.get("origen"):
             viaje.origen = datos["origen"]
