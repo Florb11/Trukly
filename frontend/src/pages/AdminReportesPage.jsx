@@ -1,3 +1,4 @@
+import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { FaClipboardList } from "react-icons/fa";
 import { fetchConToken } from "../utils/fetchConToken";
@@ -6,6 +7,8 @@ import CambiarEstadoReporteModal from "../components/CambiarEstadoReporteModal";
 import "./AdminReportesPage.css";
 
 function AdminReportesPage() {
+    const [parametros, setParametros] = useSearchParams();
+    const idReporteEnlace = parametros.get("reporte");
     const [reportes, setReportes] = useState([]);
     const [cargandoReportes, setCargandoReportes] = useState(true);
     const [errorReportes, setErrorReportes] = useState("");
@@ -87,8 +90,19 @@ function AdminReportesPage() {
     };
 
     useEffect(() => {
-        cargarReportes();
+        const tarea = window.setTimeout(cargarReportes, 0);
+        return () => window.clearTimeout(tarea);
     }, []);
+
+    useEffect(() => {
+        if (!idReporteEnlace || cargandoReportes) return;
+        const encontrado = reportes.find((reporte) => String(reporte.id_reporte) === idReporteEnlace);
+        const tarea = window.setTimeout(() => {
+            if (encontrado) setReporteDetalle(encontrado);
+            else if (!errorReportes) setErrorReportes("El reporte de la notificación ya no está disponible.");
+        }, 0);
+        return () => window.clearTimeout(tarea);
+    }, [idReporteEnlace, reportes, cargandoReportes, errorReportes]);
 
     const getEstadoClass = (estado) => {
         if (estado === "pendiente") return "reporte-estado reporte-estado--pendiente";
@@ -102,6 +116,11 @@ function AdminReportesPage() {
     };
 
     const cerrarDetalleReporte = () => {
+        if (idReporteEnlace) {
+            const nuevos = new URLSearchParams(parametros);
+            nuevos.delete("reporte");
+            setParametros(nuevos, { replace: true });
+        }
         setReporteDetalle(null);
     };
 

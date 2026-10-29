@@ -1,3 +1,4 @@
+from services.admin_notificacion_service import AdminNotificacionService
 from flask import jsonify, request
 
 from db_instance import db
@@ -493,7 +494,9 @@ class ViajeController:
 
         try:
             actualizar_camion_tras_cancelacion(viaje_model)
+            AdminNotificacionService.viaje_cancelado(viaje_model, motivo)
             db.session.commit()
+            NotificacionService.enviar_push_pendientes()
         except Exception:
             db.session.rollback()
             logger.exception("No se pudo cancelar el viaje")

@@ -1,3 +1,4 @@
+from services.admin_notificacion_service import AdminNotificacionService
 from datetime import datetime
 
 from flask import jsonify, request
@@ -475,6 +476,7 @@ class ReporteController:
             db.session.flush()
             reporte_clase.id_reporte = nuevo_reporte.id_reporte
             ReporteController.notificar_reporte_creado(reporte_clase)
+            AdminNotificacionService.nueva_falla(nuevo_reporte)
             db.session.commit()
             NotificacionService.enviar_push_pendientes()
         except Exception:

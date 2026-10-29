@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { FaBell, FaCheckCircle } from "react-icons/fa";
 import { fetchConToken } from "../utils/fetchConToken";
@@ -170,6 +171,8 @@ function NotificacionesPage() {
                   <span className="notificacion-fecha">
                     {notificacion.fecha_hora}
                   </span>
+
+                  {notificacion.accion_url && <Link className="notificacion-action" to={notificacion.accion_url}>Ver detalle</Link>}
 
                   {!notificacion.leida && (
                     <button

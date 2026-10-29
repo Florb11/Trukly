@@ -1,3 +1,4 @@
+from services.admin_notificacion_service import AdminNotificacionService
 from flask import g, jsonify
 
 from db_instance import db
@@ -70,6 +71,7 @@ class NotificacionController:
         datos = notificacion.to_dict()
         datos["Usuario_idUsuario"] = datos.pop("id_usuario")
         datos["usuario_destino"] = None
+        datos["accion_url"] = AdminNotificacionService.enlace(notificacion_model.tipo) if usuario_model and usuario_model.rol == "admin" else None
 
         if usuario_model is not None:
             datos["usuario_destino"] = {
