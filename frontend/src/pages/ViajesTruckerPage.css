@@ -288,3 +288,5 @@
     padding: 10px 12px;
   }
 }
+
+.chofer-qr-indicacion { display: block; max-width: 240px; color: var(--ui-muted, #527086); font-size: 12px; line-height: 1.6; margin-top: 8px; white-space: normal; }

@@ -42,6 +42,15 @@ class HorasViajeTest(unittest.TestCase):
         self.assertEqual(r["promedio"], "7 h 13 min")
         self.assertEqual(len(r["historial"]), 3)
 
+    def test_aceptar_no_inicia_horas_ni_marca_control_faltante(self):
+        v = viaje([], "aceptado")
+        r = resumen_horas([v], "2026-09", AHORA)
+        self.assertEqual(r["segundos_confirmados"], 0)
+        self.assertEqual(r["viajes_en_curso"], 0)
+        self.assertEqual(r["viajes_sin_registro"], 0)
+        self.assertEqual(r["viajes_aceptados"], 1)
+        self.assertEqual(r["historial"][0]["estado"], "aceptado")
+
     def test_en_curso_separado_del_total(self):
         v = viaje([("ingreso", "2026-09-30T08:00")], "en curso")
         r = resumen_horas([v], "2026-09", datetime(2026, 9, 30, 10))
@@ -126,19 +135,40 @@ class HorasIntegracionTest(unittest.TestCase):
             origen="A", destino="B", estado="pendiente", recorrido=10)
         db.session.add(v)
         db.session.commit()
+        otro_activo = db.session.get(ViajeModel, 2)
+        estado_previo = otro_activo.estado
         def escanear(tipo, chofer=1):
             with self.fixture.app.test_request_context("/", method="POST", json={"tipo_registro": tipo}):
                 g.chofer_actual = SimpleNamespace(id_usuario=chofer)
                 return ChoferController.registrar_ingreso_salida.__wrapped__(99)
         try:
             self.assertEqual(escanear("ingreso", 999)[1], 404)
+            self.assertEqual(escanear("ingreso")[1], 400)
+            self.assertEqual(escanear("salida")[1], 400)
+            self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=99).count(), 0)
+            with self.fixture.app.test_request_context("/", method="PUT"):
+                g.chofer_actual = SimpleNamespace(id_usuario=1, iniciar_viaje=lambda viaje: (viaje.aceptar(), None))
+                respuesta, codigo = ChoferController.iniciar_viaje.__wrapped__(99)
+                self.assertEqual(codigo, 200)
+                self.assertEqual(respuesta.get_json()["viaje"]["estado"], "aceptado")
+                self.assertIsNone(respuesta.get_json()["viaje"]["tiempo_viaje"]["segundos_confirmados"])
+                self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=99).count(), 0)
+                self.assertEqual(ChoferController.iniciar_viaje.__wrapped__(99)[1], 400)
+            self.assertEqual(escanear("salida")[1], 400)
+            self.assertEqual(escanear("ingreso")[1], 409)
+            otro_activo.estado = "finalizado"
+            db.session.commit()
             self.assertEqual(escanear("ingreso")[1], 201)
+            with self.fixture.app.test_request_context("/", method="PUT"):
+                g.chofer_actual = SimpleNamespace(id_usuario=1)
+                self.assertEqual(ChoferController.finalizar_viaje.__wrapped__(99)[1], 409)
             self.assertEqual(escanear("ingreso")[1], 400)
             self.assertEqual(escanear("salida")[1], 201)
             self.assertEqual(escanear("salida")[1], 400)
             self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=99).count(), 2)
             self.assertEqual(db.session.get(ViajeModel, 99).to_dict()["tiempo_viaje"]["estado"], "confirmado")
         finally:
+            otro_activo.estado = estado_previo
             RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=99).delete()
             db.session.delete(v)
             db.session.commit()

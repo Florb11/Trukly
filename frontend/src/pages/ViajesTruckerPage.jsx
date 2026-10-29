@@ -40,37 +40,20 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
   };
 
   useEffect(() => {
-    cargarViajes();
+    const tarea = window.setTimeout(cargarViajes, 0);
+    return () => window.clearTimeout(tarea);
   }, []);
 
   const aceptarViaje = async (idViaje) => {
     setAccionando(idViaje);
     try {
       const resultado = await fetchConToken(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/choferes/viajes/${idViaje}/iniciar`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/choferes/viajes/${idViaje}/aceptar`,
         { method: "PUT" }
       );
       if (!resultado) return;
       const { respuesta, data } = resultado;
       if (!respuesta.ok) throw new Error(data.mensaje || "Error al aceptar el viaje");
-      cargarViajes();
-    } catch (error) {
-      setErrorViajes(error.message);
-    } finally {
-      setAccionando(null);
-    }
-  };
-
-  const finalizarViaje = async (idViaje) => {
-    setAccionando(idViaje);
-    try {
-      const resultado = await fetchConToken(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/choferes/viajes/${idViaje}/finalizar`,
-        { method: "PUT" }
-      );
-      if (!resultado) return;
-      const { respuesta, data } = resultado;
-      if (!respuesta.ok) throw new Error(data.mensaje || "Error al finalizar el viaje");
       cargarViajes();
     } catch (error) {
       setErrorViajes(error.message);
@@ -195,15 +178,8 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
                             {accionando === viaje.id_viaje ? "Procesando..." : "Aceptar viaje"}
                           </button>
                         )}
-                        {estadoLower === "en curso" && (
-                          <button
-                            type="button"
-                            className="chofer-btn-accion chofer-btn-accion--finalizar"
-                            disabled={accionando === viaje.id_viaje}
-                            onClick={() => finalizarViaje(viaje.id_viaje)}
-                          >
-                            {accionando === viaje.id_viaje ? "Procesando..." : "Finalizar viaje"}
-                          </button>
+                        {["aceptado", "en curso"].includes(estadoLower) && (
+                          <span className="chofer-qr-indicacion">{estadoLower === "aceptado" ? "Aceptado. Escaneá el QR de salida en la app móvil." : "Escaneá el QR de regreso para finalizar."}</span>
                         )}
                       </td>
                     </tr>

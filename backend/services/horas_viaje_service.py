@@ -38,7 +38,7 @@ def tiempo_viaje(viaje, ahora=None):
     finales = [r.fecha_hora for r in registros if r.tipo_registro.strip().lower() == tipo_fin]
     inicio = inicios[0] if len(inicios) == 1 else None
     fin = finales[0] if len(finales) == 1 else None
-    estado = "sin_registro"
+    estado = "aceptado" if viaje.estado == "aceptado" and not registros else "sin_registro"
     segundos = transcurridos = None
     if registros:
         estado = "incompleto"
@@ -70,7 +70,7 @@ def resumen_horas(viajes, mes, ahora=None):
     ahora = ahora or datetime.now()
     intervalos = []
     historial = []
-    conteos = {"confirmado": 0, "en_curso": 0, "sin_registro": 0, "incompleto": 0, "inconsistente": 0}
+    conteos = {"confirmado": 0, "en_curso": 0, "sin_registro": 0, "incompleto": 0, "inconsistente": 0, "aceptado": 0}
     for viaje in viajes:
         tiempo = tiempo_viaje(viaje, ahora)
         inicio = datetime.fromisoformat(tiempo["inicio"]) if tiempo["inicio"] else None
@@ -104,7 +104,7 @@ def resumen_horas(viajes, mes, ahora=None):
     promedio = total // conteos["confirmado"] if conteos["confirmado"] else None
     return {"mes": mes, "segundos_confirmados": total, "duracion": formato_duracion(total),
             "promedio": formato_duracion(promedio), "viajes_confirmados": conteos["confirmado"],
-            "viajes_en_curso": conteos["en_curso"], "viajes_sin_registro": conteos["sin_registro"],
+            "viajes_en_curso": conteos["en_curso"], "viajes_aceptados": conteos["aceptado"], "viajes_sin_registro": conteos["sin_registro"],
             "viajes_incompletos": conteos["incompleto"], "viajes_inconsistentes": conteos["inconsistente"],
             "segundos_superpuestos": bruto - total,
             "historial": sorted(historial, key=lambda fila: fila["id_viaje"], reverse=True)}

@@ -17,7 +17,7 @@ export default function HorasChoferesPanel({ choferes, nombreMes }) {
   const [busqueda, setBusqueda] = useState("");
   const [soloActividad, setSoloActividad] = useState(true);
   const filas = choferes || [];
-  const conActividad = (chofer) => chofer.viajes_confirmados + chofer.viajes_en_curso + chofer.viajes_incompletos + chofer.viajes_inconsistentes + chofer.viajes_sin_registro > 0;
+  const conActividad = (chofer) => chofer.viajes_confirmados + (chofer.viajes_aceptados || 0) + chofer.viajes_en_curso + chofer.viajes_incompletos + chofer.viajes_inconsistentes + chofer.viajes_sin_registro > 0;
   const visibles = filas.filter((chofer) => `${chofer.nombre} ${chofer.apellido}`.toLocaleLowerCase().includes(busqueda.trim().toLocaleLowerCase()) && (!soloActividad || conActividad(chofer)));
   return <div className="estadisticas-horas">
     <div className="estadisticas-seccion__heading"><div><h2>Horas en viaje por chofer</h2><p>Controles de salida y regreso de {nombreMes}.</p></div><span className="estadisticas-horas__conteo">{filas.filter(conActividad).length} choferes con actividad</span></div>
@@ -42,7 +42,7 @@ export default function HorasChoferesPanel({ choferes, nombreMes }) {
               {(chofer.historial || []).map((viaje) => <div key={viaje.id_viaje} className="estadisticas-horas-detalle__viaje">
                 <div className="estadisticas-horas-detalle__ruta"><strong>Viaje #{viaje.id_viaje}</strong><span>{viaje.origen} → {viaje.destino}</span></div>
                 <dl className="estadisticas-horas-detalle__controles"><div><dt>Inicio</dt><dd>{fechaControl(viaje.inicio)}</dd></div><div><dt>Regreso</dt><dd>{fechaControl(viaje.regreso)}</dd></div></dl>
-                <p className="estadisticas-horas-detalle__duracion">{viaje.estado === "confirmado" ? `${viaje.duracion_mes} en el mes · Duración total: ${duracionExacta(viaje.segundos_confirmados)}` : viaje.estado === "en_curso" ? `En curso: ${viaje.transcurrido} al consultar · No suma al total` : `${viaje.estado.replaceAll("_", " ")} · No suma al total`}</p>
+                <p className="estadisticas-horas-detalle__duracion">{viaje.estado === "confirmado" ? `${viaje.duracion_mes} en el mes · Duración total: ${duracionExacta(viaje.segundos_confirmados)}` : viaje.estado === "aceptado" ? "Aceptado · Pendiente de QR de salida; todavía no suma horas" : viaje.estado === "en_curso" ? `En curso: ${viaje.transcurrido} al consultar · No suma al total` : `${viaje.estado.replaceAll("_", " ")} · No suma al total`}</p>
               </div>)}
               {!chofer.historial?.length && <p>No hay controles disponibles para este período.</p>}
             </div>

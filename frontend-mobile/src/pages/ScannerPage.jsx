@@ -28,7 +28,7 @@ export default function ScannerPage() {
   const [feedback, setFeedback] = useState(null);
   const [empresaValidada, setEmpresaValidada] = useState(false);
 
-  const disponibles = viajes.filter((viaje) => ["pendiente", "en curso"].includes(viaje.estado?.toLowerCase()));
+  const disponibles = viajes.filter((viaje) => ["aceptado", "en curso"].includes(viaje.estado?.toLowerCase()));
 
   const detenerCamara = () => {
     if (frameRef.current) cancelAnimationFrame(frameRef.current);
@@ -43,7 +43,7 @@ export default function ScannerPage() {
     const result = await apiFetch("/api/choferes/mis-viajes", { signal: AbortSignal.timeout(20000) });
     if (result?.response.ok) {
       const siguientesViajes = Array.isArray(result.data) ? result.data : [];
-      viajesRef.current = siguientesViajes.filter((viaje) => ["pendiente", "en curso"].includes(viaje.estado?.toLowerCase()));
+      viajesRef.current = siguientesViajes.filter((viaje) => ["aceptado", "en curso"].includes(viaje.estado?.toLowerCase()));
       setViajes(siguientesViajes);
     }
   };
@@ -66,13 +66,13 @@ export default function ScannerPage() {
       const activos = viajesRef.current.filter((viaje) => viaje.estado?.toLowerCase() === "en curso");
       const candidatos = activos.length ? activos : viajesRef.current;
       if (candidatos.length === 1) setSeleccionado(candidatos[0]);
-      setFeedback({ type: candidatos.length ? "ok" : "error", text: candidatos.length ? "Empresa reconocida. Confirmá el viaje a registrar." : "No tenés viajes habilitados para registrar." });
+      setFeedback({ type: candidatos.length ? "ok" : "error", text: candidatos.length ? "Empresa reconocida. Confirmá el viaje a registrar." : "No tenés viajes habilitados. Primero aceptá la asignación en Mis viajes." });
       return true;
     }
     const id = extraerIdViaje(valor);
     const viaje = viajesRef.current.find((item) => item.id_viaje === id);
     if (!id || !viaje) {
-      setFeedback({ type: "error", text: "El código no corresponde a un viaje habilitado." });
+      setFeedback({ type: "error", text: "El viaje no está habilitado para este control. Primero aceptalo en Mis viajes." });
       return false;
     }
     detenerCamara();
@@ -114,7 +114,7 @@ export default function ScannerPage() {
 
   const confirmar = async () => {
     if (procesando || !seleccionado) return;
-    const tipo = seleccionado.estado?.toLowerCase() === "pendiente" ? "ingreso" : "salida";
+    const tipo = seleccionado.estado?.toLowerCase() === "aceptado" ? "ingreso" : "salida";
     setProcesando(true);
     setFeedback(null);
     try {
@@ -144,17 +144,17 @@ export default function ScannerPage() {
     }
   };
 
-  const tipo = seleccionado?.estado?.toLowerCase() === "pendiente" ? "Salida de la empresa" : "Regreso a la empresa";
+  const tipo = seleccionado?.estado?.toLowerCase() === "aceptado" ? "Salida de la empresa" : "Regreso a la empresa";
   return (
     <section className="page-stack">
-      <header className="page-heading"><span>CONTROL DE VIAJE</span><h1>Escanear QR</h1><p>Registrá el inicio o final de un viaje.</p></header>
+      <header className="page-heading"><span>CONTROL DE VIAJE</span><h1>Escanear QR</h1><p>Aceptá el viaje en Mis viajes antes de registrar la salida. El regreso se registra con el segundo QR.</p></header>
       {feedback && <p className={`feedback ${feedback.type}`}>{feedback.type === "ok" && <FaCheckCircle />} {feedback.text}</p>}
       <article className="scanner-card">
         <div className={`camera ${escaneando ? "active" : ""}`}><video ref={videoRef} muted playsInline />{!escaneando && <div><FaQrcode /><strong>Cámara apagada</strong><span>Activala frente al código QR.</span></div>}<i /></div>
         <button className="button primary wide" onClick={escaneando ? detenerCamara : abrirCamara}>{escaneando ? <><FaStop /> Detener cámara</> : <><FaCamera /> Abrir cámara</>}</button>
         <div className="manual-code"><label htmlFor="codigo"><FaKeyboard /> Ingreso manual</label><div><input id="codigo" inputMode="numeric" value={codigo} onChange={(event) => setCodigo(event.target.value)} placeholder="ID del viaje" /><button onClick={() => validarCodigo(codigo)}>Validar</button></div></div>
       </article>
-      {empresaValidada && <article className="available-card"><div className="section-title"><div><FaQrcode /><span>EMPRESA PRINCIPAL</span></div><b>{disponibles.length}</b></div>{disponibles.length === 0 ? <p className="empty compact">No tenés viajes para registrar.</p> : disponibles.filter((viaje) => !disponibles.some((item) => item.estado?.toLowerCase() === "en curso") || viaje.estado?.toLowerCase() === "en curso").map((viaje) => <button key={viaje.id_viaje} onClick={() => setSeleccionado(viaje)}><span>Viaje #{viaje.id_viaje}</span><strong>{viaje.origen} → {viaje.destino}</strong><small>{viaje.estado?.toLowerCase() === "pendiente" ? "Registrar salida" : "Registrar regreso"}</small></button>)}</article>}
+      {empresaValidada && <article className="available-card"><div className="section-title"><div><FaQrcode /><span>EMPRESA PRINCIPAL</span></div><b>{disponibles.length}</b></div>{disponibles.length === 0 ? <p className="empty compact">No tenés viajes para registrar.</p> : disponibles.filter((viaje) => !disponibles.some((item) => item.estado?.toLowerCase() === "en curso") || viaje.estado?.toLowerCase() === "en curso").map((viaje) => <button key={viaje.id_viaje} onClick={() => setSeleccionado(viaje)}><span>Viaje #{viaje.id_viaje}</span><strong>{viaje.origen} → {viaje.destino}</strong><small>{viaje.estado?.toLowerCase() === "aceptado" ? "Registrar salida" : "Registrar regreso"}</small></button>)}</article>}
       {seleccionado && <div className="modal-backdrop" onMouseDown={() => !procesando && setSeleccionado(null)}><div className="modal-sheet" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><span>{tipo}</span><h2>Confirmar {tipo.toLowerCase()}</h2><p>Viaje #{seleccionado.id_viaje}<br /><strong>{seleccionado.origen} → {seleccionado.destino}</strong></p>{feedback?.type === "error" && <p role="alert" className="feedback error">{feedback.text}</p>}<label>Observación opcional<textarea maxLength="100" value={observacion} onChange={(event) => setObservacion(event.target.value)} /></label><div><button className="button secondary" disabled={procesando} onClick={() => setSeleccionado(null)}>Cancelar</button><button className="button primary" onClick={confirmar} disabled={procesando}>{procesando ? "Guardando..." : "Confirmar"}</button></div></div></div>}
     </section>
   );

@@ -340,9 +340,8 @@ class ViajeController:
         )
 
         # valores por defecto
-        datos["estado"] = Viaje.normalizar_estado(
-            datos.get("estado") or Viaje.ESTADO_PENDIENTE
-        )
+        # Una asignación nueva siempre debe ser aceptada por el chofer.
+        datos["estado"] = Viaje.ESTADO_PENDIENTE
         datos["recorrido"] = datos.get("recorrido", 0)
 
         # valida campos obligatorios del request
