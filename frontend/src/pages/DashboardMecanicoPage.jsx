@@ -49,7 +49,7 @@ function DashboardMecanicoPage() {
   const reportesAsignados = reportes.length;
 
   const reportesPendientes = reportes.filter(
-    (reporte) => reporte.estado !== "resuelto"
+    (reporte) => ["pendiente", "en revision"].includes(reporte.estado)
   ).length;
 
   const reportesResueltos = reportes.filter(
@@ -57,7 +57,7 @@ function DashboardMecanicoPage() {
   ).length;
 
   const ultimosReportesAbiertos = reportes
-    .filter((reporte) => reporte.estado !== "resuelto")
+    .filter((reporte) => ["pendiente", "en revision"].includes(reporte.estado))
     .slice(0, 3);
 
   const nombreMecanico = usuario?.nombre || usuario?.username || "mecanico";

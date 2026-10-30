@@ -272,7 +272,7 @@ function MecanicoReportesPage() {
                       )}
                     </td>
                     <td>
-                      {reporte.estado !== "resuelto" ? (
+                      {["pendiente", "en revision"].includes(reporte.estado) ? (
                         <button
                           type="button"
                           className="mecanico-action-btn"
@@ -282,7 +282,9 @@ function MecanicoReportesPage() {
                           Resolver
                         </button>
                       ) : (
-                        <span className="mecanico-resuelto">Finalizado</span>
+                        <span className={reporte.estado === "cancelado" ? "mecanico-cancelado" : "mecanico-resuelto"}>
+                          {reporte.estado === "cancelado" ? "Cancelado" : "Finalizado"}
+                        </span>
                       )}
                     </td>
                   </tr>

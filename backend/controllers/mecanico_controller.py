@@ -203,7 +203,10 @@ class MecanicoController:
 
         nota_reparacion = datos.get("nota_reparacion")
 
-        reporte_model = ReporteModel.query.get(id_reporte)
+        reporte_model = (
+            ReporteModel.query.filter_by(id_reporte=id_reporte)
+            .with_for_update().populate_existing().first()
+        )
 
         if reporte_model is None:
             return jsonify(
@@ -211,6 +214,11 @@ class MecanicoController:
                     "mensaje": "Reporte no encontrado"
                 }
             ), 404
+
+        if reporte_model.estado not in ReporteFalla.ESTADOS_ACTIVOS:
+            return jsonify({
+                "mensaje": "No podés resolver un reporte cancelado o ya resuelto."
+            }), 409
 
         reporte = MecanicoController.crear_objeto_reporte(reporte_model)
 
