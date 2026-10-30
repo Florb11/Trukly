@@ -38,9 +38,14 @@ class FirebaseAuthService:
         FirebaseAuthService._inicializado = True
 
     @staticmethod
-    def verificar_token(id_token):
+    def verificar_token(id_token, check_revoked=False):
         FirebaseAuthService.inicializar()
-        return auth.verify_id_token(id_token)
+        return auth.verify_id_token(id_token, check_revoked=check_revoked)
+
+    @staticmethod
+    def cambiar_password(uid, password):
+        FirebaseAuthService.inicializar()
+        return auth.update_user(uid, password=password)
 
     @staticmethod
     def obtener_usuario_por_email(email):

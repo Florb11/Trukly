@@ -1,3 +1,5 @@
+import secrets
+
 from flask import jsonify, request
 from flask_jwt_extended import create_access_token
 from sqlalchemy import or_
@@ -404,7 +406,7 @@ class AuthController:
             }), 409
 
         password_hash = bcrypt.generate_password_hash(
-            f"firebase:{firebase_uid}"
+            secrets.token_urlsafe(48)
         ).decode("utf-8")
 
         nuevo_usuario = AuthController._crear_usuario_model_firebase(
@@ -552,6 +554,13 @@ class AuthController:
         if usuario_clase is None:
             return jsonify({
                 "mensaje": "Usuario o contrasena incorrectos"
+            }), 401
+
+        # Firebase es la única autoridad de contraseña para cuentas vinculadas.
+        # También bloquea los hashes internos generados por versiones anteriores.
+        if usuario.firebase_uid:
+            return jsonify({
+                "mensaje": "Ingresá con tu correo y contraseña de Firebase o con Google."
             }), 401
 
         password_correcta = usuario_clase.verificar_password(

@@ -13,6 +13,9 @@ import {
 import { fetchConToken } from "../utils/fetchConToken";
 import { useAuth } from "../context/AuthContext";
 import "./PerfilPage.css";
+import { EmailAuthProvider, reauthenticateWithCredential, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
+import { obtenerMensajeAuth } from "../utils/authErrors";
 
 function PerfilPage() {
   const [perfil, setPerfil] = useState(null);
@@ -158,11 +161,35 @@ function PerfilPage() {
 
   const cambiarPassword = async (e) => {
     e.preventDefault();
+    if (guardandoPassword) return;
 
     try {
       setGuardandoPassword(true);
       setMensaje("");
       setError("");
+
+      const datos = { ...formPassword };
+      if (datos.password_nueva !== datos.confirmar_password) {
+        throw new Error("Las contraseñas nuevas no coinciden.");
+      }
+      if (perfil.firebase_uid) {
+        await auth.authStateReady();
+        const actual = auth.currentUser;
+        let credencial;
+        if (actual?.uid === perfil.firebase_uid) {
+          if (!actual.providerData.some((proveedor) => proveedor.providerId === "password")) {
+            throw new Error("Tu cuenta usa Google. Usá ‘Olvidé mi contraseña’ en el inicio de sesión para crear una contraseña de acceso.");
+          }
+          credencial = await reauthenticateWithCredential(actual,
+            EmailAuthProvider.credential(actual.email, datos.password_actual));
+        } else {
+          credencial = await signInWithEmailAndPassword(auth, perfil.email, datos.password_actual);
+        }
+        if (credencial.user.uid !== perfil.firebase_uid) {
+          throw new Error("La cuenta de Firebase no coincide con tu perfil. Volvé a iniciar sesión.");
+        }
+        datos.firebaseToken = await credencial.user.getIdToken(true);
+      }
 
       const resultado = await fetchConToken(
         `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/perfil/password`,
@@ -171,7 +198,7 @@ function PerfilPage() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formPassword),
+          body: JSON.stringify(datos),
         }
       );
 
@@ -193,7 +220,7 @@ function PerfilPage() {
         confirmar_password: "",
       });
     } catch (error) {
-      setError(error.message);
+      setError(obtenerMensajeAuth(error, "No se pudo cambiar la contraseña."));
     } finally {
       setGuardandoPassword(false);
     }
