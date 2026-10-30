@@ -1,3 +1,5 @@
+import secrets
+
 from flask import g, jsonify, request
 
 from db_instance import db
@@ -850,7 +852,7 @@ class AdminUsuariosController:
             }), 500
 
         password_hash = bcrypt.generate_password_hash(
-            f"firebase:{firebase_usuario.uid}"
+            secrets.token_urlsafe(48)
         ).decode("utf-8")
 
         nuevo_usuario = UsuarioModel(

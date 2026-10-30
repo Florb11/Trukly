@@ -172,7 +172,7 @@ function PerfilPage() {
       if (datos.password_nueva !== datos.confirmar_password) {
         throw new Error("Las contraseñas nuevas no coinciden.");
       }
-      if (perfil.firebase_uid) {
+      if (perfil.firebase_uid && !perfil.password_local) {
         await auth.authStateReady();
         const actual = auth.currentUser;
         let credencial;
