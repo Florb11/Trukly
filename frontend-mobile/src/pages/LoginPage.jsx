@@ -30,7 +30,7 @@ export default function LoginPage() {
         body: JSON.stringify(form),
       });
       let data = await response.json();
-      if (response.status === 401 && form.username.includes("@")) {
+      if ([401, 409].includes(response.status) && form.username.includes("@")) {
         try {
           const credencial = await signInWithEmailAndPassword(auth, form.username, form.password);
           const firebaseToken = await credencial.user.getIdToken();
@@ -38,7 +38,15 @@ export default function LoginPage() {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token: firebaseToken }), signal: AbortSignal.timeout(20000),
           });
-          const firebaseData = await firebaseResponse.json();
+          let firebaseData = await firebaseResponse.json();
+          if (firebaseResponse.status === 409 && firebaseData.codigo === "migracion_pendiente") {
+            const migracion = await fetch(`${API_URL}/api/auth/login`, {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...form, firebaseToken }), signal: AbortSignal.timeout(20000),
+            });
+            firebaseData = await migracion.json();
+            if (!migracion.ok) throw new Error(firebaseData.mensaje || "No se pudo vincular el acceso.");
+          } else
           if (!firebaseResponse.ok) throw new Error(firebaseData.mensaje || "No se pudo iniciar sesión");
           if (!["chofer", "mecanico", "operador"].includes(firebaseData.usuario?.rol)) throw new Error("Tu rol no tiene acceso a mobile.");
           login(firebaseData.token, firebaseData.usuario);

@@ -9,8 +9,8 @@ from extensions import bcrypt
 
 from models.usuario_model import UsuarioModel
 from models.chofer_model import ChoferModel
-from services.firebase_service import FirebaseAuthService, FirebaseConfigError
-from services.credenciales_service import permite_password_local
+from services.firebase_service import FirebaseAuthService, FirebaseConfigError, FirebaseMigrationConflict
+from services.credenciales_service import permite_password_local, crear_password_interna_firebase
 
 from src.Usuario import Usuario
 from src.Chofer import Chofer
@@ -504,10 +504,6 @@ class AuthController:
                 )
             }), 404
 
-        if not usuario.firebase_uid:
-            usuario.firebase_uid = firebase_uid
-            db.session.commit()
-
         usuario_clase = AuthController.crear_objeto_usuario(usuario)
 
         if usuario_clase is None or not usuario_clase.esta_activo():
@@ -515,6 +511,15 @@ class AuthController:
                 "mensaje": "Tu cuenta se encuentra desactivada o pendiente de aprobación"
             }), 403
 
+        if not firebase_uid or (usuario.firebase_uid and usuario.firebase_uid != firebase_uid):
+            return jsonify({"mensaje": "La cuenta de Firebase no coincide con tu usuario."}), 403
+        if not usuario.firebase_uid:
+            return jsonify({"mensaje": "Confirmá tu contraseña anterior de Trukly para vincular el acceso.",
+                            "codigo": "migracion_pendiente"}), 409
+        # Al confirmar el acceso Firebase se retira cualquier credencial local antigua.
+        if permite_password_local(usuario):
+            usuario.password = crear_password_interna_firebase()
+            db.session.commit()
         return AuthController._crear_respuesta_login(usuario_clase)
 
     @staticmethod
@@ -588,5 +593,24 @@ class AuthController:
                 "mensaje": "Tu cuenta se encuentra desactivada. Contactá al administrador"
             }), 403
 
-        return AuthController._crear_respuesta_login(usuario_clase)
+        try:
+            firebase_usuario = FirebaseAuthService.migrar_usuario_local(
+                usuario, datos["password"], (request.get_json(silent=True) or {}).get("firebaseToken")
+            )
+            if UsuarioModel.query.filter(
+                UsuarioModel.firebase_uid == firebase_usuario.uid,
+                UsuarioModel.id_usuario != usuario.id_usuario,
+            ).first():
+                raise FirebaseMigrationConflict("La cuenta de Firebase ya está vinculada a otro usuario.")
+            usuario.firebase_uid = firebase_usuario.uid
+            usuario.password = crear_password_interna_firebase()
+            db.session.commit()
+        except FirebaseMigrationConflict as error:
+            db.session.rollback()
+            return jsonify({"mensaje": str(error), "codigo": "migracion_pendiente"}), 409
+        except Exception:
+            db.session.rollback()
+            logger.error("No se pudo migrar el acceso local a Firebase")
+            return jsonify({"mensaje": "No se pudo preparar tu acceso. Intentá nuevamente."}), 503
+        return AuthController._crear_respuesta_login(usuario)
         

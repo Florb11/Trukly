@@ -88,7 +88,7 @@ function LoginPage() {
     redirigirPorRol(data.usuario.rol);
   };
 
-  const loginConBackendTradicional = async () => {
+  const loginConBackendTradicional = async (firebaseToken = null) => {
     const respuesta = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/auth/login`, {
       method: "POST",
       headers: {
@@ -97,6 +97,7 @@ function LoginPage() {
       body: JSON.stringify({
         username: formulario.email,
         password: formulario.password,
+        firebaseToken,
       }),
     });
 
@@ -123,6 +124,7 @@ function LoginPage() {
 
     setMensaje("");
     setError("");
+    let firebaseToken = null;
 
     try {
       await aplicarPersistenciaFirebase();
@@ -133,11 +135,11 @@ function LoginPage() {
         formulario.password
       );
 
-      const firebaseToken = await credencial.user.getIdToken();
+      firebaseToken = await credencial.user.getIdToken();
       await loginConBackendFirebase(firebaseToken);
     } catch (error) {
       try {
-        await loginConBackendTradicional();
+        await loginConBackendTradicional(firebaseToken);
       } catch (errorBackend) {
         const mensajeFirebase = obtenerMensajeAuth(
           error,
