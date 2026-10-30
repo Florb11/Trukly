@@ -1317,3 +1317,228 @@
 .app-shell--dashboard[data-theme="dark"] .estadisticas-chofer__aviso {
   color: var(--ui-muted);
 }
+
+/* Perfil compartido: los spans de los campos tienen su propio color. */
+.app-shell--dashboard[data-theme="dark"] .admin-perfil-form label span {
+  color: var(--ui-text) !important;
+}
+
+.app-shell--dashboard[data-theme="dark"] .admin-perfil-form input {
+  color: var(--ui-text);
+  background: var(--ui-soft);
+  border-color: var(--ui-border);
+}
+
+.app-shell--dashboard[data-theme="dark"] .admin-perfil-form input::placeholder {
+  color: var(--ui-muted);
+  opacity: 1;
+}
+
+.app-shell--dashboard[data-theme="dark"] .admin-perfil-form input:autofill {
+  -webkit-text-fill-color: var(--ui-text);
+  box-shadow: 0 0 0 1000px var(--ui-soft) inset;
+}
+
+.app-shell--dashboard[data-theme="dark"] :is(
+  .admin-perfil-photo-button, .admin-perfil-account-data svg
+) {
+  color: var(--ui-accent);
+}
+
+.app-shell--dashboard[data-theme="dark"] .admin-perfil-photo-button {
+  background: var(--ui-accent-soft);
+}
+
+.app-shell--dashboard[data-theme="dark"] .admin-perfil-role {
+  color: var(--ui-success-text);
+  background: var(--ui-success-soft);
+}
+
+.app-shell--dashboard[data-theme="dark"] .dashboard-topbar .dashboard-theme-toggle svg {
+  color: #ffffff !important;
+  fill: currentColor;
+}
+
+/* Encabezados, filtros y tablas del operador, también al pasar el cursor. */
+.app-shell--operator[data-theme="dark"] .operator-table-card__header span {
+  color: var(--ui-muted);
+  background: var(--ui-soft);
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .op-viajes-tab, .op-camiones-tab, .op-choferes-tab,
+  .op-viajes-btn-secondary
+) {
+  color: var(--ui-text);
+  background: var(--ui-soft);
+  border-color: var(--ui-border);
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .op-viajes-tab, .op-camiones-tab, .op-choferes-tab,
+  .op-viajes-btn-secondary
+):hover {
+  color: var(--ui-accent);
+  background: var(--ui-accent-soft);
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .op-viajes-tab--active, .op-camiones-tab--active, .op-choferes-tab--active
+),
+.app-shell--operator[data-theme="dark"] :is(
+  .op-viajes-tab--active, .op-camiones-tab--active, .op-choferes-tab--active
+):hover {
+  color: #ffffff;
+  background: #5b61dc;
+  border-color: #5b61dc;
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .op-viajes-search input, .op-camiones-search input, .op-choferes-search input
+):focus {
+  color: var(--ui-text);
+  background: var(--ui-soft);
+  border-color: var(--ui-accent);
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .op-viajes-search input, .op-camiones-search input, .op-choferes-search input
+)::placeholder {
+  color: var(--ui-muted);
+  opacity: 1;
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .op-viajes-search__icon, .op-camiones-search__icon, .op-choferes-search__icon,
+  .op-stats-section__header span, .op-stats-ranking__info span,
+  .op-stats-ranking__value span, .op-stats-history__content span
+) {
+  color: var(--ui-muted);
+}
+
+.app-shell--operator[data-theme="dark"] .operator-table tbody tr:hover {
+  background: var(--ui-soft);
+}
+
+.app-shell--operator[data-theme="dark"] .operator-table__id {
+  color: var(--ui-accent) !important;
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .op-stats-ranking__item, .op-stats-history__item
+) {
+  border-color: var(--ui-border);
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .op-stats-ranking__pos, .op-stats-history__icon
+) {
+  color: var(--ui-accent);
+  background: var(--ui-accent-soft);
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .op-badge--finalizado, .camion-badge--disponible,
+  .chofer-estado-badge--activo, .chofer-badge--finalizado
+) {
+  color: var(--ui-success-text);
+  background: var(--ui-success-soft);
+  border-color: var(--ui-success-text);
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .op-badge--cancelado, .chofer-badge--cancelado
+) {
+  color: var(--ui-danger-text);
+  background: var(--ui-danger-soft);
+  border-color: var(--ui-danger-text);
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .op-badge--pendiente, .chofer-badge--pendiente,
+  .camion-badge--mantenimiento, .chofer-estado-badge--pendiente
+) {
+  color: #fde68a;
+  background: #42351e;
+  border-color: #8a6b28;
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .op-badge--aceptado, .chofer-badge--aceptado,
+  .op-badge--curso, .chofer-badge--en-curso, .camion-badge--en-viaje
+) {
+  color: var(--ui-accent);
+  background: var(--ui-accent-soft);
+  border-color: var(--ui-accent);
+}
+
+.app-shell--operator[data-theme="dark"] :is(
+  .camion-badge--inactivo, .chofer-estado-badge--inactivo
+) {
+  color: var(--ui-muted);
+  background: var(--ui-soft);
+}
+
+/* Estados y cantidades del mecánico: texto claro sobre superficies oscuras. */
+.app-shell--mechanic[data-theme="dark"] .mecanico-resuelto {
+  color: var(--ui-success-text);
+}
+
+.app-shell--mechanic .mecanico-cancelado {
+  color: var(--ui-muted);
+}
+
+.app-shell--mechanic[data-theme="dark"] :is(
+  .mecanico-mantenimiento-count--resolved, .mecanico-badge--resuelto,
+  .mecanico-mantenimiento-status--activo,
+  .mecanico-mantenimiento-status--disponible,
+  .mecanico-mantenimiento-modal__badge--resolved
+) {
+  color: var(--ui-success-text);
+  background: var(--ui-success-soft);
+}
+
+.app-shell--mechanic[data-theme="dark"] :is(
+  .mecanico-mantenimiento-count--pending, .mecanico-badge--pendiente,
+  .mecanico-mantenimiento-status--mantenimiento,
+  .mecanico-mantenimiento-status--en-mantenimiento,
+  .mecanico-mantenimiento-modal__badge--pending
+) {
+  color: #fde68a;
+  background: #42351e;
+}
+
+.app-shell--mechanic[data-theme="dark"] :is(
+  .mecanico-badge--cancelado, .mecanico-mantenimiento-status--inactivo,
+  .mecanico-mantenimiento-status--fuera-de-servicio
+) {
+  color: var(--ui-danger-text);
+  background: var(--ui-danger-soft);
+}
+
+.app-shell--mechanic[data-theme="dark"] :is(
+  .mecanico-badge--en-revision, .mecanico-badge--en-reparacion,
+  .mecanico-badge--en_reparacion,
+  .mecanico-mantenimiento-modal__truck-icon
+) {
+  color: var(--ui-accent);
+  background: var(--ui-accent-soft);
+}
+
+.app-shell--mechanic[data-theme="dark"] :is(
+  .mecanico-mantenimiento-search > svg,
+  .mecanico-mantenimiento-modal__truck-icon svg
+) {
+  color: var(--ui-accent);
+}
+
+.app-shell--mechanic[data-theme="dark"] :is(
+  .mecanico-reportes-filtro input, .mecanico-mantenimiento-search input
+)::placeholder {
+  color: var(--ui-muted);
+  opacity: 1;
+}
+
+.app-shell--mechanic[data-theme="dark"] .mecanico-mantenimiento-camion span {
+  color: var(--ui-muted);
+}

@@ -267,7 +267,7 @@ class ReporteFalla:
         if str(self.id_mecanico) != str(id_mecanico):
             return False
 
-        if self.estado == self.ESTADO_RESUELTO:
+        if self.estado not in self.ESTADOS_ACTIVOS:
             return False
 
         if nota_reparacion is None:

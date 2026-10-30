@@ -87,6 +87,35 @@ class AdminEstadoReporteTest(unittest.TestCase):
     def test_operador_conserva_su_flujo_de_cancelacion(self):
         self.assertEqual(self.cambiar({"estado": "cancelado"}, "operador")[1], 200)
 
+    def test_mecanico_no_resuelve_reportes_cerrados_ni_modifica_sus_datos(self):
+        from flask import g
+        from controllers.mecanico_controller import MecanicoController
+        modelo = db.session.get(ReporteModel, 80)
+        modelo.Mecanico_Usuario_idUsuario = 3
+        for estado in ["cancelado", "resuelto"]:
+            modelo.estado = estado
+            modelo.nota_reparacion = "Nota original"
+            db.session.commit()
+            dominio = MecanicoController.crear_objeto_reporte(modelo)
+            self.assertFalse(dominio.resolver_por_mecanico(3, "Nueva nota"))
+            self.assertEqual(dominio.estado, estado)
+            self.assertEqual(dominio.nota_reparacion, "Nota original")
+            with self.fixture.app.test_request_context("/", method="PUT", json={"nota_reparacion": "Nueva nota"}), patch.object(MecanicoController, "notificar_reporte_resuelto") as notificar:
+                g.mecanico_actual = SimpleNamespace(id_usuario=3)
+                respuesta, codigo = MecanicoController.resolver_reporte.__wrapped__(80)
+                self.assertEqual(codigo, 409, respuesta.get_json())
+                notificar.assert_not_called()
+            db.session.refresh(modelo)
+            self.assertEqual(modelo.estado, estado)
+            self.assertEqual(modelo.nota_reparacion, "Nota original")
+            self.assertIsNone(modelo.fecha_resolucion)
+
+    def test_mecanico_puede_seguir_resolviendo_reportes_activos(self):
+        for estado in ["pendiente", "en revision"]:
+            dominio = ReporteFalla.crear_desde_datos({"estado": estado, "id_mecanico": 3})
+            self.assertTrue(dominio.resolver_por_mecanico(3, "Reparación realizada"))
+            self.assertEqual(dominio.estado, "resuelto")
+
     def test_lista_muestra_solo_mecanicos_activos(self):
         with self.fixture.app.test_request_context("/"):
             respuesta, codigo = ReporteController.listar_mecanicos_activos.__wrapped__()
