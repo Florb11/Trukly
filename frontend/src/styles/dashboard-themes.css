@@ -1479,7 +1479,7 @@
   background: var(--ui-soft);
 }
 
-/* Estados y cantidades del mecánico: texto claro sobre superficies oscuras. */
+/* Estados y cantidades del mecánico con la misma paleta del administrador. */
 .app-shell--mechanic[data-theme="dark"] .mecanico-resuelto {
   color: var(--ui-success-text);
 }
@@ -1494,8 +1494,8 @@
   .mecanico-mantenimiento-status--disponible,
   .mecanico-mantenimiento-modal__badge--resolved
 ) {
-  color: var(--ui-success-text);
-  background: var(--ui-success-soft);
+  color: #166534;
+  background: #dcfce7;
 }
 
 .app-shell--mechanic[data-theme="dark"] :is(
@@ -1504,16 +1504,16 @@
   .mecanico-mantenimiento-status--en-mantenimiento,
   .mecanico-mantenimiento-modal__badge--pending
 ) {
-  color: #fde68a;
-  background: #42351e;
+  color: #92400e;
+  background: #fef3c7;
 }
 
 .app-shell--mechanic[data-theme="dark"] :is(
   .mecanico-badge--cancelado, .mecanico-mantenimiento-status--inactivo,
   .mecanico-mantenimiento-status--fuera-de-servicio
 ) {
-  color: var(--ui-danger-text);
-  background: var(--ui-danger-soft);
+  color: #991b1b;
+  background: #fee2e2;
 }
 
 .app-shell--mechanic[data-theme="dark"] :is(
