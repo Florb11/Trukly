@@ -1,10 +1,12 @@
 from services.horas_viaje_service import horas_chofer
 import os
+import time
 
 from flask import g, jsonify, request
 
 from db_instance import db
 from extensions import bcrypt
+from services.firebase_service import FirebaseAuthService
 
 from models.usuario_model import UsuarioModel
 from models.administrador_model import AdministradorModel
@@ -361,6 +363,34 @@ class PerfilController:
             return jsonify({
                 "mensaje": mensaje_error
             }), 400
+
+        if usuario_db.firebase_uid:
+            nueva = datos.get("password_nueva")
+            if nueva != datos.get("confirmar_password"):
+                return jsonify({"mensaje": "Las contraseñas nuevas no coinciden"}), 400
+            valida, mensaje = Usuario.validar_password_registro(nueva)
+            if not valida:
+                return jsonify({"mensaje": mensaje}), 400
+            if nueva == datos.get("password_actual"):
+                return jsonify({"mensaje": "La contraseña nueva debe ser diferente a la actual"}), 400
+            token = (request.get_json(silent=True) or {}).get("firebaseToken")
+            if not token:
+                return jsonify({"mensaje": "Volvé a confirmar tu contraseña actual."}), 403
+            try:
+                identidad = FirebaseAuthService.verificar_token(token, check_revoked=True)
+                antiguedad = time.time() - float(identidad.get("auth_time", 0))
+                if (identidad.get("uid") != usuario_db.firebase_uid
+                        or not 0 <= antiguedad <= 300
+                        or identidad.get("firebase", {}).get("sign_in_provider") != "password"):
+                    return jsonify({"mensaje": "Volvé a confirmar tu contraseña actual."}), 403
+            except Exception:
+                return jsonify({"mensaje": "No se pudo verificar tu identidad. Volvé a intentarlo."}), 403
+            try:
+                FirebaseAuthService.cambiar_password(usuario_db.firebase_uid, nueva)
+            except Exception:
+                logger.exception("No se pudo cambiar la contraseña en Firebase")
+                return jsonify({"mensaje": "No se pudo actualizar la contraseña. Intentá nuevamente."}), 502
+            return jsonify({"mensaje": "Contraseña actualizada correctamente"}), 200
 
         usuario_clase = PerfilController._crear_usuario_clase(
             usuario_db
