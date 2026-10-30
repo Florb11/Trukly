@@ -7,6 +7,7 @@ from flask import g, jsonify, request
 from db_instance import db
 from extensions import bcrypt
 from services.firebase_service import FirebaseAuthService
+from services.credenciales_service import permite_password_local
 
 from models.usuario_model import UsuarioModel
 from models.administrador_model import AdministradorModel
@@ -160,6 +161,7 @@ class PerfilController:
     def _preparar_respuesta_perfil(usuario_db):
         # arma la respuesta del perfil
         datos_usuario = usuario_db.to_dict()
+        datos_usuario["password_local"] = permite_password_local(usuario_db)
         if usuario_db.rol == Usuario.ROL_CHOFER:
             horas = horas_chofer(usuario_db.id_usuario)
             horas.pop("historial")
@@ -364,7 +366,7 @@ class PerfilController:
                 "mensaje": mensaje_error
             }), 400
 
-        if usuario_db.firebase_uid:
+        if not permite_password_local(usuario_db):
             nueva = datos.get("password_nueva")
             if nueva != datos.get("confirmar_password"):
                 return jsonify({"mensaje": "Las contraseñas nuevas no coinciden"}), 400

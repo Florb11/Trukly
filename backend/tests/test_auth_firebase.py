@@ -68,6 +68,28 @@ class AuthFirebaseTest(unittest.TestCase):
         db.session.commit()
         self.assertEqual(self.login('Local12345')[1], 403)
 
+    def test_admin_local_vinculado_conserva_acceso_y_perfil_local(self):
+        self.usuario.rol = 'admin'
+        self.usuario.password = bcrypt.generate_password_hash('ActualFirebase123').decode()
+        db.session.commit()
+        self.assertEqual(self.login('ActualFirebase123')[1], 200)
+        self.assertEqual(self.login('Incorrecta123')[1], 401)
+        self.assertTrue(PerfilController._preparar_respuesta_perfil(self.usuario)['password_local'])
+        (_, codigo), actualizar = self.cambiar_password()
+        self.assertEqual(codigo, 200)
+        actualizar.assert_not_called()
+        self.assertEqual(self.login('ActualFirebase123')[1], 401)
+        self.assertEqual(self.login('NuevaFirebase123')[1], 200)
+        self.usuario.estado = 'inactivo'
+        db.session.commit()
+        self.assertEqual(self.login('NuevaFirebase123')[1], 403)
+
+    def test_admin_no_puede_entrar_con_password_interna(self):
+        self.usuario.rol = 'admin'
+        db.session.commit()
+        self.assertEqual(self.login('firebase:uid-local')[1], 401)
+        self.assertFalse(PerfilController._preparar_respuesta_perfil(self.usuario)['password_local'])
+
     def test_login_firebase_valido_y_cuentas_no_activas(self):
         for estado, esperado in [('activo', 200), ('inactivo', 403), ('pendiente', 403)]:
             self.usuario.estado = estado

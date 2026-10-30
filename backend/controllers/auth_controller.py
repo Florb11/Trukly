@@ -10,6 +10,7 @@ from extensions import bcrypt
 from models.usuario_model import UsuarioModel
 from models.chofer_model import ChoferModel
 from services.firebase_service import FirebaseAuthService, FirebaseConfigError
+from services.credenciales_service import permite_password_local
 
 from src.Usuario import Usuario
 from src.Chofer import Chofer
@@ -556,9 +557,8 @@ class AuthController:
                 "mensaje": "Usuario o contrasena incorrectos"
             }), 401
 
-        # Firebase es la única autoridad de contraseña para cuentas vinculadas.
-        # También bloquea los hashes internos generados por versiones anteriores.
-        if usuario.firebase_uid:
+        # Conserva el acceso de admins locales; nunca admite contraseñas internas.
+        if not permite_password_local(usuario):
             return jsonify({
                 "mensaje": "Ingresá con tu correo y contraseña de Firebase o con Google."
             }), 401
