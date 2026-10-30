@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 import firebase_admin
 from firebase_admin import auth, credentials
@@ -9,8 +10,43 @@ class FirebaseConfigError(RuntimeError):
     pass
 
 
+class FirebaseMigrationConflict(RuntimeError):
+    pass
+
+
 class FirebaseAuthService:
     _inicializado = False
+
+    @staticmethod
+    def migrar_usuario_local(usuario, password, token=None):
+        """Se llama únicamente después de validar contraseña local y estado activo."""
+        if not usuario.email:
+            raise FirebaseMigrationConflict("La cuenta necesita un correo para migrar su acceso.")
+        existente = FirebaseAuthService.obtener_usuario_por_email(usuario.email)
+        if existente is None:
+            FirebaseAuthService.inicializar()
+            return auth.create_user(
+                email=usuario.email, password=password,
+                display_name=f"{usuario.nombre} {usuario.apellido}",
+                email_verified=False, disabled=False,
+            )
+        if existente.disabled:
+            raise FirebaseMigrationConflict("El acceso de Firebase está desactivado.")
+        if usuario.firebase_uid and existente.uid != usuario.firebase_uid:
+            raise FirebaseMigrationConflict("El correo no coincide con la cuenta de Firebase vinculada.")
+        # Cuenta vacía previamente preparada desde Trukly: configurar su primer acceso.
+        if (existente.uid == usuario.firebase_uid and not existente.provider_data
+                and not existente.email_verified):
+            return auth.update_user(existente.uid, password=password)
+        # Nunca sobrescribir la contraseña de una cuenta Firebase ya utilizada.
+        if not token:
+            raise FirebaseMigrationConflict("Ingresá con tu correo y contraseña de Firebase para vincular la cuenta.")
+        identidad = FirebaseAuthService.verificar_token(token, check_revoked=True)
+        antiguedad = time.time() - float(identidad.get("auth_time", 0))
+        if (identidad.get("uid") != existente.uid or not 0 <= antiguedad <= 300
+                or identidad.get("email", "").lower() != usuario.email.lower()):
+            raise FirebaseMigrationConflict("No se pudo confirmar la cuenta de Firebase existente.")
+        return existente
 
     @staticmethod
     def inicializar():

@@ -1,6 +1,7 @@
 import unittest
 import time
 from unittest.mock import patch
+from types import SimpleNamespace
 
 from flask_jwt_extended import JWTManager
 
@@ -58,37 +59,73 @@ class AuthFirebaseTest(unittest.TestCase):
         db.session.commit()
         self.assertEqual(self.login('Antigua123')[1], 401)
 
-    def test_cuenta_sin_firebase_conserva_login_local(self):
+    def test_cuenta_local_migra_solo_tras_validar_password_y_estado(self):
         self.usuario.firebase_uid = None
         self.usuario.password = bcrypt.generate_password_hash('Local12345').decode()
         db.session.commit()
-        self.assertEqual(self.login('Local12345')[1], 200)
-        self.assertEqual(self.login('Incorrecta123')[1], 401)
-        self.usuario.estado = 'inactivo'
-        db.session.commit()
-        self.assertEqual(self.login('Local12345')[1], 403)
+        with patch('controllers.auth_controller.FirebaseAuthService.migrar_usuario_local', return_value=SimpleNamespace(uid='uid-migrado')) as migrar:
+            self.assertEqual(self.login('Incorrecta123')[1], 401)
+            self.usuario.estado = 'inactivo'
+            db.session.commit()
+            self.assertEqual(self.login('Local12345')[1], 403)
+            migrar.assert_not_called()
+            self.usuario.estado = 'activo'
+            db.session.commit()
+            self.assertEqual(self.login('Local12345')[1], 200)
+            migrar.assert_called_once()
+            self.assertEqual(self.usuario.firebase_uid, 'uid-migrado')
+            self.assertEqual(self.login('Local12345')[1], 401)
 
     def test_admin_local_vinculado_conserva_acceso_y_perfil_local(self):
         self.usuario.rol = 'admin'
         self.usuario.password = bcrypt.generate_password_hash('ActualFirebase123').decode()
         db.session.commit()
-        self.assertEqual(self.login('ActualFirebase123')[1], 200)
         self.assertEqual(self.login('Incorrecta123')[1], 401)
         self.assertTrue(PerfilController._preparar_respuesta_perfil(self.usuario)['password_local'])
         (_, codigo), actualizar = self.cambiar_password()
         self.assertEqual(codigo, 200)
         actualizar.assert_not_called()
         self.assertEqual(self.login('ActualFirebase123')[1], 401)
-        self.assertEqual(self.login('NuevaFirebase123')[1], 200)
         self.usuario.estado = 'inactivo'
         db.session.commit()
         self.assertEqual(self.login('NuevaFirebase123')[1], 403)
+        self.usuario.estado = 'activo'
+        db.session.commit()
+        with patch('controllers.auth_controller.FirebaseAuthService.migrar_usuario_local', return_value=SimpleNamespace(uid='uid-local')):
+            self.assertEqual(self.login('NuevaFirebase123')[1], 200)
+        self.assertFalse(PerfilController._preparar_respuesta_perfil(self.usuario)['password_local'])
+        self.assertEqual(self.login('NuevaFirebase123')[1], 401)
 
     def test_admin_no_puede_entrar_con_password_interna(self):
         self.usuario.rol = 'admin'
         db.session.commit()
         self.assertEqual(self.login('firebase:uid-local')[1], 401)
         self.assertFalse(PerfilController._preparar_respuesta_perfil(self.usuario)['password_local'])
+
+    def test_fallo_migracion_conserva_credencial_local_y_no_emite_token(self):
+        self.usuario.firebase_uid = None
+        self.usuario.password = bcrypt.generate_password_hash('Local12345').decode()
+        db.session.commit()
+        anterior = self.usuario.password
+        with patch('controllers.auth_controller.FirebaseAuthService.migrar_usuario_local', side_effect=RuntimeError('sin conexión')), patch(
+            'controllers.auth_controller.create_access_token'
+        ) as emitir, patch('controllers.auth_controller.logger'):
+            self.assertEqual(self.login('Local12345')[1], 503)
+            emitir.assert_not_called()
+        db.session.refresh(self.usuario)
+        self.assertEqual(self.usuario.password, anterior)
+        self.assertIsNone(self.usuario.firebase_uid)
+
+    def test_token_firebase_solo_no_vincula_cuenta_local_por_correo(self):
+        self.usuario.firebase_uid = None
+        db.session.commit()
+        with self.fixture.app.test_request_context('/', method='POST', json={'token': 'mock'}), patch(
+            'controllers.auth_controller.FirebaseAuthService.verificar_token', return_value={
+                'uid': 'uid-nuevo', 'email': self.usuario.email,
+            }
+        ):
+            self.assertEqual(AuthController.login_firebase()[1], 409)
+        self.assertIsNone(self.usuario.firebase_uid)
 
     def test_login_firebase_valido_y_cuentas_no_activas(self):
         for estado, esperado in [('activo', 200), ('inactivo', 403), ('pendiente', 403)]:
