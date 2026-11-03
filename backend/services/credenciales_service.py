@@ -7,12 +7,10 @@ def crear_password_interna_firebase():
 
 
 def permite_password_local(usuario):
-    """Conserva el acceso de administradores locales vinculados posteriormente."""
+    """Detecta credenciales locales antiguas que aún necesitan migrarse."""
     if not usuario.firebase_uid:
         return True
     if usuario.password.startswith("!firebase!"):
-        return False
-    if usuario.rol != "admin":
         return False
     # El vínculo con Firebase no convierte una contraseña interna en credencial.
     try:

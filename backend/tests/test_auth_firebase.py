@@ -10,6 +10,8 @@ from controllers.perfil_controller import PerfilController
 from db_instance import db
 from extensions import bcrypt
 from models.usuario_model import UsuarioModel
+from services.firebase_service import FirebaseMigrationConflict
+from services.credenciales_service import crear_password_interna_firebase
 
 
 class AuthFirebaseTest(unittest.TestCase):
@@ -54,10 +56,37 @@ class AuthFirebaseTest(unittest.TestCase):
             self.assertEqual(self.login('firebase:uid-local')[1], 401)
             emitir.assert_not_called()
 
-    def test_bloquea_password_local_antigua_tras_vincular_firebase(self):
+    def test_password_local_no_elude_confirmacion_de_cuenta_firebase_en_uso(self):
         self.usuario.password = bcrypt.generate_password_hash('Antigua123').decode()
         db.session.commit()
-        self.assertEqual(self.login('Antigua123')[1], 401)
+        with patch('controllers.auth_controller.FirebaseAuthService.migrar_usuario_local', side_effect=FirebaseMigrationConflict('Confirmá tu cuenta Firebase')):
+            self.assertEqual(self.login('Antigua123')[1], 409)
+
+    def test_credencial_local_vinculada_migra_para_todos_los_roles(self):
+        for rol in ['chofer', 'mecanico', 'operador', 'admin']:
+            with self.subTest(rol=rol):
+                self.usuario.rol = rol
+                self.usuario.estado = 'activo'
+                self.usuario.firebase_uid = 'uid-local'
+                self.usuario.password = bcrypt.generate_password_hash('LocalValida123').decode()
+                db.session.commit()
+                with patch('services.firebase_service.FirebaseAuthService.obtener_usuario_por_email', return_value=SimpleNamespace(
+                    uid='uid-local', disabled=False, provider_data=[], email_verified=False
+                )), patch('services.firebase_service.auth.update_user', return_value=SimpleNamespace(uid='uid-local')) as actualizar:
+                    self.assertEqual(self.login('Incorrecta123')[1], 401)
+                    actualizar.assert_not_called()
+                    self.assertEqual(self.login('LocalValida123')[1], 200)
+                    actualizar.assert_called_once_with('uid-local', password='LocalValida123')
+                self.assertEqual(self.login('LocalValida123')[1], 401)
+
+    def test_migrados_no_admiten_password_local_para_ningun_rol(self):
+        for rol in ['chofer', 'mecanico', 'operador', 'admin']:
+            self.usuario.rol = rol
+            self.usuario.password = crear_password_interna_firebase()
+            db.session.commit()
+            with patch('controllers.auth_controller.FirebaseAuthService.migrar_usuario_local') as migrar:
+                self.assertEqual(self.login('Antigua123')[1], 401)
+                migrar.assert_not_called()
 
     def test_cuenta_local_migra_solo_tras_validar_password_y_estado(self):
         self.usuario.firebase_uid = None
