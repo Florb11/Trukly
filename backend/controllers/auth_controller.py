@@ -562,7 +562,7 @@ class AuthController:
                 "mensaje": "Usuario o contrasena incorrectos"
             }), 401
 
-        # Conserva el acceso de admins locales; nunca admite contraseñas internas.
+        # Permite migrar credenciales locales de cualquier rol, nunca las internas.
         if not permite_password_local(usuario):
             return jsonify({
                 "mensaje": "Ingresá con tu correo y contraseña de Firebase o con Google."
