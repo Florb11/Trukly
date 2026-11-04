@@ -23,6 +23,7 @@ import logoTrukly from "../assets/logo-trukly.png";
 import { useAuth } from "../context/AuthContext";
 import { auth } from "../firebase";
 import { obtenerMensajeAuth } from "../utils/authErrors";
+import { iniciarSesionConRespaldo } from "../utils/authFlows";
 
 function LoginPage() {
   const { login } = useAuth();
@@ -80,7 +81,7 @@ function LoginPage() {
     const data = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error(data.mensaje || "No se pudo iniciar sesión");
+      throw Object.assign(new Error(data.mensaje || "No se pudo iniciar sesión"), { status: respuesta.status, codigo: data.codigo });
     }
 
     login(data.token, data.usuario, recordarSesion);
@@ -104,7 +105,7 @@ function LoginPage() {
     const data = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error(data.mensaje || "No se pudo iniciar sesión");
+      throw Object.assign(new Error(data.mensaje || "No se pudo iniciar sesión"), { status: respuesta.status, codigo: data.codigo });
     }
 
     login(data.token, data.usuario, recordarSesion);
@@ -124,30 +125,18 @@ function LoginPage() {
 
     setMensaje("");
     setError("");
-    let firebaseToken = null;
-
     try {
-      await aplicarPersistenciaFirebase();
-
-      const credencial = await signInWithEmailAndPassword(
-        auth,
-        formulario.email,
-        formulario.password
-      );
-
-      firebaseToken = await credencial.user.getIdToken();
-      await loginConBackendFirebase(firebaseToken);
+      await iniciarSesionConRespaldo({
+        autenticarFirebase: async () => {
+          await aplicarPersistenciaFirebase();
+          const credencial = await signInWithEmailAndPassword(auth, formulario.email.trim(), formulario.password);
+          return credencial.user.getIdToken();
+        },
+        loginFirebase: loginConBackendFirebase,
+        loginLocal: loginConBackendTradicional,
+      });
     } catch (error) {
-      try {
-        await loginConBackendTradicional(firebaseToken);
-      } catch (errorBackend) {
-        const mensajeFirebase = obtenerMensajeAuth(
-          error,
-          "No se pudo iniciar sesión"
-        );
-
-        setError(errorBackend.message || mensajeFirebase);
-      }
+      setError(obtenerMensajeAuth(error, "No se pudo iniciar sesión"));
     }
   };
 

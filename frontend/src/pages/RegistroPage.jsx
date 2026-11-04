@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaGoogle, FaIdCard, FaShieldAlt, FaTruckMoving } from "react-icons/fa";
 import {
   createUserWithEmailAndPassword,
-  deleteUser,
+  signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
 } from "firebase/auth";
@@ -11,6 +11,7 @@ import "./RegistroPage.css";
 import logoTrukly from "../assets/logo-trukly.png";
 import { auth } from "../firebase";
 import { obtenerMensajeAuth } from "../utils/authErrors";
+import { completarRegistro } from "../utils/authFlows";
 
 function RegistroPage() {
   const [formulario, setFormulario] = useState({
@@ -29,6 +30,8 @@ function RegistroPage() {
   const [firebaseTokenGoogle, setFirebaseTokenGoogle] = useState("");
   const [vinculandoGoogle, setVinculandoGoogle] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [registrando, setRegistrando] = useState(false);
+  const envioEnCurso = useRef(false);
   const registroConGoogle = !!firebaseTokenGoogle;
   const googleProvider = new GoogleAuthProvider();
 
@@ -52,6 +55,7 @@ function RegistroPage() {
         ...datosPerfil,
         firebaseToken,
       }),
+      signal: AbortSignal.timeout(20000),
     });
 
     const data = await respuesta.json();
@@ -74,7 +78,7 @@ function RegistroPage() {
   };
 
   const handleGoogleRegistro = async () => {
-    if (vinculandoGoogle) return;
+    if (vinculandoGoogle || envioEnCurso.current) return;
 
     setMensaje("");
     setError("");
@@ -108,41 +112,33 @@ function RegistroPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (envioEnCurso.current || vinculandoGoogle) return;
+    envioEnCurso.current = true;
+    setRegistrando(true);
 
     setMensaje("");
     setError("");
 
     try {
-      let credencial = null;
-      let firebaseToken = firebaseTokenGoogle;
-
-      if (!registroConGoogle) {
-        credencial = await createUserWithEmailAndPassword(
-          auth,
-          formulario.email,
-          formulario.password
-        );
-        firebaseToken = await credencial.user.getIdToken();
-      }
-
-      const { respuesta, data } = await enviarRegistroAlBackend(firebaseToken);
-
-      if (respuesta.ok) {
-        setMensaje(data.mensaje);
-        limpiarFormulario();
-      } else {
-        if (credencial) {
-          try {
-            await deleteUser(credencial.user);
-          } catch {
-            // Si Firebase no permite borrar, el backend igual devuelve el error real.
-          }
-        }
-
-        setError(data.mensaje || "No se pudo registrar el chofer");
-      }
+      const data = await completarRegistro({
+        crearCuenta: async () => (await createUserWithEmailAndPassword(auth, formulario.email.trim(), formulario.password)).user,
+        iniciarSesion: async () => (await signInWithEmailAndPassword(auth, formulario.email.trim(), formulario.password)).user,
+        obtenerCuentaGoogle: registroConGoogle ? async () => {
+          await auth.authStateReady();
+          if (!auth.currentUser) throw new Error("Volvé a vincular tu cuenta de Google.");
+          return auth.currentUser;
+        } : null,
+        enviarRegistro: enviarRegistroAlBackend,
+      });
+      setMensaje(data.mensaje);
+      limpiarFormulario();
     } catch (error) {
-      setError(obtenerMensajeAuth(error, "No se pudo registrar con Firebase o conectar con el backend"));
+      setError(["TypeError", "TimeoutError"].includes(error.name)
+        ? "No se pudo confirmar el registro. Revisá tu conexión y volvé a enviarlo con los mismos datos."
+        : obtenerMensajeAuth(error, "No se pudo completar el registro."));
+    } finally {
+      envioEnCurso.current = false;
+      setRegistrando(false);
     }
   };
 
@@ -196,7 +192,7 @@ function RegistroPage() {
             type="button"
             className="registro-google-button"
             onClick={handleGoogleRegistro}
-            disabled={vinculandoGoogle}
+            disabled={vinculandoGoogle || registrando}
           >
             <FaGoogle />
             {vinculandoGoogle ? "Conectando..." : "Continuar con Google"}
@@ -293,7 +289,7 @@ function RegistroPage() {
               </label>
             )}
 
-            <button type="submit">
+            <button type="submit" disabled={registrando || vinculandoGoogle}>
               {registroConGoogle ? "Solicitar alta con Google" : "Solicitar registro"}
             </button>
           </form>

@@ -191,6 +191,56 @@ class AuthFirebaseTest(unittest.TestCase):
             respuesta = PerfilController.cambiar_password.__wrapped__()
             return respuesta, actualizar
 
+    def registrar(self, cambios=None, identidad=None):
+        payload = {'firebaseToken': 'mock', 'username': 'registro_auth',
+                   'email': 'registro@example.invalid', 'nombre': 'Prueba', 'apellido': 'Registro'}
+        payload.update(cambios or {})
+        with self.fixture.app.test_request_context('/', method='POST', json=payload), patch(
+            'controllers.auth_controller.FirebaseAuthService.verificar_token', return_value=identidad or {
+                'uid': 'uid-registro', 'email': 'registro@example.invalid',
+            }
+        ):
+            respuesta, codigo = AuthController.registrar_chofer_firebase()
+            return respuesta.get_json(), codigo
+
+    def test_reintento_registro_devuelve_misma_cuenta_sin_alterar_nombre_rol_o_estado(self):
+        inicial, codigo = self.registrar()
+        self.assertEqual(codigo, 201)
+        usuario = UsuarioModel.query.filter_by(username='registro_auth').one()
+        usuario.estado = 'inactivo'
+        db.session.commit()
+        datos, codigo = self.registrar({'username': 'otro', 'nombre': 'Otro', 'rol': 'admin', 'estado': 'activo'})
+        self.assertEqual(codigo, 200)
+        self.assertTrue(datos['registro_existente'])
+        self.assertEqual(datos['usuario']['id_usuario'], inicial['usuario']['id_usuario'])
+        self.assertEqual(datos['usuario']['username'], 'registro_auth')
+        self.assertEqual(datos['usuario']['nombre'], 'Prueba')
+        self.assertEqual(datos['usuario']['estado'], 'inactivo')
+        self.assertEqual(datos['usuario']['rol'], 'chofer')
+        self.assertEqual(UsuarioModel.query.filter_by(firebase_uid='uid-registro').count(), 1)
+
+    def test_registro_no_vincula_email_o_username_de_otro_usuario(self):
+        self.assertEqual(self.registrar({'username': self.usuario.username})[1], 409)
+        self.assertEqual(self.registrar({'email': self.usuario.email}, {
+            'uid': 'otro-uid', 'email': self.usuario.email,
+        })[1], 409)
+        self.assertEqual(self.usuario.firebase_uid, 'uid-local')
+
+    def test_registro_rechaza_email_que_no_corresponde_al_token(self):
+        self.assertEqual(self.registrar(identidad={'uid': 'otro', 'email': 'otro@example.invalid'})[1], 400)
+        self.assertIsNone(UsuarioModel.query.filter_by(username='registro_auth').first())
+
+    def test_fallo_base_datos_revierte_y_permite_reintentar(self):
+        with patch.object(db.session, 'commit', side_effect=RuntimeError('Base no disponible')), patch('controllers.auth_controller.logger'):
+            self.assertEqual(self.registrar()[1], 500)
+        self.assertIsNone(UsuarioModel.query.filter_by(username='registro_auth').first())
+        self.assertEqual(self.registrar()[1], 201)
+        self.assertEqual(self.registrar()[1], 200)
+
+    def test_registro_valida_datos_chofer_antes_de_insertar(self):
+        self.assertEqual(self.registrar({'licencia': 'LIC123', 'vencimientoLicencia': 'no-es-fecha', 'legajo': 'C1'})[1], 400)
+        self.assertIsNone(UsuarioModel.query.filter_by(username='registro_auth').first())
+
     def identidad_reciente(self):
         return {'uid': 'uid-local', 'auth_time': time.time(),
                 'firebase': {'sign_in_provider': 'password'}}
