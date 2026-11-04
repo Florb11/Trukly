@@ -244,6 +244,11 @@ class ChoferController:
             camion_carga = CamionModel.query.filter_by(id_camion=viaje_model.Camion_id_camion).populate_existing().with_for_update().first()
             if camion_carga is None:
                 return jsonify({"mensaje": "Camión no encontrado"}), 404
+            # "En viaje" también representa la reserva hecha al asignar el camión.
+            if camion_carga.estado not in {Camion.ESTADO_DISPONIBLE, Camion.ESTADO_EN_VIAJE}:
+                return jsonify({
+                    "mensaje": "No podés iniciar el viaje: el camión está inactivo o en mantenimiento. Contactá al operador."
+                }), 409
             try:
                 comprobar_capacidad(viaje_model.id_viaje, camion_carga)
             except ErrorCarga as error:
@@ -258,6 +263,8 @@ class ChoferController:
         )
 
         viaje_model.estado = nuevo_estado
+        if tipo_registro == "ingreso":
+            camion_carga.estado = Camion.ESTADO_EN_VIAJE
         if tipo_registro == "salida":
             viaje_model.fecha_llegada = viaje_model.fecha_llegada or ahora.date()
 
