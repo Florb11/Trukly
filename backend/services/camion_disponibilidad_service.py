@@ -6,6 +6,25 @@ from src.ReporteFalla import ReporteFalla
 from src.Viaje import Viaje
 
 
+def actualizar_camion_tras_cierre_reporte(id_camion, id_reporte):
+    camion = CamionModel.query.filter_by(id_camion=id_camion).populate_existing().with_for_update().first()
+    if camion is None or camion.estado != Camion.ESTADO_EN_MANTENIMIENTO:
+        return False
+    otro_reporte = ReporteModel.query.filter(
+        ReporteModel.Camion_id_camion == id_camion,
+        ReporteModel.id_reporte != id_reporte,
+        ReporteModel.estado.in_(ReporteFalla.ESTADOS_ACTIVOS),
+    ).first()
+    if otro_reporte is not None:
+        return False
+    viaje_activo = ViajeModel.query.filter(
+        ViajeModel.Camion_id_camion == id_camion,
+        ViajeModel.estado.in_((Viaje.ESTADO_PENDIENTE, Viaje.ESTADO_ACEPTADO, Viaje.ESTADO_EN_CURSO)),
+    ).first()
+    camion.estado = Camion.ESTADO_EN_VIAJE if viaje_activo else Camion.ESTADO_DISPONIBLE
+    return True
+
+
 def actualizar_camion_tras_cancelacion(viaje_model):
     camion = CamionModel.query.get(viaje_model.Camion_id_camion)
     if camion is None or camion.estado != Camion.ESTADO_EN_VIAJE:
