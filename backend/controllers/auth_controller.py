@@ -3,6 +3,7 @@ import secrets
 from flask import jsonify, request
 from flask_jwt_extended import create_access_token
 from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 
 from db_instance import db
 from extensions import bcrypt
@@ -27,6 +28,17 @@ logger = get_app_logger()
 
 
 class AuthController:
+
+    @staticmethod
+    def _registro_existente_firebase(uid, email):
+        usuario = UsuarioModel.query.filter_by(firebase_uid=uid).first()
+        if usuario and (usuario.email or "").lower() == email.lower():
+            return jsonify({
+                "mensaje": "Tu cuenta ya está registrada. Iniciá sesión para consultar tu acceso.",
+                "usuario": AuthController._usuario_to_dict_con_perfil(usuario),
+                "registro_existente": True,
+            }), 200
+        return None
     CAMPOS_REGISTRO_CHOFER = [
         "username",
         "password",
@@ -117,6 +129,8 @@ class AuthController:
             ]
         )
 
+        validador.agregar(ValidacionFuncion("licencia", Chofer.validar_licencia))
+        validador.agregar(ValidacionFuncion("vencimientoLicencia", Chofer.validar_vencimiento_licencia))
         return validador
 
     @staticmethod
@@ -387,6 +401,10 @@ class AuthController:
                 "mensaje": "El email no coincide con la cuenta de Firebase"
             }), 400
 
+        existente = AuthController._registro_existente_firebase(firebase_uid, datos["email"])
+        if existente is not None:
+            return existente
+
         datos_disponibles, mensaje_error = (
             AuthController._validar_username_email_disponibles(
                 datos["username"],
@@ -440,6 +458,7 @@ class AuthController:
                 )
 
                 if chofer_clase is None:
+                    db.session.rollback()
                     return jsonify({
                         "mensaje": "No se pudo registrar el chofer"
                     }), 400
@@ -452,6 +471,12 @@ class AuthController:
 
             db.session.commit()
 
+        except IntegrityError:
+            db.session.rollback()
+            existente = AuthController._registro_existente_firebase(firebase_uid, datos["email"])
+            if existente is not None:
+                return existente
+            return jsonify({"mensaje": "El correo o nombre de usuario ya está registrado."}), 409
         except Exception:
             db.session.rollback()
             logger.exception("No se pudo registrar el chofer con Firebase")
