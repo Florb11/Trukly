@@ -13,6 +13,7 @@ from src.observer.NotificacionReporteListener import (
 )
 
 from services.notificacion_service import NotificacionService
+from services.camion_disponibilidad_service import actualizar_camion_tras_cierre_reporte
 from utils.auth_decorators import mecanico_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
@@ -243,27 +244,9 @@ class MecanicoController:
             reporte
         )
 
-        camion_model = CamionModel.query.get(reporte_model.Camion_id_camion)
-        camion = MecanicoController.crear_objeto_camion(camion_model)
-
-        reportes_activos = (
-            MecanicoController.obtener_reportes_activos_camion(
-                reporte_model.Camion_id_camion,
-                reporte_model.id_reporte
-            )
+        camion_liberado = actualizar_camion_tras_cierre_reporte(
+            reporte_model.Camion_id_camion, reporte_model.id_reporte
         )
-
-        # el mecanico delega en camion si se puede liberar
-        camion_liberado = mecanico.liberar_camion_si_corresponde(
-            camion,
-            reportes_activos
-        )
-
-        if camion_liberado:
-            MecanicoController.actualizar_modelo_camion(
-                camion_model,
-                camion
-            )
 
         try:
             # La notificacion se confirma junto con la resolucion.
