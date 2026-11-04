@@ -18,6 +18,13 @@ def datos(peso="100", **extra):
 
 
 class PesosCargaTest(unittest.TestCase):
+    def test_bultos_rechaza_caracteres_no_convertibles_y_numeros_excesivos(self):
+        for valor in ["²", "①", "١", "9" * 5000, "2147483648", [], {}, True, 1.0]:
+            with self.subTest(valor=str(valor)[:30]), self.assertRaises(ErrorCarga):
+                validar_datos(datos(bultos=valor))
+        for valor in [1, "1", 2147483647, "2147483647"]:
+            self.assertEqual(validar_datos(datos(bultos=valor))["bultos"], int(valor))
+
     def test_precision_decimal(self):
         self.assertEqual(peso_decimal("0.1") + peso_decimal("0.2"), Decimal("0.3"))
         self.assertEqual(peso_decimal("10000.125"), Decimal("10000.125"))
@@ -75,6 +82,20 @@ class CargasApiTest(unittest.TestCase):
         self.assertEqual(len(respuesta["referencia"]), 12)
         self.assertNotIn("detalle interno", respuesta["mensaje"])
         logger.return_value.exception.assert_called_once()
+
+    def test_bultos_invalidos_devuelven_400_sin_guardar_ni_modificar(self):
+        respuesta, codigo = self.pedir("POST", datos(bultos=2))
+        self.assertEqual(codigo, 201)
+        id_carga = respuesta["cargas"][0]["id_carga"]
+        for valor in ["²", "①", "9" * 5000, "2147483648"]:
+            for metodo in ["POST", "PUT"]:
+                with self.subTest(valor=valor[:20], metodo=metodo):
+                    _, codigo = self.pedir(metodo, datos("200", bultos=valor), id_carga if metodo == "PUT" else None)
+                    self.assertEqual(codigo, 400)
+                    carga = db.session.get(CargaModel, id_carga)
+                    self.assertEqual(carga.bultos, 2)
+                    self.assertEqual(carga.peso, Decimal("100"))
+                    self.assertEqual(CargaModel.query.filter_by(Viaje_id_viaje=50).count(), 1)
 
     def test_error_de_guardado_hace_rollback_y_da_referencia(self):
         with patch.object(db.session, "commit", side_effect=RuntimeError("fallo interno")), patch("controllers.carga_controller.get_app_logger"):

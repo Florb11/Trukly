@@ -40,9 +40,13 @@ def validar_datos(datos):
     resultado["peso"] = peso_decimal(datos.get("peso"))
     bultos = datos.get("bultos")
     if bultos is not None and bultos != "":
-        if isinstance(bultos, bool) or not str(bultos).isdigit() or not 1 <= int(bultos) <= 2147483647:
+        texto_bultos = str(bultos)
+        if (isinstance(bultos, bool) or not texto_bultos.isascii()
+                or not texto_bultos.isdigit() or len(texto_bultos) > 10):
             raise ErrorCarga("La cantidad de bultos debe ser un número entero mayor que cero")
-        bultos = int(bultos)
+        bultos = int(texto_bultos)
+        if not 1 <= bultos <= 2147483647:
+            raise ErrorCarga("La cantidad de bultos debe estar entre 1 y 2147483647")
     else:
         bultos = None
     resultado["bultos"] = bultos
