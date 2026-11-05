@@ -230,10 +230,17 @@ class ChoferController:
     @chofer_required
     def registrar_ingreso_salida(id_viaje):
         chofer = g.chofer_actual
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict):
+            return jsonify({"mensaje": "Los datos del control no son válidos."}), 400
+        if cuerpo.get("observacion") is not None and not isinstance(cuerpo["observacion"], str):
+            return jsonify({"mensaje": "La observación debe ser un texto."}), 400
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=["tipo_registro", "observacion"],
         )
+        if len(datos.get("observacion") or "") > 100:
+            return jsonify({"mensaje": "La observación es demasiado larga. Acortá el texto o reducí los símbolos (máximo 100 caracteres almacenados) y volvé a confirmar el QR."}), 400
         tipo_registro = (datos.get("tipo_registro") or "").strip().lower()
 
         if tipo_registro not in {"ingreso", "salida"}:

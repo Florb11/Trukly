@@ -174,3 +174,48 @@ class QrEstadoCamionTest(unittest.TestCase):
         self.assertIsNone(datos['viaje']['fecha_llegada'])
         self.assertIsNone(datos['viaje']['fecha_llegada_estimada'])
         self.assertIsNotNone(datos['viaje']['fecha_regreso_real'])
+
+
+    def escanear_con_observacion(self, tipo, observacion):
+        with self.fixture.app.test_request_context('/', method='POST', json={'tipo_registro':tipo,'observacion':observacion}):
+            g.chofer_actual = SimpleNamespace(id_usuario=1)
+            respuesta, codigo = ChoferController.registrar_ingreso_salida.__wrapped__(90)
+            return respuesta.get_json(), codigo
+
+    def test_observacion_invalida_no_inicia_y_permite_reintentar(self):
+        texto_codificado = 'Entrega "confirmada" &' + ' recibida. '*7
+        self.assertLessEqual(len(texto_codificado),100)
+        for texto in ['A'*101, texto_codificado, [], {}]:
+            datos, codigo = self.escanear_con_observacion('ingreso',texto)
+            self.assertEqual(codigo,400,datos)
+            db.session.remove()
+            self.assertEqual(db.session.get(ViajeModel,90).estado,'aceptado')
+            self.assertEqual(db.session.get(CamionModel,90).estado,'disponible')
+            self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).count(),0)
+        self.assertEqual(self.escanear_con_observacion('ingreso','A'*100)[1],201)
+        registro = RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).one()
+        self.assertEqual(registro.observacion,'A'*100)
+
+    def test_observacion_invalida_no_finaliza_y_permite_reintentar(self):
+        self.assertEqual(self.escanear()[1],201)
+        RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).one().fecha_hora = datetime.now()-timedelta(minutes=2)
+        db.session.commit()
+        datos,codigo = self.escanear_con_observacion('salida',"'"*17)
+        self.assertEqual(codigo,400,datos)
+        db.session.remove()
+        self.assertEqual(db.session.get(ViajeModel,90).estado,'en curso')
+        self.assertEqual(db.session.get(CamionModel,90).estado,'en viaje')
+        self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).count(),1)
+        self.assertEqual(self.escanear_con_observacion('salida','Regreso completo')[1],201)
+        self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).count(),2)
+
+    def test_observacion_opcional_y_simbolos_dentro_del_limite(self):
+        from html import escape
+        texto = "'"*16
+        self.assertEqual(self.escanear_con_observacion('ingreso',texto)[1],201)
+        registro = RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).one()
+        self.assertEqual(registro.observacion,escape(texto))
+        registro.fecha_hora = datetime.now()-timedelta(minutes=2)
+        db.session.commit()
+        self.assertEqual(self.escanear_con_observacion('salida',None)[1],201)
+        self.assertIsNone(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90,tipo_registro='salida').one().observacion)
