@@ -260,3 +260,37 @@ class AdminPropiaCuentaTest(unittest.TestCase):
         for campo, valor in [('capacidad_carga', float('nan')), ('capacidad_carga', float('inf')),
                              ('capacidad_carga', True), ('nroTanque', 1.9), ('nroTanque', True)]:
             self.assertFalse(Camion.validar_datos_camion({**datos, campo:valor})[0])
+
+    def test_camion_rechaza_textos_largos_al_crear_y_editar_sin_mutaciones(self):
+        camion = db.session.get(CamionModel, 1)
+        original = (camion.matricula, camion.marca, camion.modelo)
+        for campo, limite in [('matricula',15), ('marca',20), ('modelo',20)]:
+            for metodo, ruta in [('POST','/api/admin/camiones'), ('PUT','/api/admin/camiones/1')]:
+                with self.subTest(campo=campo, metodo=metodo):
+                    datos = {'matricula':'QA-LIMITE', 'marca':'Marca', 'modelo':'Modelo',
+                             'capacidad_carga':1000, 'nroTanque':1, 'estado':'disponible', campo:'X'*(limite+1)}
+                    if metodo=='PUT':
+                        datos = {campo:'X'*(limite+1)}
+                    cantidad = CamionModel.query.count()
+                    r = self.cliente.open(ruta, method=metodo, headers=self.headers, json=datos)
+                    self.assertEqual(r.status_code, 400, r.get_json())
+                    self.assertIn(str(limite), r.get_json()['mensaje'])
+                    self.assertEqual(CamionModel.query.count(), cantidad)
+                    db.session.refresh(camion)
+                    self.assertEqual((camion.matricula, camion.marca, camion.modelo), original)
+
+    def test_camion_acepta_textos_en_el_limite(self):
+        datos = {'matricula':'M'*15, 'marca':'A'*20, 'modelo':'B'*20,
+                 'capacidad_carga':1000, 'nroTanque':1, 'estado':'disponible'}
+        r = self.cliente.post('/api/admin/camiones', headers=self.headers, json=datos)
+        self.assertEqual(r.status_code, 201, r.get_json())
+        camion = CamionModel.query.filter_by(matricula='M'*15).one()
+        try:
+            r = self.cliente.put('/api/admin/camiones/'+str(camion.id_camion), headers=self.headers,
+                                  json={'marca':'C'*20, 'modelo':'D'*20})
+            self.assertEqual(r.status_code, 200, r.get_json())
+            self.assertEqual(camion.marca, 'C'*20)
+            self.assertEqual(camion.modelo, 'D'*20)
+        finally:
+            db.session.delete(camion)
+            db.session.commit()

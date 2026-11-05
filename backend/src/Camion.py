@@ -109,6 +109,10 @@ class Camion:
         if not Camion._texto_valido(modelo):
             return False, "El modelo es obligatorio"
 
+        for campo, etiqueta, limite in [("matricula", "matrícula", 15), ("marca", "marca", 20), ("modelo", "modelo", 20)]:
+            if len(str(datos[campo]).strip()) > limite:
+                return False, f"El campo {etiqueta} admite hasta {limite} caracteres"
+
         if capacidad_carga is None:
             return False, "La capacidad de carga es obligatoria"
 
