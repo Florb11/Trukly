@@ -193,9 +193,9 @@ function AdminViajesPage() {
   const puedeCancelarse = (estado) => {
     if (!estado) return false;
 
-    const estadoNormalizado = estado.toLowerCase();
+    const estadoNormalizado = estado.trim().toLowerCase();
 
-    return estadoNormalizado !== "cancelado" && estadoNormalizado !== "finalizado";
+    return ["pendiente", "aceptado"].includes(estadoNormalizado);
   };
 
   return (

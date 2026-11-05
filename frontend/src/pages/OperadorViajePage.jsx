@@ -492,13 +492,13 @@ function OperadorViajesPage() {
                               Editar
                             </button>
 
-                            <button
+                            {["pendiente", "aceptado"].includes((viaje.estado || "").trim().toLowerCase()) && <button
                               type="button"
                               className="op-viajes-btn-cancelar"
                               onClick={() => setViajeCancelar(viaje)}
                             >
                               Cancelar
-                            </button>
+                            </button>}
                           </>
                         )}
                       </td>

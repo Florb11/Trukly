@@ -473,3 +473,38 @@ class OperacionCompartidaTest(unittest.TestCase):
         self.assertEqual(NotificacionModel.query.count(), 0)
         self.assertEqual(ViajeCambioModel.query.count(), 0)
         self.enviar_push.assert_not_called()
+
+    def test_cancelacion_solo_antes_de_iniciar_para_admin_y_operador(self):
+        db.session.add(UsuarioModel(id_usuario=99, username='admin_cancelacion', password='x',
+            nombre='QA', apellido='Admin', rol='admin', estado='activo'))
+        db.session.commit()
+        try:
+            for rol, identidad, ruta in [('operador','90','/api/operador/viajes/50/cancelar'),
+                                         ('admin','99','/api/admin/viajes/50/cancelar')]:
+                token = create_access_token(identity=identidad, additional_claims={'rol':rol})
+                for estado in ['en curso', 'finalizado', 'cancelado', 'pendiente', 'aceptado']:
+                    with self.subTest(rol=rol, estado=estado):
+                        NotificacionModel.query.delete()
+                        ViajeCambioModel.query.delete()
+                        viaje = db.session.get(ViajeModel, 50)
+                        viaje.estado = estado
+                        viaje.observaciones = 'Original'
+                        db.session.get(CamionModel, 90).estado = 'en viaje'
+                        db.session.commit()
+                        r = self.fixture.app.test_client().put(ruta,
+                            headers={'Authorization':'Bearer '+token}, json={'motivo':'Cambio de plan'})
+                        permitido = estado in ['pendiente', 'aceptado']
+                        self.assertEqual(r.status_code, 200 if permitido else 400, r.get_json())
+                        self.assertEqual(viaje.estado, 'cancelado' if permitido else estado)
+                        self.assertEqual(db.session.get(CamionModel, 90).estado,
+                                         'disponible' if permitido else 'en viaje')
+                        if not permitido:
+                            self.assertEqual(viaje.observaciones, 'Original')
+                            self.assertEqual(ViajeCambioModel.query.count(), 0)
+                            self.assertEqual(NotificacionModel.query.count(), 0)
+        finally:
+            db.session.rollback()
+            NotificacionModel.query.delete()
+            ViajeCambioModel.query.delete()
+            UsuarioModel.query.filter_by(id_usuario=99).delete()
+            db.session.commit()

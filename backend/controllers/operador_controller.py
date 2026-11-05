@@ -269,7 +269,7 @@ class OperadorController:
         if not operador.cancelar_viaje(viaje, motivo):
             return (
                 jsonify(
-                    {"mensaje": "El viaje no puede cancelarse en su estado actual"}
+                    {"mensaje": "Solo se pueden cancelar viajes pendientes o aceptados."}
                 ),
                 400,
             )

@@ -531,7 +531,7 @@ class ViajeController:
 
         if not viaje.cancelar(motivo):
             return jsonify({
-                "mensaje": "No se pudo cancelar el viaje"
+                "mensaje": "Solo se pueden cancelar viajes pendientes o aceptados."
             }), 400
 
         ViajeController.actualizar_modelo_viaje(viaje_model, viaje)
