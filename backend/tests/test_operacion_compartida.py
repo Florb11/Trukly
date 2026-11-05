@@ -15,7 +15,9 @@ from models.camion_model import CamionModel
 from models.viaje_model import ViajeModel
 from models.viaje_cambio_model import ViajeCambioModel
 from models.carga_model import CargaModel
+from models.notificacion_model import NotificacionModel
 from src.OperadorLogistico import OperadorLogistico
+from services.notificacion_service import NotificacionService
 
 
 class OperacionCompartidaTest(unittest.TestCase):
@@ -36,6 +38,11 @@ class OperacionCompartidaTest(unittest.TestCase):
         cls.fixture.tearDownClass()
 
     def setUp(self):
+        self.emisor_real = NotificacionService.enviar_push_pendientes
+        push = patch('controllers.operador_controller.NotificacionService.enviar_push_pendientes')
+        self.enviar_push = push.start()
+        self.addCleanup(push.stop)
+        db.session.get(ViajeModel, 2).estado = 'en curso'
         db.session.add_all([
             UsuarioModel(id_usuario=90, username='operador2', password='x', nombre='Segundo', apellido='Operador', rol='operador', estado='activo'),
             OperadorModel(Usuario_idUsuario=90, legajo='O90', sector='Logística'),
@@ -52,6 +59,7 @@ class OperacionCompartidaTest(unittest.TestCase):
 
     def tearDown(self):
         db.session.rollback()
+        NotificacionModel.query.delete()
         ViajeCambioModel.query.delete()
         CargaModel.query.filter_by(Viaje_id_viaje=50).delete()
         ViajeModel.query.filter(ViajeModel.id_viaje >= 50).delete()
@@ -169,3 +177,103 @@ class OperacionCompartidaTest(unittest.TestCase):
             self.assertEqual(r.status_code, esperado, r.get_json())
             detalle = self.fixture.app.test_client().get('/api/viaje/50', headers={'Authorization':'Bearer '+token})
             self.assertEqual(detalle.status_code, esperado, detalle.get_json())
+
+    def test_flujo_compartido_autenticado_con_cargas_historial_y_cancelacion(self):
+        token = create_access_token(identity='90', additional_claims={'rol':'operador'})
+        headers = {'Authorization':'Bearer '+token}
+        cliente = self.fixture.app.test_client()
+        self.assertEqual(cliente.put('/api/operador/viajes/50', json={'observaciones':'Gestión compartida'}, headers=headers).status_code, 200)
+        r = cliente.post('/api/operador/viajes/50/cargas', json={'descripcion':'Prueba', 'tipo':'General', 'peso':'100'}, headers=headers)
+        self.assertEqual(r.status_code, 201, r.get_json())
+        id_carga = r.get_json()['cargas'][0]['id_carga']
+        r = cliente.put(f'/api/operador/viajes/50/cargas/{id_carga}', json={'descripcion':'Prueba', 'tipo':'General', 'peso':'200'}, headers=headers)
+        self.assertEqual(r.status_code, 200, r.get_json())
+        self.assertEqual(r.get_json()['peso_total_kg'], 200)
+        r = cliente.delete(f'/api/operador/viajes/50/cargas/{id_carga}', headers=headers)
+        self.assertEqual(r.status_code, 200, r.get_json())
+        self.assertEqual(r.get_json()['peso_total_kg'], 0)
+        with patch('controllers.operador_controller.AdminNotificacionService.viaje_cancelado'), patch('controllers.operador_controller.NotificacionService.enviar_push_pendientes'):
+            self.assertEqual(cliente.put('/api/operador/viajes/50/cancelar', json={'motivo':''}, headers=headers).status_code, 400)
+            r = cliente.put('/api/operador/viajes/50/cancelar', json={'motivo':'Fin de prueba'}, headers=headers)
+            self.assertEqual(r.status_code, 200, r.get_json())
+        r = cliente.get('/api/operador/viajes/50/historial', headers=headers)
+        self.assertEqual(r.status_code, 200)
+        cambios = r.get_json()
+        self.assertEqual({c['accion'] for c in cambios}, {'viaje_editado','carga_agregada','carga_editada','carga_eliminada','viaje_cancelado'})
+        self.assertEqual(len(cambios), 5)
+        self.assertTrue(all(c['id_usuario'] == 90 and c['actor_nombre'] == 'Segundo Operador' for c in cambios))
+        self.assertEqual(db.session.get(ViajeModel, 50).OperadorLogistico_Usuario_idUsuario, 2)
+
+    def test_reasignacion_compartida_exige_aceptacion_nueva_y_actualiza_nombre(self):
+        db.session.get(ViajeModel, 2).estado = 'finalizado'
+        db.session.get(UsuarioModel, 1).estado = 'activo'
+        db.session.commit()
+        token = create_access_token(identity='90', additional_claims={'rol':'operador'})
+        r = self.fixture.app.test_client().put('/api/operador/viajes/50', json={'Chofer_Usuario_idUsuario':1}, headers={'Authorization':'Bearer '+token})
+        self.assertEqual(r.status_code, 200, r.get_json())
+        self.assertEqual(r.get_json()['viaje']['estado'], 'pendiente')
+        self.assertEqual(r.get_json()['viaje']['chofer_nombre'], 'Ana García')
+        self.assertEqual(r.get_json()['viaje']['OperadorLogistico_Usuario_idUsuario'], 2)
+        cambio = ViajeCambioModel.query.filter_by(id_viaje=50).one()
+        self.assertEqual(cambio.datos['cambios']['Chofer_Usuario_idUsuario'], {'antes':91,'despues':1})
+
+    def crear_con_chofer_libre(self):
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        db.session.get(CamionModel, 90).estado = 'disponible'
+        db.session.commit()
+        with self.fixture.app.test_request_context('/', method='POST', json={
+            'origen':'A', 'destino':'B', 'fecha_salida':date.today().isoformat(),
+            'Chofer_Usuario_idUsuario':91, 'Camion_id_camion':90, 'recorrido':10,
+        }):
+            g.operador_actual = self.operador
+            return OperadorController.crear_viaje.__wrapped__()
+
+    def test_creacion_guarda_aviso_y_luego_envia_push(self):
+        eventos = []
+        original = db.session.commit
+        def confirmar():
+            original()
+            eventos.append('commit')
+        self.enviar_push.side_effect = lambda: eventos.append('push')
+        with patch.object(db.session, 'commit', side_effect=confirmar):
+            r, codigo = self.crear_con_chofer_libre()
+        self.assertEqual(codigo, 201, r.get_json())
+        self.assertEqual(eventos[-2:], ['commit', 'push'])
+        self.assertEqual(NotificacionModel.query.filter_by(Usuario_idUsuario=91, tipo='viaje_asignado').count(), 1)
+        self.enviar_push.assert_called_once()
+
+    def test_reasignacion_envia_avisos_a_ambos_choferes_despues_de_guardar(self):
+        db.session.get(ViajeModel, 2).estado = 'finalizado'
+        db.session.get(UsuarioModel, 1).estado = 'activo'
+        db.session.commit()
+        eventos = []
+        original = db.session.commit
+        def confirmar():
+            original()
+            eventos.append('commit')
+        self.enviar_push.side_effect = lambda: eventos.append('push')
+        with patch.object(db.session, 'commit', side_effect=confirmar):
+            r, codigo = self.editar({'Chofer_Usuario_idUsuario':1})
+        self.assertEqual(codigo, 200, r.get_json())
+        self.assertEqual(eventos, ['commit', 'push'])
+        self.assertEqual({n.Usuario_idUsuario for n in NotificacionModel.query.all()}, {1,91})
+
+    def test_fallo_guardado_no_envia_push(self):
+        db.session.get(ViajeModel, 2).estado = 'finalizado'
+        db.session.get(UsuarioModel, 1).estado = 'activo'
+        db.session.commit()
+        with patch.object(db.session, 'commit', side_effect=RuntimeError('Base caída')), patch('controllers.operador_controller.logger'):
+            self.assertEqual(self.editar({'Chofer_Usuario_idUsuario':1})[1], 500)
+        self.enviar_push.assert_not_called()
+        self.assertEqual(NotificacionModel.query.count(), 0)
+        self.assertEqual(db.session.get(ViajeModel, 50).Chofer_Usuario_idUsuario, 91)
+
+    def test_error_firebase_no_deshace_viaje_ni_notificacion(self):
+        # Se ejecuta el emisor real; el fallo externo se simula antes de contactar Firebase.
+        self.enviar_push.side_effect = self.emisor_real
+        with patch('services.firebase_service.FirebaseAuthService.inicializar', side_effect=RuntimeError('Firebase caído')), patch('utils.app_logger.get_app_logger'):
+            r, codigo = self.crear_con_chofer_libre()
+        self.assertEqual(codigo, 201, r.get_json())
+        self.assertEqual(db.session.get(ViajeModel, r.get_json()['viaje']['id_viaje']).estado, 'pendiente')
+        self.assertEqual(NotificacionModel.query.filter_by(Usuario_idUsuario=91).count(), 1)
+        self.assertNotIn('push_pendientes', db.session.info)
