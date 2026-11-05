@@ -18,37 +18,24 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
   const [cargandoViajes, setCargandoViajes] = useState(true);
   const [errorViajes, setErrorViajes] = useState("");
 
-  const cargarViajes = async () => {
-    try {
-      setCargandoViajes(true);
-      setErrorViajes("");
-
-      const resultado = await fetchConToken(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/choferes/mis-viajes`,
-        {
-          method: "GET",
-        },
-      );
-
-      if (!resultado) return;
-
+  useEffect(() => {
+    const controlador = new AbortController();
+    fetchConToken(
+      `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/choferes/mis-viajes`,
+      { method: "GET", signal: controlador.signal },
+    ).then((resultado) => {
+      if (!resultado || controlador.signal.aborted) return;
       const { respuesta, data } = resultado;
-
-      if (!respuesta.ok) {
-        throw new Error(data.mensaje || data.msg || "Error al cargar viajes");
-      }
-
+      if (!respuesta.ok) throw new Error(data.mensaje || data.msg || "Error al cargar viajes");
       setViajes(Array.isArray(data) ? data : []);
-    } catch (error) {
+    }).catch((error) => {
+      if (controlador.signal.aborted) return;
       setErrorViajes(error.message);
       setViajes([]);
-    } finally {
-      setCargandoViajes(false);
-    }
-  };
-
-  useEffect(() => {
-    cargarViajes();
+    }).finally(() => {
+      if (!controlador.signal.aborted) setCargandoViajes(false);
+    });
+    return () => controlador.abort();
   }, []);
 
   const totalViajes = viajes.length;
@@ -57,6 +44,9 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
   ).length;
   const viajesPendientes = viajes.filter(
     (v) => v.estado?.toLowerCase() === "pendiente",
+  ).length;
+  const viajesAceptados = viajes.filter(
+    (v) => v.estado?.toLowerCase() === "aceptado",
   ).length;
   const viajesFinalizados = viajes.filter(
     (v) => v.estado?.toLowerCase() === "finalizado",
@@ -72,7 +62,7 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
     {
       label: "Viajes totales",
       value: totalViajes,
-      detail: `${viajesPendientes} pendientes por iniciar`,
+      detail: `${viajesPendientes + viajesAceptados} pendientes por iniciar`,
       icon: <FaTruck />,
       tone: "danger",
     },
@@ -86,9 +76,16 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
     {
       label: "Pendientes",
       value: viajesPendientes,
-      detail: "Esperando inicio",
+      detail: "Esperando aceptación",
       icon: <FaClock />,
       tone: "warning",
+    },
+    {
+      label: "Aceptados",
+      value: viajesAceptados,
+      detail: "Pendientes de salida",
+      icon: <FaCheckCircle />,
+      tone: "info",
     },
     {
       label: "Finalizados",
@@ -109,7 +106,7 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
     .slice(0, 5);
 
   return (
-    <section className="admin-dashboard">
+    <section className="admin-dashboard admin-dashboard--chofer">
       <div className="admin-dashboard__heading">
         <div>
           <span>Dashboard</span>
@@ -171,7 +168,14 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
                   </div>
                 </div>
                 <div>
-                  <span>Pendientes</span>
+                  <span>Aceptados · Pendientes de salida</span>
+                  <strong>{pct(viajesAceptados)}%</strong>
+                  <div>
+                    <i style={{ width: `${pct(viajesAceptados)}%` }} />
+                  </div>
+                </div>
+                <div>
+                  <span>Pendientes de aceptación</span>
                   <strong>{pct(viajesPendientes)}%</strong>
                   <div>
                     <i style={{ width: `${pct(viajesPendientes)}%` }} />
