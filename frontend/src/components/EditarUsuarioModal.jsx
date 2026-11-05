@@ -37,6 +37,7 @@ function EditarUsuarioModal({
                         <input
                             type="text"
                             name="username"
+                            maxLength={100}
                             value={formEditar.username}
                             onChange={onChange}
                         />
@@ -47,6 +48,7 @@ function EditarUsuarioModal({
                         <input
                             type="email"
                             name="email"
+                            maxLength={150}
                             value={formEditar.email}
                             readOnly={Boolean(usuarioEditando.firebase_uid)}
                             onChange={onChange}
@@ -59,6 +61,7 @@ function EditarUsuarioModal({
                         <input
                             type="text"
                             name="nombre"
+                            maxLength={100}
                             value={formEditar.nombre}
                             onChange={onChange}
                         />
@@ -69,6 +72,7 @@ function EditarUsuarioModal({
                         <input
                             type="text"
                             name="apellido"
+                            maxLength={100}
                             value={formEditar.apellido}
                             onChange={onChange}
                         />
