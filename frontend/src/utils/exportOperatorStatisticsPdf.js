@@ -38,6 +38,7 @@ export const exportarEstadisticasOperadorPdf = async (estadisticas, mes) => {
     ["Viajes con salida", resumen.total_viajes ?? 0],
     ["En curso (estado actual)", resumen.viajes_en_curso ?? 0],
     ["Pendientes (estado actual)", resumen.viajes_pendientes ?? 0],
+    ["Aceptados, pendientes de salida", resumen.viajes_aceptados ?? 0],
     ["Finalizados (estado actual)", resumen.viajes_finalizados ?? 0],
     ["Cancelados (estado actual)", resumen.viajes_cancelados ?? 0],
     ["Reportes pendientes", resumen.reportes_pendientes ?? 0],

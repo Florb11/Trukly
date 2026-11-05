@@ -802,3 +802,34 @@ class OperacionCompartidaTest(unittest.TestCase):
             aviso = NotificacionModel.query.filter_by(tipo='reporte_resuelto').order_by(NotificacionModel.id_notificacion.desc()).first()
             self.assertLessEqual(len(aviso.mensaje), 255)
             self.assertIn('nota completa', aviso.mensaje)
+
+    def test_estadisticas_cuentan_aceptados_y_estados_suman_total_segun_alcance(self):
+        token = create_access_token(identity='90', additional_claims={'rol':'operador'})
+        campos = {'pendiente':'viajes_pendientes', 'aceptado':'viajes_aceptados',
+                  'en curso':'viajes_en_curso', 'finalizado':'viajes_finalizados', 'cancelado':'viajes_cancelados'}
+        viaje = db.session.get(ViajeModel, 50)
+        mes = viaje.fecha_salida.strftime('%Y-%m')
+        for creador in [2, 90]:
+            for estado, campo in campos.items():
+                viaje.OperadorLogistico_Usuario_idUsuario = creador
+                viaje.estado = estado
+                db.session.commit()
+                for alcance in ['todos', 'mios']:
+                    with self.subTest(creador=creador, estado=estado, alcance=alcance):
+                        r = self.fixture.app.test_client().get('/api/operador/estadisticas?mes='+mes+'&alcance='+alcance,
+                            headers={'Authorization':'Bearer '+token})
+                        self.assertEqual(r.status_code, 200, r.get_json())
+                        resumen = r.get_json()['resumen']
+                        esperado = int(alcance=='todos' or creador==90)
+                        self.assertEqual(resumen['total_viajes'], esperado)
+                        self.assertEqual(resumen[campo], esperado)
+                        self.assertEqual(sum(resumen[c] for c in campos.values()), resumen['total_viajes'])
+                        self.assertEqual(len(r.get_json()['ultimos_viajes']), esperado)
+
+    def test_estadisticas_mes_vacio_incluye_aceptados_en_cero(self):
+        token = create_access_token(identity='90', additional_claims={'rol':'operador'})
+        r = self.fixture.app.test_client().get('/api/operador/estadisticas?mes=2024-01&alcance=todos',
+            headers={'Authorization':'Bearer '+token})
+        self.assertEqual(r.status_code, 200, r.get_json())
+        self.assertEqual(r.get_json()['resumen']['viajes_aceptados'], 0)
+        self.assertEqual(r.get_json()['resumen']['total_viajes'], 0)

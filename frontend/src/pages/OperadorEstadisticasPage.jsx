@@ -130,7 +130,8 @@ function OperadorEstadisticasPage() {
   const cards = [
     { label: "Viajes con salida", value: resumen.total_viajes ?? 0, detail: `${resumen.viajes_en_curso ?? 0} en curso`, icon: <FaRoute />, tone: "blue" },
     { label: "Finalizados", value: resumen.viajes_finalizados ?? 0, detail: `${resumen.viajes_cancelados ?? 0} cancelados`, icon: <FaCheckCircle />, tone: "green" },
-    { label: "Pendientes", value: resumen.viajes_pendientes ?? 0, detail: "Sin iniciar", icon: <FaClock />, tone: "violet" },
+    { label: "Pendientes", value: resumen.viajes_pendientes ?? 0, detail: "Sin aceptar", icon: <FaClock />, tone: "violet" },
+    { label: "Aceptados", value: resumen.viajes_aceptados ?? 0, detail: "Pendientes de salida", icon: <FaCheckCircle />, tone: "blue" },
     { label: "Reportes activos", value: (resumen.reportes_pendientes ?? 0) + (resumen.reportes_en_revision ?? 0), detail: `${resumen.reportes_resueltos ?? 0} resueltos`, icon: <FaClipboardCheck />, tone: "orange" },
   ];
 

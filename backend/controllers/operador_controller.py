@@ -519,6 +519,7 @@ class OperadorController:
 
             total_viajes = len(viajes)
             viajes_pendientes = sum(1 for v in viajes if v.estado == Viaje.ESTADO_PENDIENTE)
+            viajes_aceptados = sum(1 for v in viajes if v.estado == Viaje.ESTADO_ACEPTADO)
             viajes_en_curso = sum(1 for v in viajes if v.estado == Viaje.ESTADO_EN_CURSO)
             viajes_finalizados = sum(1 for v in viajes if v.estado == Viaje.ESTADO_FINALIZADO)
             viajes_cancelados = sum(1 for v in viajes if v.estado == Viaje.ESTADO_CANCELADO)
@@ -573,6 +574,7 @@ class OperadorController:
                 "resumen": {
                     "total_viajes": total_viajes,
                     "viajes_pendientes": viajes_pendientes,
+                    "viajes_aceptados": viajes_aceptados,
                     "viajes_en_curso": viajes_en_curso,
                     "viajes_finalizados": viajes_finalizados,
                     "viajes_cancelados": viajes_cancelados,

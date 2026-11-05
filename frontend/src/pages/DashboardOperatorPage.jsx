@@ -67,9 +67,16 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
     {
       label: "Pendientes",
       value: resumen.viajes_pendientes ?? 0,
-      detail: "Sin iniciar",
+      detail: "Sin aceptar",
       icon: <FaClock />,
       tone: "warning",
+    },
+    {
+      label: "Aceptados",
+      value: resumen.viajes_aceptados ?? 0,
+      detail: "Pendientes de salida",
+      icon: <FaCheckCircle />,
+      tone: "info",
     },
     {
       label: "Reportes activos",
