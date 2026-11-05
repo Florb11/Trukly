@@ -10,6 +10,7 @@ from models.operador_model import OperadorModel
 from models.usuario_model import UsuarioModel
 from models.viaje_model import ViajeModel
 from services.notificacion_service import NotificacionService
+from services.viaje_notificacion_service import notificar_cancelacion_chofer
 from services.viaje_cambios_service import snapshot, registrar
 
 from src.Camion import Camion
@@ -521,7 +522,7 @@ class ViajeController:
         if not datos_validos:
             return jsonify({"mensaje": mensaje_error}), 400
 
-        viaje_model = ViajeModel.query.get(id_viaje)
+        viaje_model = ViajeModel.query.filter_by(id_viaje=id_viaje).populate_existing().with_for_update().first()
 
         if viaje_model is None:
             return jsonify({"mensaje": "Viaje no encontrado"}), 404
@@ -539,6 +540,7 @@ class ViajeController:
         try:
             registrar(viaje_model, ViajeController.obtener_id_usuario_actual(), "viaje_cancelado", antes, {"motivo": motivo})
             actualizar_camion_tras_cancelacion(viaje_model)
+            notificar_cancelacion_chofer(viaje_model, motivo)
             AdminNotificacionService.viaje_cancelado(viaje_model, motivo)
             db.session.commit()
             NotificacionService.enviar_push_pendientes()

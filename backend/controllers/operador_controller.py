@@ -25,6 +25,7 @@ from utils.input_sanitizer import InputSanitizer
 from utils.auth_decorators import operador_required, roles_required
 from services.camion_disponibilidad_service import actualizar_camion_tras_cancelacion
 from services.notificacion_service import NotificacionService
+from services.viaje_notificacion_service import notificar_cancelacion_chofer
 from services.viaje_cambios_service import snapshot, registrar
 from models.viaje_cambio_model import ViajeCambioModel
 
@@ -279,6 +280,7 @@ class OperadorController:
             viaje_model.observaciones = viaje.observaciones
             registrar(viaje_model, operador.id_usuario, "viaje_cancelado", antes, {"motivo": motivo})
             actualizar_camion_tras_cancelacion(viaje_model)
+            notificar_cancelacion_chofer(viaje_model, motivo)
             AdminNotificacionService.viaje_cancelado(viaje_model, motivo)
             db.session.commit()
             NotificacionService.enviar_push_pendientes()
