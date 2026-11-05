@@ -242,7 +242,7 @@ class AdminPropiaCuentaTest(unittest.TestCase):
                 'matricula':'QA-VALIDO', 'marca':'Marca', 'modelo':'QA',
                 'estado':'disponible', 'nroTanque':tanque, 'capacidad_carga':'2500.125'})
             self.assertEqual(r.status_code, 201, r.get_json())
-            camion = CamionModel.query.filter_by(matricula='QA-VALIDO').one()
+            camion = CamionModel.query.filter_by(matricula='QAVALIDO').one()
             self.assertEqual(camion.nroTanque, int(tanque))
             self.assertEqual(camion.capacidad_carga, 2500.125)
             r = self.cliente.put('/api/admin/camiones/'+str(camion.id_camion), headers=self.headers,
@@ -294,3 +294,60 @@ class AdminPropiaCuentaTest(unittest.TestCase):
         finally:
             db.session.delete(camion)
             db.session.commit()
+
+    def test_matricula_normalizada_se_guarda_y_rechaza_variantes_duplicadas(self):
+        datos = {'matricula':' zz- 123-aa ', 'marca':'Marca', 'modelo':'QA',
+                 'capacidad_carga':1000, 'nroTanque':1, 'estado':'disponible'}
+        r = self.cliente.post('/api/admin/camiones', headers=self.headers, json=datos)
+        self.assertEqual(r.status_code, 201, r.get_json())
+        self.assertEqual(r.get_json()['camion']['matricula'], 'ZZ123AA')
+        camion = CamionModel.query.filter_by(matricula='ZZ123AA').one()
+        try:
+            cantidad = CamionModel.query.count()
+            for matricula in ['ZZ123AA', 'zz123aa', 'ZZ 123 AA', 'ZZ-123-AA', 'zz\t123 aa']:
+                r = self.cliente.post('/api/admin/camiones', headers=self.headers, json={**datos, 'matricula':matricula})
+                self.assertEqual(r.status_code, 400, r.get_json())
+                self.assertEqual(CamionModel.query.count(), cantidad)
+            r = self.cliente.put('/api/admin/camiones/'+str(camion.id_camion), headers=self.headers,
+                                  json={'matricula':'zz-123 aa', 'modelo':'Actualizado'})
+            self.assertEqual(r.status_code, 200, r.get_json())
+            self.assertEqual(camion.matricula, 'ZZ123AA')
+            self.assertEqual(camion.modelo, 'Actualizado')
+        finally:
+            db.session.delete(camion)
+            db.session.commit()
+
+    def test_detecta_matricula_historica_y_no_pisa_otro_camion(self):
+        historico = CamionModel(id_camion=90, matricula=' zx- 901 ', marca='Marca', modelo='QA',
+                                 capacidad_carga=1000, nroTanque=1, estado='disponible')
+        db.session.add(historico)
+        db.session.commit()
+        try:
+            r = self.cliente.post('/api/admin/camiones', headers=self.headers, json={
+                'matricula':'ZX901', 'marca':'Marca', 'modelo':'QA', 'capacidad_carga':1000,
+                'nroTanque':1, 'estado':'disponible'})
+            self.assertEqual(r.status_code, 400, r.get_json())
+            original = db.session.get(CamionModel, 1).matricula
+            r = self.cliente.put('/api/admin/camiones/1', headers=self.headers, json={'matricula':'Z X-901'})
+            self.assertEqual(r.status_code, 400, r.get_json())
+            self.assertEqual(db.session.get(CamionModel, 1).matricula, original)
+            r = self.cliente.put('/api/admin/camiones/90', headers=self.headers, json={'matricula':'ZX901'})
+            self.assertEqual(r.status_code, 200, r.get_json())
+            self.assertEqual(historico.matricula, 'ZX901')
+        finally:
+            db.session.delete(historico)
+            db.session.commit()
+
+    def test_matricula_solo_con_separadores_se_rechaza(self):
+        original = db.session.get(CamionModel, 1).matricula
+        for matricula in [' - ', '--', ' \t ']:
+            r = self.cliente.put('/api/admin/camiones/1', headers=self.headers, json={'matricula':matricula})
+            self.assertEqual(r.status_code, 400, r.get_json())
+            self.assertEqual(db.session.get(CamionModel, 1).matricula, original)
+
+    def test_normalizacion_matricula_tambien_en_dominio(self):
+        from src.Camion import Camion
+        datos = {'matricula':'aa-123 bb', 'marca':'Marca', 'modelo':'QA',
+                 'capacidad_carga':1000, 'nroTanque':1, 'estado':'disponible'}
+        self.assertEqual(Camion.crear_desde_datos(datos).matricula, 'AA123BB')
+        self.assertIsNone(Camion.crear_desde_datos({**datos, 'matricula':'-- --'}))

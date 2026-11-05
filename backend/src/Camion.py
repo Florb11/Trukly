@@ -27,7 +27,7 @@ class Camion:
         reportes_falla=None,
     ):
         self.id_camion = id_camion
-        self.matricula = matricula
+        self.matricula = self.normalizar_matricula(matricula)
         self.marca = marca
         self.modelo = modelo
         self.capacidad_carga = capacidad_carga
@@ -59,6 +59,12 @@ class Camion:
             return None
 
         return camion
+
+    @staticmethod
+    def normalizar_matricula(valor):
+        if valor is None:
+            return None
+        return "".join(str(valor).upper().split()).replace("-", "")
 
     @staticmethod
     def convertir_capacidad(valor):
@@ -93,7 +99,7 @@ class Camion:
         if datos is None:
             return False, "Faltan datos del camion"
 
-        matricula = datos.get("matricula")
+        matricula = Camion.normalizar_matricula(datos.get("matricula"))
         marca = datos.get("marca")
         modelo = datos.get("modelo")
         capacidad_carga = datos.get("capacidad_carga")
@@ -110,7 +116,8 @@ class Camion:
             return False, "El modelo es obligatorio"
 
         for campo, etiqueta, limite in [("matricula", "matrícula", 15), ("marca", "marca", 20), ("modelo", "modelo", 20)]:
-            if len(str(datos[campo]).strip()) > limite:
+            valor = matricula if campo == "matricula" else datos[campo]
+            if len(str(valor).strip()) > limite:
                 return False, f"El campo {etiqueta} admite hasta {limite} caracteres"
 
         if capacidad_carga is None:

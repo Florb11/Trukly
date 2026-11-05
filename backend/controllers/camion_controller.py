@@ -23,6 +23,15 @@ logger = get_app_logger()
 class CamionController:
 
     @staticmethod
+    def _matricula_duplicada(matricula, excluir_id=None):
+        consulta = db.session.query(CamionModel.id_camion, CamionModel.matricula)
+        if excluir_id is not None:
+            consulta = consulta.filter(CamionModel.id_camion != excluir_id)
+        # Comparar también matrículas históricas con espacios, guiones o minúsculas.
+        normalizada = Camion.normalizar_matricula(matricula)
+        return any(Camion.normalizar_matricula(fila.matricula) == normalizada for fila in consulta.all())
+
+    @staticmethod
     def _impedimento_desactivacion(camion, nuevo_estado):
         if nuevo_estado != Camion.ESTADO_INACTIVO:
             return None
@@ -48,6 +57,9 @@ class CamionController:
                 "estado",
             ],
         )
+
+        if "matricula" in datos_limpios:
+            datos_limpios["matricula"] = Camion.normalizar_matricula(datos_limpios["matricula"])
 
         for campo, convertir in [("nroTanque", Camion.convertir_numero_tanque),
                                   ("capacidad_carga", Camion.convertir_capacidad)]:
@@ -233,11 +245,7 @@ class CamionController:
             }), 400
 
         # valida unicidad en BD
-        camion_existente = CamionModel.query.filter_by(
-            matricula=camion_clase.matricula
-        ).first()
-
-        if camion_existente:
+        if CamionController._matricula_duplicada(camion_clase.matricula):
             return jsonify({
                 "mensaje": "Ya existe un camion con esa matricula"
             }), 400
@@ -333,11 +341,7 @@ class CamionController:
         )
 
         # valida que la matricula no este repetida
-        camion_existente = CamionModel.query.filter_by(
-            matricula=camion_clase.matricula
-        ).first()
-
-        if camion_existente and camion_existente.id_camion != id_camion:
+        if CamionController._matricula_duplicada(camion_clase.matricula, excluir_id=id_camion):
             return jsonify({
                 "mensaje": "Ya existe otro camion con esa matricula"
             }), 400
