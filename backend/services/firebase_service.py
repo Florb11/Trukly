@@ -84,6 +84,11 @@ class FirebaseAuthService:
         return auth.update_user(uid, password=password)
 
     @staticmethod
+    def obtener_usuario_por_uid(uid):
+        FirebaseAuthService.inicializar()
+        return auth.get_user(uid)
+
+    @staticmethod
     def obtener_usuario_por_email(email):
         FirebaseAuthService.inicializar()
 

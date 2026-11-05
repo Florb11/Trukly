@@ -710,6 +710,9 @@ class AdminUsuariosController:
                 "mensaje": mensaje_error
             }), 409
 
+        if usuario_db.firebase_uid and (nuevo_email or "").lower() != (usuario_db.email or "").lower():
+            return jsonify({"mensaje": "El usuario debe cambiar su correo desde Perfil y verificar la dirección nueva."}), 409
+
         usuario_clase = AdminUsuariosController._crear_usuario_clase(
             admin,
             usuario_db

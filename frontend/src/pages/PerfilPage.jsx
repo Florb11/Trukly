@@ -1,4 +1,5 @@
 import FotoPerfil from "../components/FotoPerfil";
+import CambiarCorreoFirebase from "../components/CambiarCorreoFirebase";
 import HorasViajeResumen from "../components/HorasViajeResumen";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -444,6 +445,7 @@ function PerfilPage() {
                   type="email"
                   name="email"
                   value={formPerfil.email}
+                  readOnly={Boolean(perfil.firebase_uid)}
                   onChange={handlePerfilChange}
                   required
                 />
@@ -552,6 +554,9 @@ function PerfilPage() {
           </article>
         </div>
       </div>
+      {perfil.firebase_uid && <CambiarCorreoFirebase perfil={perfil}
+        solicitar={(ruta, opciones) => fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${ruta}`, opciones)}
+        onActualizado={(actualizado) => { setPerfil(actualizado); setFormPerfil((anterior) => ({ ...anterior, email: actualizado.email })); actualizarUsuarioGuardado(actualizado); }} />}
     </section>
   );
 }

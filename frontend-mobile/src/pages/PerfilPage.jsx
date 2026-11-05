@@ -1,4 +1,5 @@
 import FotoPerfil from "../components/FotoPerfil";
+import CambiarCorreoFirebase from "../components/CambiarCorreoFirebase";
 import { useEffect, useState } from "react";
 import { FaCamera, FaSave, FaSignOutAlt } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
@@ -80,7 +81,7 @@ export default function PerfilPage() {
       </article>}
       {perfil && <form className="profile-form" onSubmit={guardar}><fieldset disabled={ocupado}>
         <legend>Datos personales</legend>
-        {[["nombre", "Nombre", "text"], ["apellido", "Apellido", "text"], ["email", "Email", "email"]].map(([campo, texto, tipo]) => <label key={campo}>{texto}<input type={tipo} required value={form[campo]} onChange={(event) => setForm({ ...form, [campo]: event.target.value })} /></label>)}
+        {[["nombre", "Nombre", "text"], ["apellido", "Apellido", "text"], ["email", "Email", "email"]].map(([campo, texto, tipo]) => <label key={campo}>{texto}<input type={tipo} required readOnly={campo === "email" && Boolean(perfil.firebase_uid)} value={form[campo]} onChange={(event) => setForm({ ...form, [campo]: event.target.value })} /></label>)}
         <label>Usuario<input readOnly value={perfil.username || ""} /></label>
         {perfil.rol === "chofer" ? [["licencia", "Licencia", "text"], ["vencimientoLicencia", "Vencimiento de licencia", "date"], ["legajo", "Legajo", "text"]].map(([campo, texto, tipo]) => <label key={campo}>{texto}<input type={tipo} required value={form[campo]} onChange={(event) => setForm({ ...form, [campo]: event.target.value })} /></label>) : <>
           <label>Legajo<input readOnly value={perfil.legajo || ""} /></label>
@@ -88,6 +89,8 @@ export default function PerfilPage() {
         </>}
         <button className="button primary wide"><FaSave />{ocupado ? "Guardando..." : "Guardar cambios"}</button>
       </fieldset></form>}
+      {perfil?.firebase_uid && <CambiarCorreoFirebase perfil={perfil} solicitar={apiFetch}
+        onActualizado={(datos) => { setPerfil(datos); setForm((actual) => ({ ...actual, email: datos.email })); actualizarUsuario(datos); }} />}
     </>}
     <button className="logout-button" onClick={async () => {
       setOcupado(true);
