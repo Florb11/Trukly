@@ -6,6 +6,16 @@ from controllers.perfil_controller import PerfilController
 perfil_routes = Blueprint("perfil_routes", __name__)
 
 
+@perfil_routes.route("/api/perfil/correo/disponibilidad", methods=["POST"])
+def ruta_comprobar_correo():
+    return PerfilController.comprobar_correo()
+
+
+@perfil_routes.route("/api/perfil/correo/sincronizar", methods=["POST"])
+def ruta_sincronizar_correo():
+    return PerfilController.sincronizar_correo()
+
+
 # ruta para obtener los datos del perfil del usuario logueado
 @perfil_routes.route("/api/perfil", methods=["GET"])
 def ruta_obtener_perfil():

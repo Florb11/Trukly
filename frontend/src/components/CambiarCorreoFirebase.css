@@ -1,0 +1,12 @@
+.cambiar-correo { padding: 22px; color: var(--ui-text, #192338); background: var(--ui-surface, #fff); border: 1px solid var(--ui-border, #e3e9f2); border-radius: 8px; }
+.cambiar-correo h2 { font-size: 18px; margin: 0 0 12px; }
+.cambiar-correo p { line-height: 1.5; overflow-wrap: anywhere; }
+.cambiar-correo fieldset { border: 0; padding: 0; margin: 16px 0; display: grid; gap: 14px; }
+.cambiar-correo label { display: grid; gap: 7px; color: var(--ui-text, #192338); }
+.cambiar-correo input { box-sizing: border-box; width: 100%; padding: 10px 12px; border: 1px solid var(--ui-border, #cbd5e1); border-radius: 6px; color: var(--ui-text, #192338); background: var(--ui-soft, #f7f9fc); font: inherit; }
+.cambiar-correo__acciones { display: flex; flex-wrap: wrap; gap: 10px; }
+.cambiar-correo button { color: var(--ui-text, #192338); background: var(--ui-soft, #f7f9fc); border: 1px solid var(--ui-border, #cbd5e1); border-radius: 6px; padding: 10px 14px; font: inherit; cursor: pointer; }
+.cambiar-correo button[type="submit"] { color: #fff; background: #2563eb; border-color: #2563eb; }
+.cambiar-correo button:disabled { opacity: .6; cursor: wait; }
+.app-shell--dashboard .cambiar-correo .cambiar-correo__error { color: var(--ui-danger-text, #b91c1c) !important; }
+.app-shell--dashboard[data-theme="dark"] .cambiar-correo p.cambiar-correo__error { color: var(--ui-danger-text) !important; }

@@ -8,6 +8,7 @@ from db_instance import db
 from extensions import bcrypt
 from services.firebase_service import FirebaseAuthService
 from services.credenciales_service import permite_password_local
+from services.correo_service import ErrorCorreo, validar_disponibilidad, sincronizar_verificado
 
 from models.usuario_model import UsuarioModel
 from models.administrador_model import AdministradorModel
@@ -251,6 +252,9 @@ class PerfilController:
             usuario_db.email
         )
 
+        if usuario_db.firebase_uid and (nuevo_email or "").lower() != (usuario_db.email or "").lower():
+            return jsonify({"mensaje": "Usá Cambiar correo y verificá la dirección nueva antes de actualizarla."}), 409
+
         email_existente = UsuarioModel.query.filter_by(
             email=nuevo_email
         ).first()
@@ -342,6 +346,46 @@ class PerfilController:
             "mensaje": "Perfil actualizado correctamente",
             "perfil": datos_usuario
         }), 200
+
+    @staticmethod
+    @usuario_required
+    def comprobar_correo():
+        usuario = PerfilController._obtener_usuario_actual()
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict):
+            return jsonify({"mensaje": "Los datos del correo no son válidos."}), 400
+        try:
+            email = validar_disponibilidad(cuerpo.get("email"), usuario.id_usuario)
+            return jsonify({"email": email}), 200
+        except ErrorCorreo as error:
+            return jsonify({"mensaje": str(error)}), error.codigo
+
+    @staticmethod
+    @usuario_required
+    def sincronizar_correo():
+        usuario = PerfilController._obtener_usuario_actual()
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict):
+            return jsonify({"mensaje": "Los datos de verificación no son válidos."}), 400
+        token = cuerpo.get("firebaseToken")
+        if not token:
+            return jsonify({"mensaje": "Confirmá tu identidad para actualizar el correo."}), 403
+        try:
+            try:
+                identidad = FirebaseAuthService.verificar_token(token, check_revoked=True)
+            except Exception:
+                raise ErrorCorreo("No se pudo confirmar tu identidad. Volvé a iniciar sesión.", 403)
+            if sincronizar_verificado(usuario, identidad):
+                db.session.commit()
+            return jsonify({"mensaje": "Correo actualizado correctamente.",
+                            "perfil": PerfilController._preparar_respuesta_perfil(usuario)}), 200
+        except ErrorCorreo as error:
+            db.session.rollback()
+            return jsonify({"mensaje": str(error)}), error.codigo
+        except Exception:
+            db.session.rollback()
+            logger.exception("No se pudo sincronizar el correo verificado")
+            return jsonify({"mensaje": "No se pudo confirmar el correo. Intentá nuevamente."}), 503
 
     @staticmethod
     @usuario_required

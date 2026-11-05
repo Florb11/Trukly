@@ -48,8 +48,10 @@ function EditarUsuarioModal({
                             type="email"
                             name="email"
                             value={formEditar.email}
+                            readOnly={Boolean(usuarioEditando.firebase_uid)}
                             onChange={onChange}
                         />
+                        {usuarioEditando.firebase_uid && <small>El correo de acceso se cambia desde el perfil del usuario, con verificación.</small>}
                     </label>
 
                     <label>

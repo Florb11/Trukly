@@ -12,6 +12,7 @@ from models.usuario_model import UsuarioModel
 from models.chofer_model import ChoferModel
 from services.firebase_service import FirebaseAuthService, FirebaseConfigError, FirebaseMigrationConflict
 from services.credenciales_service import permite_password_local, crear_password_interna_firebase
+from services.correo_service import sincronizar_verificado, ErrorCorreo
 
 from src.Usuario import Usuario
 from src.Chofer import Chofer
@@ -501,7 +502,7 @@ class AuthController:
 
         try:
             firebase_usuario = FirebaseAuthService.verificar_token(
-                firebase_token
+                firebase_token, check_revoked=True
             )
         except FirebaseConfigError as error:
             logger.exception("Firebase Admin no está configurado")
@@ -513,12 +514,11 @@ class AuthController:
         firebase_uid = firebase_usuario.get("uid")
         firebase_email = firebase_usuario.get("email")
 
-        usuario = UsuarioModel.query.filter(
-            or_(
-                UsuarioModel.firebase_uid == firebase_uid,
-                UsuarioModel.email == firebase_email,
-            )
-        ).first()
+        if not isinstance(firebase_uid, str) or not firebase_uid or not isinstance(firebase_email, str):
+            return jsonify({"mensaje": "La cuenta de Firebase no tiene una identidad y correo válidos."}), 401
+        usuario = UsuarioModel.query.filter_by(firebase_uid=firebase_uid).first()
+        if usuario is None:
+            usuario = UsuarioModel.query.filter_by(email=firebase_email.lower()).first()
 
         if usuario is None:
             return jsonify({
@@ -541,11 +541,22 @@ class AuthController:
         if not usuario.firebase_uid:
             return jsonify({"mensaje": "Confirmá tu contraseña anterior de Trukly para vincular el acceso.",
                             "codigo": "migracion_pendiente"}), 409
-        # Al confirmar el acceso Firebase se retira cualquier credencial local antigua.
-        if permite_password_local(usuario):
-            usuario.password = crear_password_interna_firebase()
-            db.session.commit()
-        return AuthController._crear_respuesta_login(usuario_clase)
+        try:
+            actualizado = sincronizar_verificado(usuario, firebase_usuario)
+            # Al confirmar el acceso Firebase se retira cualquier credencial local antigua.
+            if permite_password_local(usuario):
+                usuario.password = crear_password_interna_firebase()
+                actualizado = True
+            if actualizado:
+                db.session.commit()
+        except ErrorCorreo as error:
+            db.session.rollback()
+            return jsonify({"mensaje": str(error)}), error.codigo
+        except Exception:
+            db.session.rollback()
+            logger.exception("No se pudo sincronizar la identidad al iniciar sesión")
+            return jsonify({"mensaje": "No se pudo confirmar tu acceso. Intentá nuevamente."}), 503
+        return AuthController._crear_respuesta_login(usuario)
 
     @staticmethod
     def login():
