@@ -734,3 +734,71 @@ class OperacionCompartidaTest(unittest.TestCase):
         r, codigo = self.editar({'fecha_salida':salida.isoformat()})
         self.assertEqual(codigo, 200, r.get_json())
         self.assertEqual(db.session.get(ViajeModel, 50).estado, 'pendiente')
+
+    def test_descripcion_larga_o_expandida_no_guarda_reporte(self):
+        viaje = db.session.get(ViajeModel, 50)
+        viaje.estado = 'en curso'
+        db.session.commit()
+        token = create_access_token(identity='91', additional_claims={'rol':'chofer'})
+        client = self.fixture.app.test_client()
+        cantidad = ReporteModel.query.count()
+        for texto in ['A'*201, '"'*34, '&'*41]:
+            r = client.post('/api/reportes', headers={'Authorization':'Bearer '+token},
+                json={'Camion_id_camion':90, 'descripcion':texto})
+            self.assertEqual(r.status_code, 400, r.get_json())
+            self.assertIn('larga', r.get_json()['mensaje'])
+            self.assertEqual(ReporteModel.query.count(), cantidad)
+            self.assertEqual(NotificacionModel.query.count(), 0)
+            self.assertEqual(viaje.estado, 'en curso')
+            self.assertEqual(db.session.get(CamionModel, 90).estado, 'en viaje')
+        self.enviar_push.assert_not_called()
+
+    def test_nota_larga_o_expandida_no_resuelve_ni_modifica_reporte(self):
+        db.session.get(UsuarioModel, 3).estado = 'activo'
+        reporte = db.session.get(ReporteModel, 2)
+        original = (reporte.estado, reporte.nota_reparacion, reporte.fecha_resolucion)
+        reporte.estado = 'en revision'
+        reporte.nota_reparacion = 'Original'
+        reporte.fecha_resolucion = None
+        db.session.commit()
+        token = create_access_token(identity='3', additional_claims={'rol':'mecanico'})
+        try:
+            for nota in ['B'*256, '"'*43, '&'*52]:
+                r = self.fixture.app.test_client().put('/api/mecanico/reportes/2/resolver',
+                    headers={'Authorization':'Bearer '+token}, json={'nota_reparacion':nota})
+                self.assertEqual(r.status_code, 400, r.get_json())
+                self.assertIn('larga', r.get_json()['mensaje'])
+                self.assertEqual(reporte.estado, 'en revision')
+                self.assertEqual(reporte.nota_reparacion, 'Original')
+                self.assertIsNone(reporte.fecha_resolucion)
+                self.assertEqual(NotificacionModel.query.count(), 0)
+            self.enviar_push.assert_not_called()
+        finally:
+            reporte.estado, reporte.nota_reparacion, reporte.fecha_resolucion = original
+            db.session.commit()
+
+    def test_textos_en_limite_se_conservan_completos_incluso_con_simbolos(self):
+        db.session.get(ViajeModel, 50).estado = 'en curso'
+        db.session.get(UsuarioModel, 3).estado = 'activo'
+        db.session.commit()
+        client = self.fixture.app.test_client()
+        driver = create_access_token(identity='91', additional_claims={'rol':'chofer'})
+        mecanico = create_access_token(identity='3', additional_claims={'rol':'mecanico'})
+        for descripcion, nota in [('D'*200, 'N'*255), ('D'*194+'"', 'N'*249+'"')]:
+            r = client.post('/api/reportes', headers={'Authorization':'Bearer '+driver},
+                json={'Camion_id_camion':90, 'descripcion':descripcion})
+            self.assertEqual(r.status_code, 201, r.get_json())
+            reporte = db.session.get(ReporteModel, r.get_json()['reporte']['id_reporte'])
+            self.assertEqual(len(reporte.descripcion), 200)
+            self.assertEqual(r.get_json()['reporte']['descripcion'], descripcion)
+            reporte.Mecanico_Usuario_idUsuario = 3
+            reporte.estado = 'en revision'
+            db.session.commit()
+            r = client.put('/api/mecanico/reportes/'+str(reporte.id_reporte)+'/resolver',
+                headers={'Authorization':'Bearer '+mecanico}, json={'nota_reparacion':nota})
+            self.assertEqual(r.status_code, 200, r.get_json())
+            self.assertEqual(len(reporte.nota_reparacion), 255)
+            self.assertEqual(r.get_json()['reporte']['nota_reparacion'], nota)
+            aviso = NotificacionModel.query.filter_by(tipo='reporte_resuelto').order_by(NotificacionModel.id_notificacion.desc()).first()
+            self.assertLessEqual(len(aviso.mensaje), 255)
+            self.assertIn('nota completa', aviso.mensaje)

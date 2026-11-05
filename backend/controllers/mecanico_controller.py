@@ -147,6 +147,9 @@ class MecanicoController:
     @staticmethod
     def notificar_reporte_resuelto(reporte_model, nota_reparacion):
         # notifica al chofer que su reporte fue resuelto
+        mensaje = f"El reporte #{reporte_model.id_reporte} fue resuelto. Nota: {unescape(nota_reparacion)}"
+        if len(mensaje) > 255:
+            mensaje = f"El reporte #{reporte_model.id_reporte} fue resuelto. Consultá la nota completa en el detalle del reporte."
         event_manager = EventManager()
         listener_notificacion = NotificacionReporteListener(
             NotificacionService.agregar_a_sesion
@@ -162,10 +165,7 @@ class MecanicoController:
             {
                 "id_usuario": reporte_model.Chofer_Usuario_idUsuario,
                 "titulo": "Reporte resuelto",
-                "mensaje": (
-                    f"El reporte #{reporte_model.id_reporte} fue resuelto. "
-                    f"Nota: {unescape(nota_reparacion)}"
-                ),
+                "mensaje": mensaje,
                 "tipo": "reporte_resuelto",
             }
         )
@@ -207,6 +207,9 @@ class MecanicoController:
             return jsonify({"mensaje": mensaje_error}), 400
 
         nota_reparacion = datos.get("nota_reparacion")
+        valida, mensaje = ReporteFalla.validar_nota_reparacion(nota_reparacion)
+        if not valida:
+            return jsonify({"mensaje": mensaje}), 400
 
         reporte_model = (
             ReporteModel.query.filter_by(id_reporte=id_reporte)

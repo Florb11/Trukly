@@ -123,6 +123,8 @@ class ReporteFalla:
 
         if not texto_valido(descripcion):
             return False, "La descripcion es obligatoria"
+        if len(str(descripcion).strip()) > 200:
+            return False, "La descripción es demasiado larga. Acortá el texto o reducí la cantidad de símbolos."
 
         estado_normalizado = ReporteFalla.normalizar_estado(estado)
 
@@ -261,6 +263,14 @@ class ReporteFalla:
         self.estado = self.ESTADO_EN_REVISION
         return True
 
+    @staticmethod
+    def validar_nota_reparacion(nota):
+        if not isinstance(nota, str) or not nota.strip():
+            return False, "La nota de reparación es obligatoria"
+        if len(nota.strip()) > 255:
+            return False, "La nota de reparación es demasiado larga. Acortá el texto o reducí la cantidad de símbolos."
+        return True, None
+
     def puede_ser_resuelto_por(self, mecanico, nota_reparacion):
 
         id_mecanico = self.obtener_id_usuario(mecanico) or mecanico
@@ -274,10 +284,7 @@ class ReporteFalla:
         if self.estado not in self.ESTADOS_ACTIVOS:
             return False
 
-        if nota_reparacion is None:
-            return False
-
-        if str(nota_reparacion).strip() == "":
+        if not self.validar_nota_reparacion(nota_reparacion)[0]:
             return False
 
         return True
