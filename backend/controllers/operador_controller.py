@@ -233,6 +233,7 @@ class OperadorController:
                 "viaje_asignado",
             )
             db.session.commit()
+            NotificacionService.enviar_push_pendientes()
             return jsonify({"mensaje": "Viaje creado correctamente", "viaje": nuevo_viaje.to_dict()}), 201
 
         except Exception:
@@ -390,6 +391,7 @@ class OperadorController:
                     "viaje_reasignado",
                 )
             db.session.commit()
+            NotificacionService.enviar_push_pendientes()
             return jsonify({"mensaje": "Viaje actualizado correctamente", "viaje": viaje_model.to_dict()}), 200
         except Exception:
             db.session.rollback()

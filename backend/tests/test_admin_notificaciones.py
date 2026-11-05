@@ -1,4 +1,5 @@
 import unittest
+from controllers.viaje_controller import ViajeController
 from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -101,7 +102,6 @@ class AdminNotificacionesTest(unittest.TestCase):
             self.assertIsNone(Avisos.enlace(tipo))
 
     def test_cancelacion_admin_crea_aviso_en_la_operacion(self):
-        from controllers.viaje_controller import ViajeController
         dominio = SimpleNamespace(cancelar=lambda motivo: True, estado="cancelado")
         def actualizar(modelo, _dominio):
             modelo.estado = "cancelado"
