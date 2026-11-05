@@ -8,6 +8,9 @@ from models.chofer_model import ChoferModel
 from models.viaje_model import ViajeModel
 from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
 from routes.registro_ingreso_salida_routes import registro_ingreso_salida_routes
+from routes.chofer_routes import chofer_routes
+from models.camion_model import CamionModel
+from utils.fecha_operativa import hoy_operativo
 
 
 class RegistrosPermisosTest(unittest.TestCase):
@@ -19,6 +22,7 @@ class RegistrosPermisosTest(unittest.TestCase):
         cls.fixture.app.config['JWT_SECRET_KEY'] = 'test-only-records-authorization-key'
         JWTManager(cls.fixture.app)
         cls.fixture.app.register_blueprint(registro_ingreso_salida_routes)
+        cls.fixture.app.register_blueprint(chofer_routes)
         for uid in [1,2,3]:
             db.session.get(UsuarioModel,uid).estado = 'activo'
         db.session.add_all([
@@ -75,4 +79,44 @@ class RegistrosPermisosTest(unittest.TestCase):
             self.assertEqual(self.get('/91',1,'chofer').status_code,200)
         finally:
             viaje.Chofer_Usuario_idUsuario = 77
+            db.session.commit()
+
+
+    def test_creacion_manual_bloqueada_para_todos_sin_alterar_controles(self):
+        for uid, rol, esperado in [(100,'admin',409),(2,'operador',409),(1,'chofer',403),(3,'mecanico',403),(None,None,401)]:
+            headers = {} if uid is None else {'Authorization':'Bearer '+create_access_token(identity=str(uid),additional_claims={'rol':rol})}
+            for datos in [{}, {'Viaje_id_viaje':77,'fecha_hora':'2026-09-01T09:00:00','tipo_registro':'ingreso'}]:
+                r = self.client.post('/api/registros-ingreso-salida',json=datos,headers=headers)
+                self.assertEqual(r.status_code,esperado,r.get_json())
+                if esperado == 409:
+                    self.assertIn('QR',r.get_json()['mensaje'])
+                db.session.remove()
+                self.assertEqual(RegistroIngresoSalidaModel.query.count(),2)
+                self.assertEqual(db.session.get(ViajeModel,77).estado,'finalizado')
+
+    def test_bloqueo_manual_no_impide_salida_y_regreso_qr(self):
+        viaje = db.session.get(ViajeModel,77)
+        viaje.estado = 'aceptado'
+        viaje.fecha_salida = hoy_operativo()
+        RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=77).delete()
+        db.session.commit()
+        try:
+            operador = {'Authorization':'Bearer '+create_access_token(identity='2',additional_claims={'rol':'operador'})}
+            r = self.client.post('/api/registros-ingreso-salida',json={'Viaje_id_viaje':77,'fecha_hora':'2026-09-01T09:00:00','tipo_registro':'ingreso'},headers=operador)
+            self.assertEqual(r.status_code,409)
+            self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=77).count(),0)
+            chofer = {'Authorization':'Bearer '+create_access_token(identity='77',additional_claims={'rol':'chofer'})}
+            for tipo, estado in [('ingreso','en curso'),('salida','finalizado')]:
+                r = self.client.post('/api/choferes/viajes/77/registro',json={'tipo_registro':tipo},headers=chofer)
+                self.assertEqual(r.status_code,201,r.get_json())
+                db.session.remove()
+                self.assertEqual(db.session.get(ViajeModel,77).estado,estado)
+            self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=77).count(),2)
+            self.assertEqual(db.session.get(CamionModel,1).estado,'en mantenimiento')
+        finally:
+            RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=77).delete()
+            db.session.add(RegistroIngresoSalidaModel(id_registro=91,Viaje_id_viaje=77,fecha_hora=datetime(2026,9,1,10),tipo_registro='ingreso',observacion='Control del segundo chofer'))
+            db.session.get(ViajeModel,77).estado = 'finalizado'
+            db.session.get(ViajeModel,77).fecha_salida = date(2026,9,1)
+            db.session.get(CamionModel,1).estado = 'disponible'
             db.session.commit()
