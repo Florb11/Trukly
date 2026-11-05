@@ -1,3 +1,5 @@
+from html import unescape
+
 from flask import g, jsonify, request
 
 from db_instance import db
@@ -83,6 +85,8 @@ class MecanicoController:
     def preparar_respuesta_reporte_clase(reporte_clase):
         # adapta nombres para el frontend
         datos = reporte_clase.to_dict()
+        if datos["nota_reparacion"] is not None:
+            datos["nota_reparacion"] = unescape(datos["nota_reparacion"])
 
         datos["Camion_id_camion"] = datos.pop("id_camion")
         datos["Mecanico_Usuario_idUsuario"] = datos.pop("id_mecanico")
@@ -160,7 +164,7 @@ class MecanicoController:
                 "titulo": "Reporte resuelto",
                 "mensaje": (
                     f"El reporte #{reporte_model.id_reporte} fue resuelto. "
-                    f"Nota: {nota_reparacion}"
+                    f"Nota: {unescape(nota_reparacion)}"
                 ),
                 "tipo": "reporte_resuelto",
             }

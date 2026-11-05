@@ -35,6 +35,8 @@ class OperacionCompartidaTest(unittest.TestCase):
         cls.fixture.app.register_blueprint(viaje_routes)
         from routes.reporte_routes import reporte_routes
         cls.fixture.app.register_blueprint(reporte_routes)
+        from routes.mecanico_routes import mecanico_routes
+        cls.fixture.app.register_blueprint(mecanico_routes)
 
     @classmethod
     def tearDownClass(cls):
@@ -551,3 +553,45 @@ class OperacionCompartidaTest(unittest.TestCase):
             self.assertEqual(reporte.descripcion, 'Motor &quot;tac&quot; &amp; válvula &lt;A&gt;')
         finally:
             reporte.descripcion = original
+
+    def test_nota_reparacion_conserva_simbolos_y_notificacion(self):
+        from controllers.reporte_controller import ReporteController
+        from controllers.mecanico_controller import MecanicoController
+        db.session.get(UsuarioModel, 3).estado = 'activo'
+        token = create_access_token(identity='3', additional_claims={'rol':'mecanico'})
+        client = self.fixture.app.test_client()
+        reporte = db.session.get(ReporteModel, 2)
+        original = (reporte.estado, reporte.nota_reparacion, reporte.fecha_resolucion)
+        try:
+            for nota in ['Se cambió la pieza "A" & el caño', "Ajuste <motor> y 'válvula'", 'Texto literal &quot; &amp;', '<script>alert(1)</script>']:
+                reporte.estado = 'en revision'
+                db.session.commit()
+                r = client.put('/api/mecanico/reportes/2/resolver',
+                    headers={'Authorization':'Bearer '+token}, json={'nota_reparacion':nota})
+                self.assertEqual(r.status_code, 200, r.get_json())
+                self.assertEqual(r.get_json()['reporte']['nota_reparacion'], nota)
+                self.assertEqual(reporte.to_dict()['nota_reparacion'], nota)
+                self.assertEqual(ReporteController.preparar_respuesta_reporte(reporte)['nota_reparacion'], nota)
+                self.assertEqual(MecanicoController.preparar_respuesta_reporte(reporte)['nota_reparacion'], nota)
+                aviso = NotificacionModel.query.filter_by(tipo='reporte_resuelto').order_by(NotificacionModel.id_notificacion.desc()).first()
+                self.assertIn(nota, aviso.mensaje)
+        finally:
+            reporte.estado, reporte.nota_reparacion, reporte.fecha_resolucion = original
+            db.session.commit()
+
+    def test_nota_historica_no_se_decodifica_al_persistir_otros_cambios(self):
+        from controllers.reporte_controller import ReporteController
+        from controllers.mecanico_controller import MecanicoController
+        reporte = db.session.get(ReporteModel, 2)
+        original = reporte.nota_reparacion
+        try:
+            reporte.nota_reparacion = 'Pieza &quot;A&quot; &amp; texto &amp;quot;'
+            esperado = 'Pieza "A" & texto &quot;'
+            for controller in [ReporteController, MecanicoController]:
+                self.assertEqual(controller.preparar_respuesta_reporte(reporte)['nota_reparacion'], esperado)
+                dominio = controller.crear_objeto_reporte(reporte)
+                controller.actualizar_modelo_reporte(reporte, dominio)
+                self.assertEqual(reporte.nota_reparacion, 'Pieza &quot;A&quot; &amp; texto &amp;quot;')
+            self.assertEqual(reporte.to_dict()['nota_reparacion'], esperado)
+        finally:
+            reporte.nota_reparacion = original

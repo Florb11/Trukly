@@ -216,6 +216,7 @@ class ReporteController:
         )
 
         datos = reporte_clase.to_dict()
+        datos["nota_reparacion"] = reporte_model.nota_reparacion_texto
 
         datos["Camion_id_camion"] = datos.pop("id_camion")
         datos["Mecanico_Usuario_idUsuario"] = datos.pop("id_mecanico")
