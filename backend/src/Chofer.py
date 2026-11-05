@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from src.Usuario import Usuario
+from utils.fecha_operativa import hoy_operativo
 
 
 class Chofer(Usuario):
@@ -128,7 +129,7 @@ class Chofer(Usuario):
         except ValueError:
             return False, "La fecha de vencimiento debe tener formato YYYY-MM-DD"
 
-        if fecha_vencimiento < date.today():
+        if fecha_vencimiento < hoy_operativo():
             return False, "La licencia no puede estar vencida"
 
         return True, None

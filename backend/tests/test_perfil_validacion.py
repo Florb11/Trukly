@@ -105,3 +105,32 @@ class PerfilValidacionTest(unittest.TestCase):
             for campo in ["licencia","legajo"]:
                 self.assertFalse(crear().validar({**datos,campo:"A"*51})[0])
         self.assertTrue(Chofer.validar_legajo("'"*8)[0])
+
+
+    def test_vencimiento_usa_dia_argentino_en_perfil_y_qr(self):
+        from datetime import date, datetime, timezone
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from services.licencia_service import licencia_vigente
+        from models.chofer_model import ChoferModel
+        for hora, esperado in [(0,True),(2,True),(3,False)]:
+            with self.subTest(hora_utc=hora):
+                instante = datetime(2026,11,6,hora,30,tzinfo=timezone.utc)
+                with patch('utils.fecha_operativa.datetime') as reloj:
+                    reloj.now.return_value = instante
+                    datos = {"nombre":"Nombre nuevo","licencia":"LIC12345","legajo":"C1","vencimientoLicencia":"2026-11-05"}
+                    r = self.put(datos)
+                    self.assertEqual(r.status_code,200 if esperado else 400,r.get_json())
+                    chofer = SimpleNamespace(licencia='LIC12345',vencimientoLicencia=date(2026,11,5))
+                    self.assertEqual(licencia_vigente(chofer),esperado)
+                db.session.remove()
+                self.assertEqual(db.session.get(ChoferModel,1).vencimientoLicencia,date(2026,11,5))
+
+    def test_vencimiento_rechaza_ayer_y_acepta_hoy_y_manana_operativos(self):
+        from datetime import datetime, timezone
+        from unittest.mock import patch
+        from src.Chofer import Chofer
+        with patch('utils.fecha_operativa.datetime') as reloj:
+            reloj.now.return_value = datetime(2026,11,6,1,30,tzinfo=timezone.utc)
+            for vencimiento, esperado in [('2026-11-04',False),('2026-11-05',True),('2026-11-06',True)]:
+                self.assertEqual(Chofer.validar_vencimiento_licencia(vencimiento)[0],esperado)
