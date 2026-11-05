@@ -284,14 +284,16 @@ class OperadorController:
             logger.exception(f"Error al cancelar viaje {id_viaje}")
             return jsonify({"mensaje": "Error interno del servidor"}), 500
 
-    # CORREGIR
     @staticmethod
     @operador_required
     def editar_viaje(id_viaje):
         operador = g.operador_actual
+        cuerpo = request.get_json(silent=True) or {}
+        if not isinstance(cuerpo, dict) or isinstance(cuerpo.get("recorrido"), bool):
+            return jsonify({"mensaje": "Los datos de edición o el recorrido no son válidos"}), 400
 
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=["origen", "destino", "observaciones"],
             campos_enteros=["Chofer_Usuario_idUsuario", "Camion_id_camion"],
             campos_decimales=["recorrido", "origen_lat", "origen_lon", "destino_lat", "destino_lon"],

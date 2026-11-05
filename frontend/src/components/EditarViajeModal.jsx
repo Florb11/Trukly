@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./EditarViajeModal.css";
 import { fetchConToken } from "../utils/fetchConToken";
+import { validarEdicionViaje } from "../utils/validarEdicionViaje";
 
 function EditarViajeModal({ viaje, onClose, onActualizado }) {
   const [form, setForm] = useState({
@@ -10,7 +11,7 @@ function EditarViajeModal({ viaje, onClose, onActualizado }) {
     fecha_llegada: viaje.fecha_llegada || "",
     Chofer_Usuario_idUsuario: viaje.Chofer_Usuario_idUsuario || "",
     Camion_id_camion: viaje.Camion_id_camion || "",
-    recorrido: viaje.recorrido || "",
+    recorrido: viaje.recorrido ?? "",
     observaciones: viaje.observaciones || "",
   });
   const [error, setError] = useState("");
@@ -21,8 +22,9 @@ function EditarViajeModal({ viaje, onClose, onActualizado }) {
   };
 
   const guardar = async () => {
-    if (!form.origen.trim() || !form.destino.trim() || !form.fecha_salida) {
-      setError("Origen, destino y fecha de salida son obligatorios.");
+    const validacion = validarEdicionViaje(form, viaje);
+    if (validacion) {
+      setError(validacion);
       return;
     }
     setError("");
@@ -76,11 +78,11 @@ function EditarViajeModal({ viaje, onClose, onActualizado }) {
           <div className="editar-modal__row">
             <div className="editar-modal__field">
               <label>Fecha de salida</label>
-              <input type="date" name="fecha_salida" value={form.fecha_salida} onChange={handleChange} />
+              <input type="date" name="fecha_salida" value={form.fecha_salida} onChange={handleChange} disabled={viaje.estado === "en curso"} />
             </div>
             <div className="editar-modal__field">
               <label>Fecha de llegada</label>
-              <input type="date" name="fecha_llegada" value={form.fecha_llegada} onChange={handleChange} />
+              <input type="date" name="fecha_llegada" value={form.fecha_llegada} onChange={handleChange} min={form.fecha_salida} />
             </div>
           </div>
 

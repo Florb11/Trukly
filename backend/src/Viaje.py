@@ -1,5 +1,6 @@
 from utils.fecha_operativa import hoy_operativo
 from datetime import date, datetime
+import math
 
 from src.Usuario import Usuario
 from utils.domain_helpers import formatear_fecha, texto_valido
@@ -232,6 +233,43 @@ class Viaje:
             return Viaje.ESTADO_EN_CURSO
 
         return estado_limpio
+
+    @staticmethod
+    def validar_edicion(viaje, datos, hoy=None):
+        fechas = {campo: Viaje.convertir_fecha(getattr(viaje, campo)) for campo in ("fecha_salida", "fecha_llegada")}
+        cambios_fecha = set()
+        for campo in fechas:
+            if campo not in datos:
+                continue
+            valor = datos[campo]
+            fecha = Viaje.convertir_fecha(valor)
+            if campo == "fecha_llegada" and valor in (None, ""):
+                fecha = None
+            elif (fecha is None or not isinstance(valor, (str, date))
+                  or (isinstance(valor, str) and valor != fecha.isoformat())):
+                return False, "Las fechas deben tener formato AAAA-MM-DD"
+            if fecha != fechas[campo]:
+                cambios_fecha.add(campo)
+            fechas[campo] = fecha
+        if "fecha_salida" in cambios_fecha:
+            if viaje.estado == Viaje.ESTADO_EN_CURSO:
+                return False, "No se puede cambiar la fecha de salida de un viaje en curso"
+            if fechas["fecha_salida"] < (hoy or hoy_operativo()):
+                return False, "La nueva fecha de salida debe ser hoy o una fecha futura"
+        if cambios_fecha and fechas["fecha_llegada"] and fechas["fecha_llegada"] < fechas["fecha_salida"]:
+            return False, "La fecha de llegada no puede ser anterior a la salida"
+        if "recorrido" in datos:
+            valor = datos["recorrido"]
+            try:
+                valido = not isinstance(valor, bool) and math.isfinite(float(valor)) and float(valor) >= 0
+            except (ValueError, TypeError, OverflowError):
+                valido = False
+            if not valido:
+                return False, "El recorrido debe ser un número finito mayor o igual a cero"
+        for campo in ("origen", "destino"):
+            if campo in datos and not texto_valido(datos[campo]):
+                return False, "El origen y destino son obligatorios"
+        return True, None
 
     @staticmethod
     def validar_fechas_creacion(datos, hoy=None):

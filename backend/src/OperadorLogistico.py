@@ -133,6 +133,10 @@ class OperadorLogistico(Usuario):
         if not viaje.puede_editarse():
             return False, "No se puede editar un viaje cancelado o finalizado"
 
+        valido, mensaje = Viaje.validar_edicion(viaje, datos)
+        if not valido:
+            return False, mensaje
+
         nuevo_chofer = datos.get("Chofer_Usuario_idUsuario")
         if nuevo_chofer and nuevo_chofer != viaje.id_chofer:
             if viaje.estado == Viaje.ESTADO_EN_CURSO:
@@ -145,8 +149,8 @@ class OperadorLogistico(Usuario):
             viaje.destino = datos["destino"]
         if datos.get("fecha_salida"):
             viaje.fecha_salida = datos["fecha_salida"]
-        if datos.get("fecha_llegada"):
-            viaje.fecha_llegada = datos["fecha_llegada"]
+        if "fecha_llegada" in datos:
+            viaje.fecha_llegada = Viaje.convertir_fecha(datos["fecha_llegada"])
         if datos.get("recorrido") is not None:
             viaje.recorrido = datos["recorrido"]
         if datos.get("observaciones") is not None:
