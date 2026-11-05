@@ -94,7 +94,8 @@ CREATE TABLE `camion` (
   `estado`         VARCHAR(20) NOT NULL,
   `nroTanque`      INT(11)     NOT NULL,
   PRIMARY KEY (`id_camion`),
-  UNIQUE KEY `matricula` (`matricula`)
+  UNIQUE KEY `matricula` (`matricula`),
+  UNIQUE KEY `uq_camion_nro_tanque` (`nroTanque`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  
 

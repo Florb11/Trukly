@@ -22,7 +22,7 @@ function NuevoCamionModal({ formNuevo, errorNuevo, onChange, onSubmit, onClose }
 
                 <form className="nuevo-camion-form" onSubmit={onSubmit}>
                     {errorNuevo && (
-                        <p className="nuevo-camion-error">{errorNuevo}</p>
+                        <p className="nuevo-camion-error" role="alert">{errorNuevo}</p>
                     )}
 
                     <div className="nuevo-camion-grid">

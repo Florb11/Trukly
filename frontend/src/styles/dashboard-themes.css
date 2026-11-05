@@ -1542,3 +1542,15 @@
 .app-shell--mechanic[data-theme="dark"] .mecanico-mantenimiento-camion span {
   color: var(--ui-muted);
 }
+
+
+/* Errores de camiones: conservar contraste frente a los estilos generales de párrafo. */
+.app-shell--dashboard .dashboard-content p:is(.nuevo-camion-error, .editar-camion-error, .confirmar-accion__error) {
+  color: var(--ui-danger-text) !important;
+  background: var(--ui-danger-soft) !important;
+  border-left: 4px solid var(--ui-danger-text);
+  border-radius: 10px;
+  padding: 12px 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
