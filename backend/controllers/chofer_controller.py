@@ -19,7 +19,9 @@ from models.chofer_model import ChoferModel
 from services.licencia_service import licencia_vigente, MENSAJE_LICENCIA
 from utils.fecha_operativa import hoy_operativo
 from utils.input_sanitizer import InputSanitizer
-from utils.auth_decorators import chofer_required
+from utils.auth_decorators import chofer_required, roles_required, admin_required
+from models.usuario_model import UsuarioModel
+from src.Chofer import Chofer
 from models.viaje_model import ViajeModel
 
 logger = get_app_logger()
@@ -28,32 +30,66 @@ logger = get_app_logger()
 class ChoferController:
 
     @staticmethod
+    @roles_required("admin", "operador")
     def listar_choferes():
         choferes = ChoferModel.query.all()
         return jsonify([chofer.to_dict() for chofer in choferes])
 
     @staticmethod
+    @roles_required("admin", "operador", "chofer")
     def obtener_chofer(id_usuario):
+        usuario = g.usuario_actual
+        if usuario.rol == "chofer" and usuario.id_usuario != id_usuario:
+            return jsonify({"mensaje": "Solo podés consultar tus propios datos de chofer"}), 403
         chofer = ChoferModel.query.get(id_usuario)
         if chofer is None:
             return jsonify({"mensaje": "Chofer no encontrado"}), 404
         return jsonify(chofer.to_dict())
 
     @staticmethod
+    @admin_required
     def crear_chofer():
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict):
+            return jsonify({"mensaje": "Los datos del chofer no son válidos"}), 400
+        id_usuario = cuerpo.get("Usuario_idUsuario")
+        texto_id = str(id_usuario)
+        if (isinstance(id_usuario, bool) or not texto_id.isascii() or not texto_id.isdigit()
+                or len(texto_id) > 10 or not 1 <= int(texto_id) <= 2147483647):
+            return jsonify({"mensaje": "El usuario del chofer no es válido"}), 400
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=["legajo", "vencimientoLicencia", "licencia"],
             campos_enteros=["Usuario_idUsuario"],
         )
+        for campo in ("legajo", "licencia"):
+            if not datos.get(campo) or len(datos[campo]) > 50:
+                return jsonify({"mensaje": f"El campo {campo} es obligatorio y admite hasta 50 caracteres"}), 400
+        for campo, validar in [("licencia", Chofer.validar_licencia),
+                               ("vencimientoLicencia", Chofer.validar_vencimiento_licencia)]:
+            valido, mensaje = validar(datos.get(campo))
+            if not valido:
+                return jsonify({"mensaje": mensaje}), 400
+        usuario = db.session.get(UsuarioModel, datos["Usuario_idUsuario"])
+        if usuario is None:
+            return jsonify({"mensaje": "Usuario no encontrado"}), 404
+        if usuario.rol != "chofer":
+            return jsonify({"mensaje": "El usuario no tiene rol de chofer"}), 400
+        if db.session.get(ChoferModel, usuario.id_usuario) is not None:
+            return jsonify({"mensaje": "Este usuario ya tiene datos de chofer"}), 409
         nuevo_chofer = ChoferModel(
             Usuario_idUsuario=datos["Usuario_idUsuario"],
             legajo=datos["legajo"],
-            vencimientoLicencia=datos["vencimientoLicencia"],
+            vencimientoLicencia=Chofer.convertir_vencimiento_licencia(datos["vencimientoLicencia"]),
             licencia=datos["licencia"],
         )
-        db.session.add(nuevo_chofer)
-        db.session.commit()
+        try:
+            db.session.add(nuevo_chofer)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            logger.exception("No se pudieron guardar los datos del chofer")
+            return jsonify({"mensaje": "No se pudieron guardar los datos del chofer"}), 500
         return jsonify({"mensaje": "Chofer creado correctamente", "chofer": nuevo_chofer.to_dict()}), 201
 
     @staticmethod
