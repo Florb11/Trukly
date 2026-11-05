@@ -37,6 +37,8 @@ class OperacionCompartidaTest(unittest.TestCase):
         cls.fixture.app.register_blueprint(reporte_routes)
         from routes.mecanico_routes import mecanico_routes
         cls.fixture.app.register_blueprint(mecanico_routes)
+        from routes.chofer_routes import chofer_routes
+        cls.fixture.app.register_blueprint(chofer_routes)
 
     @classmethod
     def tearDownClass(cls):
@@ -48,6 +50,7 @@ class OperacionCompartidaTest(unittest.TestCase):
         self.enviar_push = push.start()
         self.addCleanup(push.stop)
         db.session.get(ViajeModel, 2).estado = 'en curso'
+        db.session.get(CamionModel, 1).estado = 'disponible'
         db.session.add_all([
             UsuarioModel(id_usuario=90, username='operador2', password='x', nombre='Segundo', apellido='Operador', rol='operador', estado='activo'),
             OperadorModel(Usuario_idUsuario=90, legajo='O90', sector='Logística'),
@@ -595,3 +598,75 @@ class OperacionCompartidaTest(unittest.TestCase):
             self.assertEqual(reporte.to_dict()['nota_reparacion'], esperado)
         finally:
             reporte.nota_reparacion = original
+
+    def test_cambios_importantes_piden_aceptar_y_avisan_una_vez(self):
+        from utils.fecha_operativa import hoy_operativo
+        db.session.get(ViajeModel, 2).estado = 'finalizado'
+        db.session.commit()
+        for datos in [{'origen':'Nuevo origen'}, {'destino':'Nuevo destino'},
+                      {'fecha_salida':(hoy_operativo()+timedelta(days=1)).isoformat()},
+                      {'Camion_id_camion':1}]:
+            with self.subTest(datos=datos):
+                viaje = db.session.get(ViajeModel, 50)
+                viaje.estado = 'aceptado'
+                NotificacionModel.query.delete()
+                db.session.commit()
+                r, codigo = self.editar(datos)
+                self.assertEqual(codigo, 200, r.get_json())
+                self.assertEqual(viaje.estado, 'pendiente')
+                aviso = NotificacionModel.query.one()
+                self.assertEqual(aviso.Usuario_idUsuario, 91)
+                self.assertEqual(aviso.tipo, 'viaje_actualizado')
+                self.assertIn('aceptá', aviso.mensaje)
+                # Reenviar el mismo formulario no invalida una nueva aceptación.
+                viaje.estado = 'aceptado'
+                db.session.commit()
+                r, codigo = self.editar(datos)
+                self.assertEqual(codigo, 200, r.get_json())
+                self.assertEqual(viaje.estado, 'aceptado')
+                self.assertEqual(NotificacionModel.query.count(), 1)
+
+    def test_observaciones_no_invalidan_aceptacion_ni_generan_aviso(self):
+        viaje = db.session.get(ViajeModel, 50)
+        r, codigo = self.editar({'observaciones':'Nueva observación'})
+        self.assertEqual(codigo, 200, r.get_json())
+        self.assertEqual(viaje.estado, 'aceptado')
+        self.assertEqual(NotificacionModel.query.count(), 0)
+
+    def test_qr_requiere_nueva_aceptacion_despues_de_cambiar_destino(self):
+        token = create_access_token(identity='91', additional_claims={'rol':'chofer'})
+        client = self.fixture.app.test_client()
+        headers = {'Authorization':'Bearer '+token}
+        r, codigo = self.editar({'destino':'Nuevo destino'})
+        self.assertEqual(codigo, 200, r.get_json())
+        r = client.post('/api/choferes/viajes/50/registro', headers=headers, json={'tipo_registro':'ingreso'})
+        self.assertEqual(r.status_code, 400, r.get_json())
+        r = client.put('/api/choferes/viajes/50/aceptar', headers=headers)
+        self.assertEqual(r.status_code, 200, r.get_json())
+        r = client.post('/api/choferes/viajes/50/registro', headers=headers, json={'tipo_registro':'ingreso'})
+        self.assertEqual(r.status_code, 201, r.get_json())
+        from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
+        RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=50).delete()
+        db.session.commit()
+
+    def test_cambio_importante_fallido_revierte_aceptacion_y_aviso(self):
+        with patch.object(db.session, 'commit', side_effect=RuntimeError('Fallo de prueba')), patch('controllers.operador_controller.logger'):
+            r, codigo = self.editar({'destino':'No guardar'})
+        self.assertEqual(codigo, 500, r.get_json())
+        viaje = db.session.get(ViajeModel, 50)
+        self.assertEqual(viaje.estado, 'aceptado')
+        self.assertEqual(viaje.destino, 'B')
+        self.assertEqual(NotificacionModel.query.count(), 0)
+        self.assertEqual(ViajeCambioModel.query.count(), 0)
+        self.enviar_push.assert_not_called()
+
+    def test_cambio_destino_en_curso_no_vuelve_a_pendiente(self):
+        viaje = db.session.get(ViajeModel, 50)
+        viaje.estado = 'en curso'
+        db.session.commit()
+        r, codigo = self.editar({'destino':'Desvío autorizado'})
+        self.assertEqual(codigo, 200, r.get_json())
+        self.assertEqual(viaje.estado, 'en curso')
+        aviso = NotificacionModel.query.one()
+        self.assertIn('actualizados', aviso.mensaje)
+        self.assertNotIn('aceptá', aviso.mensaje)

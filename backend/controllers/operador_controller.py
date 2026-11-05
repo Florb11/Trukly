@@ -399,6 +399,18 @@ class OperadorController:
                     f"El viaje #{viaje_model.id_viaje} fue reasignado a otro chofer.",
                     "viaje_reasignado",
                 )
+            else:
+                etiquetas = {"origen": "origen", "destino": "destino",
+                    "fecha_salida": "fecha de salida", "Camion_id_camion": "camión"}
+                despues = snapshot(viaje_model)
+                modificados = [etiqueta for campo, etiqueta in etiquetas.items()
+                    if antes[campo] != despues[campo]]
+                if modificados:
+                    indicacion = (" Revisá los datos y aceptá el viaje antes de escanear la salida."
+                        if viaje_model.estado == Viaje.ESTADO_PENDIENTE else " Revisá los datos actualizados del viaje.")
+                    NotificacionService.crear(viaje.id_chofer, "Viaje actualizado",
+                        f"Se actualizó el viaje #{viaje_model.id_viaje}: {', '.join(modificados)}.{indicacion}",
+                        "viaje_actualizado")
             db.session.commit()
             NotificacionService.enviar_push_pendientes()
             return jsonify({"mensaje": "Viaje actualizado correctamente", "viaje": viaje_model.to_dict()}), 200
