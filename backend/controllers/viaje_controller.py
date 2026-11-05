@@ -1,3 +1,4 @@
+from utils.texto_personal import texto_personal
 from services.viaje_asignaciones_service import obtener_asignaciones
 from services.admin_notificacion_service import AdminNotificacionService
 from flask import jsonify, request
@@ -118,8 +119,8 @@ class ViajeController:
                 "username": usuario_model.username,
                 "email": usuario_model.email,
                 "password": usuario_model.password,
-                "nombre": usuario_model.nombre,
-                "apellido": usuario_model.apellido,
+                "nombre": texto_personal(usuario_model.nombre),
+                "apellido": texto_personal(usuario_model.apellido),
                 "estado": usuario_model.estado,
                 "rol": usuario_model.rol,
                 "licencia": chofer_model.licencia,
@@ -140,8 +141,8 @@ class ViajeController:
                 "username": usuario_model.username,
                 "email": usuario_model.email,
                 "password": usuario_model.password,
-                "nombre": usuario_model.nombre,
-                "apellido": usuario_model.apellido,
+                "nombre": texto_personal(usuario_model.nombre),
+                "apellido": texto_personal(usuario_model.apellido),
                 "estado": usuario_model.estado,
                 "rol": usuario_model.rol,
                 "legajo": operador_model.legajo,

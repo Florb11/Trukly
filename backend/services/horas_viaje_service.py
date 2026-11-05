@@ -1,3 +1,4 @@
+from utils.texto_personal import texto_personal
 """Tiempo entre controles; no representa tiempo efectivo de conducción.
 
 Los registros existentes son DATETIME sin zona: se conserva el reloj del servidor
@@ -131,5 +132,5 @@ def horas_por_chofer(mes):
     filas = []
     for usuario in usuarios:
         resumen = resumen_horas(viajes[usuario.id_usuario], mes)
-        filas.append({"id_usuario": usuario.id_usuario, "nombre": usuario.nombre, "apellido": usuario.apellido, **resumen})
+        filas.append({"id_usuario": usuario.id_usuario, "nombre": texto_personal(usuario.nombre), "apellido": texto_personal(usuario.apellido), **resumen})
     return sorted(filas, key=lambda fila: (-fila["segundos_confirmados"], fila["apellido"], fila["nombre"]))

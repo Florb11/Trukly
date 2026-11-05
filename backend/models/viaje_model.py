@@ -1,3 +1,4 @@
+from utils.texto_personal import nombre_completo
 from db_instance import db
 from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
 from services.horas_viaje_service import tiempo_viaje
@@ -64,11 +65,11 @@ class ViajeModel(db.Model):
         return {
             "id_viaje": self.id_viaje,
             "chofer_nombre": (
-                f"{self.chofer_usuario.nombre} {self.chofer_usuario.apellido}".strip()
+                nombre_completo(self.chofer_usuario)
                 if self.chofer_usuario else None
             ),
             "operador_nombre": (
-                f"{self.operador_usuario.nombre} {self.operador_usuario.apellido}".strip()
+                nombre_completo(self.operador_usuario)
                 if self.operador_usuario else None
             ),
             "camion_nombre": (

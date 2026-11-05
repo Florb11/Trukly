@@ -1,3 +1,4 @@
+from utils.texto_personal import nombre_completo
 import secrets
 
 from flask import g, jsonify, request
@@ -881,7 +882,7 @@ class AdminUsuariosController:
                 "mensaje": "No se pudo registrar el usuario"
             }), 400
 
-        display_name = f"{usuario_clase.nombre} {usuario_clase.apellido}"
+        display_name = nombre_completo(usuario_clase)
 
         try:
             firebase_usuario = FirebaseAuthService.crear_o_obtener_usuario(
@@ -967,7 +968,7 @@ class AdminUsuariosController:
                 "mensaje": "El usuario no tiene email configurado"
             }), 400
 
-        display_name = f"{usuario_db.nombre} {usuario_db.apellido}"
+        display_name = nombre_completo(usuario_db)
 
         try:
             firebase_usuario = FirebaseAuthService.crear_o_obtener_usuario(

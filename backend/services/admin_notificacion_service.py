@@ -1,3 +1,4 @@
+from utils.texto_personal import nombre_completo
 """Avisos operativos para administradores; se confirman con la operación original."""
 from db_instance import db
 from models.usuario_model import UsuarioModel
@@ -21,7 +22,7 @@ class AdminNotificacionService:
     @staticmethod
     def _nombre_chofer(id_usuario):
         usuario = db.session.get(UsuarioModel, id_usuario)
-        return f"{usuario.nombre} {usuario.apellido}" if usuario else "Chofer sin datos"
+        return nombre_completo(usuario) if usuario else "Chofer sin datos"
 
     @staticmethod
     def nueva_falla(reporte):

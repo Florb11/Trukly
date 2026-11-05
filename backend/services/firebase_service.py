@@ -1,3 +1,4 @@
+from utils.texto_personal import nombre_completo
 import json
 import os
 import time
@@ -27,7 +28,7 @@ class FirebaseAuthService:
             FirebaseAuthService.inicializar()
             return auth.create_user(
                 email=usuario.email, password=password,
-                display_name=f"{usuario.nombre} {usuario.apellido}",
+                display_name=nombre_completo(usuario),
                 email_verified=False, disabled=False,
             )
         if existente.disabled:

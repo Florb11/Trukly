@@ -1,3 +1,4 @@
+from utils.texto_personal import texto_personal
 from types import SimpleNamespace
 from services.carga_service import comprobar_capacidad, ErrorCarga
 from services.admin_notificacion_service import AdminNotificacionService
@@ -507,8 +508,8 @@ class OperadorController:
                 resultado.append(
                     {
                         "id_usuario": usuario.id_usuario,
-                        "nombre": usuario.nombre,
-                        "apellido": usuario.apellido,
+                        "nombre": texto_personal(usuario.nombre),
+                        "apellido": texto_personal(usuario.apellido),
                         "estado": usuario.estado,
                         "licencia": chofer.licencia,
                         "vencimientoLicencia": str(chofer.vencimientoLicencia),
@@ -579,8 +580,8 @@ class OperadorController:
                 if usuario:
                     choferes_top.append({
                         "id_usuario": id_chofer,
-                        "nombre": usuario.nombre,
-                        "apellido": usuario.apellido,
+                        "nombre": texto_personal(usuario.nombre),
+                        "apellido": texto_personal(usuario.apellido),
                         "total_viajes": total,
                     })
 
@@ -633,8 +634,8 @@ class OperadorController:
             for mecanico, usuario in mecanicos:
                 resultado.append({
                     "id_usuario": usuario.id_usuario,
-                    "nombre": usuario.nombre,
-                    "apellido": usuario.apellido,
+                    "nombre": texto_personal(usuario.nombre),
+                    "apellido": texto_personal(usuario.apellido),
                     "estado": usuario.estado,
                     "legajo": mecanico.legajo,
                     "especialidad": mecanico.especialidad,

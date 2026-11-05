@@ -1,3 +1,5 @@
+from utils.texto_personal import nombre_completo
+from utils.texto_personal import texto_personal
 from services.admin_notificacion_service import AdminNotificacionService
 from datetime import datetime
 
@@ -95,8 +97,8 @@ class ReporteController:
                 "username": usuario_model.username,
                 "email": usuario_model.email,
                 "password": usuario_model.password,
-                "nombre": usuario_model.nombre,
-                "apellido": usuario_model.apellido,
+                "nombre": texto_personal(usuario_model.nombre),
+                "apellido": texto_personal(usuario_model.apellido),
                 "estado": usuario_model.estado,
                 "rol": usuario_model.rol,
                 "licencia": chofer_model.licencia,
@@ -117,8 +119,8 @@ class ReporteController:
                 "username": usuario_model.username,
                 "email": usuario_model.email,
                 "password": usuario_model.password,
-                "nombre": usuario_model.nombre,
-                "apellido": usuario_model.apellido,
+                "nombre": texto_personal(usuario_model.nombre),
+                "apellido": texto_personal(usuario_model.apellido),
                 "estado": usuario_model.estado,
                 "rol": usuario_model.rol,
                 "legajo": mecanico_model.legajo,
@@ -231,10 +233,10 @@ class ReporteController:
             if camion else None
         )
         datos["chofer_nombre"] = (
-            f"{chofer.nombre} {chofer.apellido}".strip() if chofer else None
+            nombre_completo(chofer) if chofer else None
         )
         datos["mecanico_nombre"] = (
-            f"{mecanico.nombre} {mecanico.apellido}".strip() if mecanico else None
+            nombre_completo(mecanico) if mecanico else None
         )
 
         return datos
@@ -655,6 +657,6 @@ class ReporteController:
         filas = db.session.query(MecanicoModel, UsuarioModel).join(
             UsuarioModel, MecanicoModel.Usuario_idUsuario == UsuarioModel.id_usuario
         ).filter(UsuarioModel.rol == Usuario.ROL_MECANICO, UsuarioModel.estado == Usuario.ESTADO_ACTIVO).order_by(UsuarioModel.apellido, UsuarioModel.nombre).all()
-        return jsonify({"mecanicos": [{"id_usuario": usuario.id_usuario, "nombre": usuario.nombre,
-            "apellido": usuario.apellido, "especialidad": mecanico.especialidad}
+        return jsonify({"mecanicos": [{"id_usuario": usuario.id_usuario, "nombre": texto_personal(usuario.nombre),
+            "apellido": texto_personal(usuario.apellido), "especialidad": mecanico.especialidad}
             for mecanico, usuario in filas]}), 200

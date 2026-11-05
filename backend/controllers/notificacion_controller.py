@@ -1,3 +1,4 @@
+from utils.texto_personal import texto_personal
 from services.admin_notificacion_service import AdminNotificacionService
 from services.avisos_licencias_service import generar_aviso_licencia
 from flask import g, jsonify
@@ -78,8 +79,8 @@ class NotificacionController:
             datos["usuario_destino"] = {
                 "id_usuario": usuario_model.id_usuario,
                 "username": usuario_model.username,
-                "nombre": usuario_model.nombre,
-                "apellido": usuario_model.apellido,
+                "nombre": texto_personal(usuario_model.nombre),
+                "apellido": texto_personal(usuario_model.apellido),
                 "rol": usuario_model.rol,
             }
 

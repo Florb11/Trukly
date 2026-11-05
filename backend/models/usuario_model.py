@@ -1,4 +1,5 @@
 from db_instance import db
+from utils.texto_personal import texto_personal
 
 
 class UsuarioModel(db.Model):
@@ -66,8 +67,8 @@ class UsuarioModel(db.Model):
             "username": self.username,
             "email": self.email,
             "firebase_uid": self.firebase_uid,
-            "nombre": self.nombre,
-            "apellido": self.apellido,
+            "nombre": texto_personal(self.nombre),
+            "apellido": texto_personal(self.apellido),
             "estado": self.estado,
             "rol": self.rol,
             "foto_perfil": self.foto_perfil,

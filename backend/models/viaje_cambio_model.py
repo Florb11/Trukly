@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from db_instance import db
+from utils.texto_personal import texto_personal
 
 
 class ViajeCambioModel(db.Model):
@@ -15,6 +16,6 @@ class ViajeCambioModel(db.Model):
 
     def to_dict(self):
         return {"id_cambio": self.id_cambio, "id_viaje": self.id_viaje,
-                "id_usuario": self.id_usuario, "actor_nombre": self.actor_nombre,
+                "id_usuario": self.id_usuario, "actor_nombre": texto_personal(self.actor_nombre),
                 "accion": self.accion, "fecha_hora": self.fecha_hora.isoformat() + "Z",
                 "datos": self.datos}
