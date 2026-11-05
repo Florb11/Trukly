@@ -4,6 +4,7 @@ from flask import g, jsonify, request
 from db_instance import db
 from models.camion_model import CamionModel
 from models.reporte_model import ReporteModel
+from models.viaje_model import ViajeModel
 
 from src.Camion import Camion
 from src.ReporteFalla import ReporteFalla
@@ -20,6 +21,20 @@ logger = get_app_logger()
 
 
 class CamionController:
+
+    @staticmethod
+    def _impedimento_desactivacion(camion, nuevo_estado):
+        if nuevo_estado != Camion.ESTADO_INACTIVO:
+            return None
+        viajes = ViajeModel.query.filter(
+            ViajeModel.Camion_id_camion == camion.id_camion,
+            ViajeModel.estado.in_(("pendiente", "aceptado", "en curso")),
+        ).all()
+        if any(v.estado == "en curso" for v in viajes):
+            return "No podés desactivar el camión mientras tenga un viaje en curso. Primero debe registrarse el regreso por QR."
+        if viajes:
+            return "No podés desactivar el camión con viajes pendientes o aceptados. Primero cancelalos o reasigná el camión."
+        return None
 
     @staticmethod
     def _sanitizar_datos_camion(datos):
@@ -254,7 +269,7 @@ class CamionController:
         # recibe el request
         admin = g.admin_actual
 
-        camion_db = CamionModel.query.get(id_camion)
+        camion_db = CamionModel.query.filter_by(id_camion=id_camion).populate_existing().with_for_update().first()
 
         if camion_db is None:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
@@ -268,6 +283,10 @@ class CamionController:
             datos,
             camion_db
         )
+
+        impedimento = CamionController._impedimento_desactivacion(camion_db, datos_camion["estado"])
+        if impedimento:
+            return jsonify({"mensaje": impedimento}), 409
 
         # valida campos obligatorios
         datos_validos, mensaje_error = CamionController._validar_datos_basicos(
@@ -345,7 +364,7 @@ class CamionController:
         # recibe el request
         admin = g.admin_actual
 
-        camion_db = CamionModel.query.get(id_camion)
+        camion_db = CamionModel.query.filter_by(id_camion=id_camion).populate_existing().with_for_update().first()
 
         if camion_db is None:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
@@ -363,6 +382,10 @@ class CamionController:
         # el controller solo valida que el campo venga
         if nuevo_estado is None or str(nuevo_estado).strip() == "":
             return jsonify({"mensaje": "El estado es obligatorio"}), 400
+
+        impedimento = CamionController._impedimento_desactivacion(camion_db, nuevo_estado)
+        if impedimento:
+            return jsonify({"mensaje": impedimento}), 409
 
         # reconstruye el objeto desde la BD
         camion_clase = admin.preparar_modificacion_camion(

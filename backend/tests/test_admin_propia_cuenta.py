@@ -8,6 +8,8 @@ from models.usuario_model import UsuarioModel
 from models.administrador_model import AdministradorModel
 from models.chofer_model import ChoferModel
 from models.viaje_model import ViajeModel
+from models.camion_model import CamionModel
+from routes.camion_routes import camion_routes
 from src.Administrador import Administrador
 from src.Usuario import Usuario
 
@@ -21,12 +23,14 @@ class AdminPropiaCuentaTest(unittest.TestCase):
         cls.fixture.app.config['JWT_SECRET_KEY'] = 'test-only-admin-self-protection-secret'
         JWTManager(cls.fixture.app)
         cls.fixture.app.register_blueprint(administrador_routes)
+        cls.fixture.app.register_blueprint(camion_routes)
 
     @classmethod
     def tearDownClass(cls):
         cls.fixture.tearDownClass()
 
     def setUp(self):
+        db.session.get(CamionModel, 1).estado = "en viaje"
         db.session.get(ViajeModel, 2).estado = "en curso"
         db.session.add(UsuarioModel(id_usuario=100, username='admin_qa', email='admin@example.invalid',
             password='x', nombre='QA', apellido='Admin', estado='activo', rol='admin'))
@@ -114,4 +118,38 @@ class AdminPropiaCuentaTest(unittest.TestCase):
                              json={'nombre':'Actualizado', 'estado':'activo'})
         self.assertEqual(r.status_code, 200, r.get_json())
         self.assertEqual(db.session.get(UsuarioModel, 1).estado, 'activo')
+        self.assertEqual(db.session.get(ViajeModel, 2).estado, 'en curso')
+
+    def test_camion_con_viaje_activo_no_se_desactiva_por_ninguna_ruta(self):
+        for estado in ['pendiente', 'aceptado', 'en curso']:
+            db.session.get(ViajeModel, 2).estado = estado
+            db.session.commit()
+            for ruta in ['/api/admin/camiones/1/estado', '/api/admin/camiones/1']:
+                with self.subTest(estado=estado, ruta=ruta):
+                    camion = db.session.get(CamionModel, 1)
+                    marca_original = camion.marca
+                    r = self.cliente.put(ruta, headers=self.headers,
+                        json={'estado':'inactivo', 'marca':'No guardar'})
+                    self.assertEqual(r.status_code, 409, r.get_json())
+                    self.assertEqual(camion.estado, 'en viaje')
+                    self.assertEqual(camion.marca, marca_original)
+                    self.assertEqual(db.session.get(ViajeModel, 2).estado, estado)
+                    self.assertIn('regreso por QR' if estado=='en curso' else 'reasigná', r.get_json()['mensaje'])
+
+    def test_camion_con_viajes_cerrados_se_puede_desactivar(self):
+        for estado in ['finalizado', 'cancelado']:
+            db.session.get(ViajeModel, 2).estado = estado
+            for ruta in ['/api/admin/camiones/1/estado', '/api/admin/camiones/1']:
+                db.session.get(CamionModel, 1).estado = 'disponible'
+                db.session.commit()
+                r = self.cliente.put(ruta, headers=self.headers, json={'estado':'inactivo'})
+                self.assertEqual(r.status_code, 200, r.get_json())
+                self.assertEqual(db.session.get(CamionModel, 1).estado, 'inactivo')
+
+    def test_camion_en_viaje_permite_editar_datos_sin_desactivar(self):
+        r = self.cliente.put('/api/admin/camiones/1', headers=self.headers,
+                             json={'modelo':'Actualizado'})
+        self.assertEqual(r.status_code, 200, r.get_json())
+        self.assertEqual(db.session.get(CamionModel, 1).modelo, 'Actualizado')
+        self.assertEqual(db.session.get(CamionModel, 1).estado, 'en viaje')
         self.assertEqual(db.session.get(ViajeModel, 2).estado, 'en curso')
