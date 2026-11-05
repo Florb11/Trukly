@@ -237,7 +237,7 @@ class AdminPropiaCuentaTest(unittest.TestCase):
                     self.assertIsNone(CamionModel.query.filter_by(matricula='QA-TAN').first())
 
     def test_camion_acepta_capacidad_decimal_y_tanque_entero_valido(self):
-        for tanque in [1, ' 2 ', 3.0, 2147483647]:
+        for tanque in [5, ' 2 ', 3.0, 2147483647]:
             r = self.cliente.post('/api/admin/camiones', headers=self.headers, json={
                 'matricula':'QA-VALIDO', 'marca':'Marca', 'modelo':'QA',
                 'estado':'disponible', 'nroTanque':tanque, 'capacidad_carga':'2500.125'})
@@ -268,7 +268,7 @@ class AdminPropiaCuentaTest(unittest.TestCase):
             for metodo, ruta in [('POST','/api/admin/camiones'), ('PUT','/api/admin/camiones/1')]:
                 with self.subTest(campo=campo, metodo=metodo):
                     datos = {'matricula':'QA-LIMITE', 'marca':'Marca', 'modelo':'Modelo',
-                             'capacidad_carga':1000, 'nroTanque':1, 'estado':'disponible', campo:'X'*(limite+1)}
+                             'capacidad_carga':1000, 'nroTanque':88, 'estado':'disponible', campo:'X'*(limite+1)}
                     if metodo=='PUT':
                         datos = {campo:'X'*(limite+1)}
                     cantidad = CamionModel.query.count()
@@ -281,7 +281,7 @@ class AdminPropiaCuentaTest(unittest.TestCase):
 
     def test_camion_acepta_textos_en_el_limite(self):
         datos = {'matricula':'M'*15, 'marca':'A'*20, 'modelo':'B'*20,
-                 'capacidad_carga':1000, 'nroTanque':1, 'estado':'disponible'}
+                 'capacidad_carga':1000, 'nroTanque':88, 'estado':'disponible'}
         r = self.cliente.post('/api/admin/camiones', headers=self.headers, json=datos)
         self.assertEqual(r.status_code, 201, r.get_json())
         camion = CamionModel.query.filter_by(matricula='M'*15).one()
@@ -297,7 +297,7 @@ class AdminPropiaCuentaTest(unittest.TestCase):
 
     def test_matricula_normalizada_se_guarda_y_rechaza_variantes_duplicadas(self):
         datos = {'matricula':' zz- 123-aa ', 'marca':'Marca', 'modelo':'QA',
-                 'capacidad_carga':1000, 'nroTanque':1, 'estado':'disponible'}
+                 'capacidad_carga':1000, 'nroTanque':88, 'estado':'disponible'}
         r = self.cliente.post('/api/admin/camiones', headers=self.headers, json=datos)
         self.assertEqual(r.status_code, 201, r.get_json())
         self.assertEqual(r.get_json()['camion']['matricula'], 'ZZ123AA')
@@ -319,13 +319,13 @@ class AdminPropiaCuentaTest(unittest.TestCase):
 
     def test_detecta_matricula_historica_y_no_pisa_otro_camion(self):
         historico = CamionModel(id_camion=90, matricula=' zx- 901 ', marca='Marca', modelo='QA',
-                                 capacidad_carga=1000, nroTanque=1, estado='disponible')
+                                 capacidad_carga=1000, nroTanque=90, estado='disponible')
         db.session.add(historico)
         db.session.commit()
         try:
             r = self.cliente.post('/api/admin/camiones', headers=self.headers, json={
                 'matricula':'ZX901', 'marca':'Marca', 'modelo':'QA', 'capacidad_carga':1000,
-                'nroTanque':1, 'estado':'disponible'})
+                'nroTanque':88, 'estado':'disponible'})
             self.assertEqual(r.status_code, 400, r.get_json())
             original = db.session.get(CamionModel, 1).matricula
             r = self.cliente.put('/api/admin/camiones/1', headers=self.headers, json={'matricula':'Z X-901'})
@@ -348,7 +348,7 @@ class AdminPropiaCuentaTest(unittest.TestCase):
     def test_normalizacion_matricula_tambien_en_dominio(self):
         from src.Camion import Camion
         datos = {'matricula':'aa-123 bb', 'marca':'Marca', 'modelo':'QA',
-                 'capacidad_carga':1000, 'nroTanque':1, 'estado':'disponible'}
+                 'capacidad_carga':1000, 'nroTanque':88, 'estado':'disponible'}
         self.assertEqual(Camion.crear_desde_datos(datos).matricula, 'AA123BB')
         self.assertIsNone(Camion.crear_desde_datos({**datos, 'matricula':'-- --'}))
 

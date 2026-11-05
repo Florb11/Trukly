@@ -35,7 +35,7 @@ function EditarCamionModal({
 
                 <form className="editar-camion-form" onSubmit={onSubmit}>
                     {errorEditar && (
-                        <p className="editar-camion-error">{errorEditar}</p>
+                        <p className="editar-camion-error" role="alert">{errorEditar}</p>
                     )}
 
                     <div className="editar-camion-grid">

@@ -3,6 +3,7 @@ from db_instance import db
 
 class CamionModel(db.Model):
     __tablename__ = "Camion"
+    __table_args__ = (db.UniqueConstraint("nroTanque", name="uq_camion_nro_tanque"),)
 
     id_camion = db.Column(db.Integer, primary_key=True, autoincrement=True)
     matricula = db.Column(db.String(15), nullable=False, unique=True)

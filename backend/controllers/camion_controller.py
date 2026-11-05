@@ -1,4 +1,5 @@
 from services.carga_service import comprobar_reduccion_capacidad, ErrorCarga
+from sqlalchemy.exc import IntegrityError
 from flask import g, jsonify, request
 
 from db_instance import db
@@ -21,6 +22,22 @@ logger = get_app_logger()
 
 
 class CamionController:
+
+    @staticmethod
+    def _tanque_duplicado(numero, excluir_id=None):
+        consulta = CamionModel.query.filter_by(nroTanque=numero)
+        if excluir_id is not None:
+            consulta = consulta.filter(CamionModel.id_camion != excluir_id)
+        return consulta.first() is not None
+
+    @staticmethod
+    def _respuesta_error_unicidad(error):
+        detalle = str(error.orig).lower()
+        if "nrotanque" in detalle or "uq_camion_nro_tanque" in detalle:
+            return jsonify({"mensaje": "Ya existe un camión con ese número de tanque."}), 409
+        if "matricula" in detalle:
+            return jsonify({"mensaje": "Ya existe un camion con esa matricula"}), 400
+        return None
 
     @staticmethod
     def _matricula_duplicada(matricula, excluir_id=None):
@@ -250,6 +267,9 @@ class CamionController:
                 "mensaje": "Ya existe un camion con esa matricula"
             }), 400
 
+        if CamionController._tanque_duplicado(camion_clase.nroTanque):
+            return jsonify({"mensaje": "Ya existe un camión con ese número de tanque."}), 409
+
         # convierte el objeto ( clase) a modelo
         nuevo_camion = CamionModel(
             matricula=camion_clase.matricula,
@@ -263,6 +283,13 @@ class CamionController:
         try:
             db.session.add(nuevo_camion)
             db.session.commit()
+        except IntegrityError as error:
+            db.session.rollback()
+            respuesta = CamionController._respuesta_error_unicidad(error)
+            if respuesta is not None:
+                return respuesta
+            logger.exception("No se pudo crear el camion")
+            return jsonify({"mensaje": "No se pudo crear el camion"}), 500
         except Exception:
             db.session.rollback()
             logger.exception("No se pudo crear el camion")
@@ -346,6 +373,9 @@ class CamionController:
                 "mensaje": "Ya existe otro camion con esa matricula"
             }), 400
 
+        if CamionController._tanque_duplicado(camion_clase.nroTanque, excluir_id=id_camion):
+            return jsonify({"mensaje": "Ya existe un camión con ese número de tanque."}), 409
+
         # aplica los cambios al modelo
         CamionController._aplicar_datos_camion(
             camion_db,
@@ -354,6 +384,13 @@ class CamionController:
 
         try:
             db.session.commit()
+        except IntegrityError as error:
+            db.session.rollback()
+            respuesta = CamionController._respuesta_error_unicidad(error)
+            if respuesta is not None:
+                return respuesta
+            logger.exception("No se pudo modificar el camion")
+            return jsonify({"mensaje": "No se pudo modificar el camion"}), 500
         except Exception:
             db.session.rollback()
             logger.exception("No se pudo modificar el camion")

@@ -8,8 +8,8 @@ import EditarCamionModal from "../components/EditarCamionModal";
 import "./AdminCamionesPage.css";
 
 function AdminCamionesPage() {
-    const [desactivacion, setDesactivacion] = useState(null);
-    const cerrarDesactivacion = useCallback(() => setDesactivacion(null), []);
+    const [confirmacionEstado, setConfirmacionEstado] = useState(null);
+    const cerrarConfirmacionEstado = useCallback(() => setConfirmacionEstado(null), []);
     const [camiones, setCamiones] = useState([]);
     const [cargandoCamiones, setCargandoCamiones] = useState(true);
     const [errorCamiones, setErrorCamiones] = useState("");
@@ -218,8 +218,8 @@ function AdminCamionesPage() {
     const guardarEdicionCamion = async (e) => {
         e.preventDefault();
         if (!camionEditando) return;
-        if (formEditar.estado === "inactivo" && camionEditando.estado !== "inactivo") {
-            setDesactivacion({ camion: camionEditando, formulario: { ...formEditar } });
+        if (formEditar.estado !== camionEditando.estado && (formEditar.estado === "inactivo" || camionEditando.estado === "inactivo")) {
+            setConfirmacionEstado({ camion: camionEditando, estado: formEditar.estado, formulario: { ...formEditar } });
             return;
         }
         try { await guardarCambiosCamion(camionEditando, formEditar); }
@@ -293,6 +293,8 @@ function AdminCamionesPage() {
         return coincideBusqueda && coincideEstado;
     });
 
+    const activando = confirmacionEstado?.estado !== "inactivo";
+
     const renderAcciones = (camion) => (
         <div className="camiones-actions">
             <button
@@ -316,12 +318,7 @@ function AdminCamionesPage() {
                     type="button"
                     className="btn-camion btn-camion--activar"
                     onClick={() =>
-                        cambiarEstadoCamion(
-                            camion.id_camion,
-                            camion.reportes_activos > 0
-                                ? "en mantenimiento"
-                                : "disponible"
-                        )
+                        setConfirmacionEstado({ camion, estado: camion.reportes_activos > 0 ? "en mantenimiento" : "disponible" })
                     }
                 >
                     Activar
@@ -331,7 +328,7 @@ function AdminCamionesPage() {
                     <button
                         type="button"
                         className="btn-camion btn-camion--desactivar"
-                        onClick={() => setDesactivacion({ camion })}
+                        onClick={() => setConfirmacionEstado({ camion, estado: "inactivo" })}
                     >
                         Desactivar
                     </button>
@@ -517,16 +514,21 @@ function AdminCamionesPage() {
                     onClose={cerrarEditarCamion}
                 />
             )}
-            {desactivacion && <ConfirmarAccionModal
-                titulo="Desactivar camión" textoConfirmar="Desactivar camión"
-                descripcion={<>¿Estás seguro de que querés desactivar el camión <strong>{desactivacion.camion.matricula}</strong>?</>}
-                identidad={<span>{desactivacion.camion.marca} {desactivacion.camion.modelo}</span>}
-                detalle="El camión quedará inactivo y no estará disponible para asignarle nuevos viajes. Podrás volver a activarlo cuando corresponda."
+            {confirmacionEstado && <ConfirmarAccionModal
+                titulo={activando ? "Activar camión" : "Desactivar camión"} textoConfirmar={activando ? "Activar camión" : "Desactivar camión"}
+                peligro={!activando}
+                descripcion={<>¿Estás seguro de que querés {activando ? "activar" : "desactivar"} el camión <strong>{confirmacionEstado.camion.matricula}</strong>?</>}
+                identidad={<span>{confirmacionEstado.camion.marca} {confirmacionEstado.camion.modelo}</span>}
+                detalle={activando
+                    ? confirmacionEstado.estado === "en mantenimiento"
+                        ? "El camión volverá a estar activo, pero permanecerá en mantenimiento por sus reportes pendientes. No estará disponible para nuevos viajes hasta resolverlos."
+                        : "El camión volverá a estar disponible para asignarle nuevos viajes."
+                    : "El camión quedará inactivo y no estará disponible para asignarle nuevos viajes. Podrás volver a activarlo cuando corresponda."}
                 icono={<FaTruck aria-hidden="true" />}
-                onClose={cerrarDesactivacion}
-                onConfirm={() => desactivacion.formulario
-                    ? guardarCambiosCamion(desactivacion.camion, desactivacion.formulario)
-                    : cambiarEstadoCamion(desactivacion.camion.id_camion, "inactivo", true)}
+                onClose={cerrarConfirmacionEstado}
+                onConfirm={() => confirmacionEstado.formulario
+                    ? guardarCambiosCamion(confirmacionEstado.camion, confirmacionEstado.formulario)
+                    : cambiarEstadoCamion(confirmacionEstado.camion.id_camion, confirmacionEstado.estado, true)}
             />}
         </section>
     );
