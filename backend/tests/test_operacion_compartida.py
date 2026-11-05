@@ -1153,3 +1153,31 @@ class OperacionCompartidaTest(unittest.TestCase):
                 viaje = ViajeModel.query.order_by(ViajeModel.id_viaje.desc()).first()
                 self.assertEqual(viaje.recorrido,0 if valor=='omitido' else float(valor))
                 self.assertEqual(db.session.get(CamionModel,90).estado,'en viaje')
+
+
+    def test_observaciones_legibles_y_estables_en_guardados_repetidos(self):
+        from html import escape
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        client = self.fixture.app.test_client()
+        for original in ['Entrega "OK" & recibida', "Aviso de D'Amico", 'Texto literal &quot; conservado', '<carga> recibida', '', None]:
+            # Incluye registros ya existentes; solo cambia la presentación.
+            almacenado = escape(original) if original is not None else None
+            db.session.get(ViajeModel,50).observaciones = almacenado
+            db.session.commit()
+            for _ in range(3):
+                for uid,rol in [('90','operador'),('91','chofer')]:
+                    headers = {'Authorization':'Bearer '+create_access_token(identity=uid,additional_claims={'rol':rol})}
+                    detalle = client.get('/api/viaje/50',headers=headers)
+                    self.assertEqual(detalle.status_code,200,detalle.get_json())
+                    self.assertEqual(detalle.get_json()['observaciones'],original)
+                    lista = client.get('/api/viaje',headers=headers)
+                    self.assertEqual(next(v for v in lista.get_json() if v['id_viaje']==50)['observaciones'],original)
+                if original is not None:
+                    r = client.put('/api/operador/viajes/50',json={'observaciones':original},headers={'Authorization':'Bearer '+token})
+                    self.assertEqual(r.status_code,200,r.get_json())
+                    self.assertEqual(r.get_json()['viaje']['observaciones'],original)
+                # Una edición parcial también debe mantener la codificación original.
+                r = client.put('/api/operador/viajes/50',json={'recorrido':11},headers={'Authorization':'Bearer '+token})
+                self.assertEqual(r.status_code,200,r.get_json())
+                db.session.remove()
+                self.assertEqual(db.session.get(ViajeModel,50).observaciones,almacenado)

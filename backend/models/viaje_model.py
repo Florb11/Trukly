@@ -1,4 +1,5 @@
 from utils.texto_personal import nombre_completo
+from html import unescape
 from db_instance import db
 from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
 from services.horas_viaje_service import tiempo_viaje
@@ -60,6 +61,10 @@ class ViajeModel(db.Model):
         lazy="selectin",
     )
 
+    @property
+    def observaciones_texto(self):
+        return unescape(self.observaciones) if self.observaciones is not None else None
+
     def to_dict(self):
         tiempo = tiempo_viaje(self)
         return {
@@ -91,6 +96,6 @@ class ViajeModel(db.Model):
             "destino_lat": self.destino_lat,
             "destino_lon": self.destino_lon,
             "estado": self.estado,
-            "observaciones": self.observaciones,
+            "observaciones": self.observaciones_texto,
             "recorrido": self.recorrido,
         }

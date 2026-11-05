@@ -404,6 +404,8 @@ class OperadorController:
                 return jsonify({"mensaje": str(error)}), error.codigo
 
         viaje_dict = viaje_model.to_dict()
+        # La edición conserva el texto almacenado cuando el campo se omite.
+        viaje_dict["observaciones"] = viaje_model.observaciones
         viaje_dict["id_operador"] = viaje_dict.get("OperadorLogistico_Usuario_idUsuario")
         viaje_dict["id_chofer"] = viaje_dict.get("Chofer_Usuario_idUsuario")
         viaje_dict["id_camion"] = viaje_dict.get("Camion_id_camion")
