@@ -13,7 +13,7 @@ from src.Camion import Camion
 from src.Usuario import Usuario
 from src.Viaje import Viaje
 from models.chofer_model import ChoferModel
-from services.licencia_service import licencia_vigente, MENSAJE_LICENCIA
+from services.licencia_service import licencia_vigente, MENSAJE_LICENCIA, MENSAJE_LICENCIA_FECHA
 from utils.fecha_operativa import hoy_operativo
 from models.camion_model import CamionModel
 from models.reporte_model import ReporteModel
@@ -165,8 +165,8 @@ class OperadorController:
         if not chofer_model:
             return jsonify({"mensaje": "El chofer no existe"}), 400
 
-        if not licencia_vigente(chofer_model):
-            return jsonify({"mensaje": MENSAJE_LICENCIA}), 409
+        if not licencia_vigente(chofer_model, Viaje.convertir_fecha(fecha_salida)):
+            return jsonify({"mensaje": MENSAJE_LICENCIA_FECHA}), 409
 
         usuario_chofer = UsuarioModel.query.get(id_chofer)
         if not usuario_chofer or usuario_chofer.estado != Usuario.ESTADO_ACTIVO:
@@ -361,6 +361,13 @@ class OperadorController:
 
         if not editado:
             return jsonify({"mensaje": mensaje_error}), 400
+
+        cambia_asignacion = viaje.id_chofer != id_chofer_anterior
+        cambia_salida = Viaje.convertir_fecha(viaje.fecha_salida) != viaje_model.fecha_salida
+        if (cambia_asignacion or cambia_salida) and not licencia_vigente(
+            db.session.get(ChoferModel, viaje.id_chofer), Viaje.convertir_fecha(viaje.fecha_salida)
+        ):
+            return jsonify({"mensaje": MENSAJE_LICENCIA_FECHA}), 409
 
         for prefijo in ("origen", "destino"):
             if prefijo in datos and datos.get(prefijo) != getattr(viaje_model, prefijo):

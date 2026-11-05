@@ -5,7 +5,7 @@ from flask import jsonify, request
 from db_instance import db
 from models.camion_model import CamionModel
 from models.chofer_model import ChoferModel
-from services.licencia_service import licencia_vigente, MENSAJE_LICENCIA
+from services.licencia_service import licencia_vigente, MENSAJE_LICENCIA_FECHA
 from models.operador_model import OperadorModel
 from models.usuario_model import UsuarioModel
 from models.viaje_model import ViajeModel
@@ -405,8 +405,8 @@ class ViajeController:
         if not usuario_chofer or usuario_chofer.estado != Usuario.ESTADO_ACTIVO:
             return jsonify({"mensaje": "El chofer no está disponible"}), 400
 
-        if not licencia_vigente(chofer_model):
-            return jsonify({"mensaje": MENSAJE_LICENCIA}), 409
+        if not licencia_vigente(chofer_model, Viaje.convertir_fecha(datos["fecha_salida"])):
+            return jsonify({"mensaje": MENSAJE_LICENCIA_FECHA}), 409
 
         viaje_chofer_activo = ViajeModel.query.filter(
             ViajeModel.Chofer_Usuario_idUsuario == id_chofer,

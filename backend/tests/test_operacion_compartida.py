@@ -670,3 +670,67 @@ class OperacionCompartidaTest(unittest.TestCase):
         aviso = NotificacionModel.query.one()
         self.assertIn('actualizados', aviso.mensaje)
         self.assertNotIn('aceptá', aviso.mensaje)
+
+    def test_creacion_exige_licencia_hasta_salida_en_ambas_rutas(self):
+        from utils.fecha_operativa import hoy_operativo
+        salida = hoy_operativo()+timedelta(days=7)
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        db.session.get(CamionModel, 90).estado = 'disponible'
+        db.session.get(ChoferModel, 91).vencimientoLicencia = salida-timedelta(days=1)
+        db.session.commit()
+        token = create_access_token(identity='90', additional_claims={'rol':'operador'})
+        datos = {'origen':'A', 'destino':'B', 'fecha_salida':salida.isoformat(),
+                 'Chofer_Usuario_idUsuario':91, 'Camion_id_camion':90, 'recorrido':10}
+        for ruta in ['/api/operador/viajes', '/api/viaje']:
+            r = self.fixture.app.test_client().post(ruta, headers={'Authorization':'Bearer '+token}, json=datos)
+            self.assertEqual(r.status_code, 409, r.get_json())
+            self.assertIn('fecha de salida', r.get_json()['mensaje'])
+            self.assertEqual(ViajeModel.query.filter(ViajeModel.id_viaje>50).count(), 0)
+            self.assertEqual(db.session.get(CamionModel, 90).estado, 'disponible')
+            self.assertEqual(NotificacionModel.query.count(), 0)
+            self.assertEqual(ViajeCambioModel.query.count(), 0)
+        self.enviar_push.assert_not_called()
+
+    def test_reprogramar_rechaza_licencia_insuficiente_sin_mutar(self):
+        from utils.fecha_operativa import hoy_operativo
+        db.session.get(ChoferModel, 91).vencimientoLicencia = hoy_operativo()+timedelta(days=1)
+        db.session.commit()
+        viaje = db.session.get(ViajeModel, 50)
+        salida_original = viaje.fecha_salida
+        r, codigo = self.editar({'fecha_salida':(hoy_operativo()+timedelta(days=7)).isoformat()})
+        self.assertEqual(codigo, 409, r.get_json())
+        self.assertEqual(viaje.fecha_salida, salida_original)
+        self.assertEqual(viaje.estado, 'aceptado')
+        self.assertEqual(NotificacionModel.query.count(), 0)
+        self.assertEqual(ViajeCambioModel.query.count(), 0)
+        # Las observaciones siguen pudiendo editarse.
+        self.assertEqual(self.editar({'observaciones':'Confirmar renovación'})[1], 200)
+
+    def test_reasignar_comprueba_la_fecha_final_del_formulario(self):
+        from utils.fecha_operativa import hoy_operativo
+        salida = hoy_operativo()+timedelta(days=7)
+        viaje = db.session.get(ViajeModel, 50)
+        viaje.fecha_salida = salida
+        db.session.get(ViajeModel, 2).estado = 'finalizado'
+        db.session.get(UsuarioModel, 1).estado = 'activo'
+        db.session.get(ChoferModel, 1).vencimientoLicencia = salida-timedelta(days=1)
+        db.session.commit()
+        r, codigo = self.editar({'Chofer_Usuario_idUsuario':1})
+        self.assertEqual(codigo, 409, r.get_json())
+        self.assertEqual(viaje.Chofer_Usuario_idUsuario, 91)
+        self.assertEqual(viaje.estado, 'aceptado')
+        self.assertEqual(NotificacionModel.query.count(), 0)
+        # Si se adelanta a una fecha cubierta, puede reasignarse conjuntamente.
+        r, codigo = self.editar({'Chofer_Usuario_idUsuario':1, 'fecha_salida':(salida-timedelta(days=1)).isoformat()})
+        self.assertEqual(codigo, 200, r.get_json())
+        self.assertEqual(viaje.Chofer_Usuario_idUsuario, 1)
+        self.assertEqual(viaje.estado, 'pendiente')
+
+    def test_licencia_valida_el_mismo_dia_de_salida(self):
+        from utils.fecha_operativa import hoy_operativo
+        salida = hoy_operativo()+timedelta(days=7)
+        db.session.get(ChoferModel, 91).vencimientoLicencia = salida
+        db.session.commit()
+        r, codigo = self.editar({'fecha_salida':salida.isoformat()})
+        self.assertEqual(codigo, 200, r.get_json())
+        self.assertEqual(db.session.get(ViajeModel, 50).estado, 'pendiente')
