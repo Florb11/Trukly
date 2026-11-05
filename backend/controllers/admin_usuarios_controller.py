@@ -733,6 +733,9 @@ class AdminUsuariosController:
         )
         estado = str(estado).strip()
 
+        if str(usuario_db.id_usuario) == str(admin.id_usuario) and estado != Usuario.ESTADO_ACTIVO:
+            return jsonify({"mensaje": "No podés desactivar ni dejar pendiente tu propia cuenta de administrador."}), 400
+
         accion_realizada = admin.modificar_usuario(
             usuario_clase,
             nuevo_username,

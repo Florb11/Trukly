@@ -246,6 +246,9 @@ class Administrador(Usuario):
         if not self.estado_valido(estado):
             return False
 
+        if str(usuario.id_usuario) == str(self.id_usuario) and estado != Usuario.ESTADO_ACTIVO:
+            return False
+
         usuario.username = username
         usuario.email = email
         usuario.nombre = nombre
