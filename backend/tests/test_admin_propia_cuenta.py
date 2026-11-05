@@ -9,6 +9,7 @@ from models.administrador_model import AdministradorModel
 from models.chofer_model import ChoferModel
 from models.viaje_model import ViajeModel
 from models.camion_model import CamionModel
+from models.reporte_model import ReporteModel
 from routes.camion_routes import camion_routes
 from src.Administrador import Administrador
 from src.Usuario import Usuario
@@ -30,6 +31,9 @@ class AdminPropiaCuentaTest(unittest.TestCase):
         cls.fixture.tearDownClass()
 
     def setUp(self):
+        db.session.get(UsuarioModel, 3).estado = "activo"
+        db.session.get(ReporteModel, 2).estado = "resuelto"
+        db.session.get(ReporteModel, 2).Mecanico_Usuario_idUsuario = 3
         db.session.get(CamionModel, 1).estado = "en viaje"
         db.session.get(ViajeModel, 2).estado = "en curso"
         db.session.add(UsuarioModel(id_usuario=100, username='admin_qa', email='admin@example.invalid',
@@ -153,3 +157,49 @@ class AdminPropiaCuentaTest(unittest.TestCase):
         self.assertEqual(db.session.get(CamionModel, 1).modelo, 'Actualizado')
         self.assertEqual(db.session.get(CamionModel, 1).estado, 'en viaje')
         self.assertEqual(db.session.get(ViajeModel, 2).estado, 'en curso')
+
+    def test_mecanico_con_reportes_activos_no_se_desactiva_ni_queda_pendiente(self):
+        for estado in ['pendiente', 'en revision']:
+            db.session.get(ReporteModel, 2).estado = estado
+            db.session.commit()
+            for ruta, datos in [('/api/admin/usuarios/3/desactivar', None),
+                                ('/api/admin/usuarios/3', {'estado':'inactivo', 'nombre':'No guardar'}),
+                                ('/api/admin/usuarios/3', {'estado':'pendiente', 'nombre':'No guardar'})]:
+                with self.subTest(estado=estado, ruta=ruta, datos=datos):
+                    nombre = db.session.get(UsuarioModel, 3).nombre
+                    r = self.cliente.put(ruta, headers=self.headers, json=datos)
+                    self.assertEqual(r.status_code, 409, r.get_json())
+                    self.assertIn('reasignalos', r.get_json()['mensaje'])
+                    self.assertEqual(db.session.get(UsuarioModel, 3).estado, 'activo')
+                    self.assertEqual(db.session.get(UsuarioModel, 3).nombre, nombre)
+                    self.assertEqual(db.session.get(ReporteModel, 2).estado, estado)
+                    self.assertEqual(db.session.get(ReporteModel, 2).Mecanico_Usuario_idUsuario, 3)
+
+    def test_mecanico_con_reportes_cerrados_puede_desactivarse(self):
+        for estado in ['resuelto', 'cancelado']:
+            db.session.get(ReporteModel, 2).estado = estado
+            for ruta, datos in [('/api/admin/usuarios/3/desactivar', None),
+                                ('/api/admin/usuarios/3', {'estado':'inactivo'}),
+                                ('/api/admin/usuarios/3', {'estado':'pendiente'})]:
+                db.session.get(UsuarioModel, 3).estado = 'activo'
+                db.session.commit()
+                r = self.cliente.put(ruta, headers=self.headers, json=datos)
+                self.assertEqual(r.status_code, 200, r.get_json())
+                self.assertEqual(db.session.get(UsuarioModel, 3).estado, (datos or {}).get('estado', 'inactivo'))
+
+    def test_reportes_de_otro_mecanico_no_bloquean_desactivacion(self):
+        reporte = db.session.get(ReporteModel, 1)
+        reporte.estado = 'en revision'
+        reporte.Mecanico_Usuario_idUsuario = None
+        db.session.commit()
+        r = self.cliente.put('/api/admin/usuarios/3/desactivar', headers=self.headers)
+        self.assertEqual(r.status_code, 200, r.get_json())
+
+    def test_mecanico_con_reportes_activos_permite_editar_datos_personales(self):
+        db.session.get(ReporteModel, 2).estado = 'en revision'
+        db.session.commit()
+        r = self.cliente.put('/api/admin/usuarios/3', headers=self.headers,
+                             json={'nombre':'Actualizado', 'estado':'activo'})
+        self.assertEqual(r.status_code, 200, r.get_json())
+        self.assertEqual(db.session.get(UsuarioModel, 3).estado, 'activo')
+        self.assertEqual(db.session.get(ReporteModel, 2).estado, 'en revision')

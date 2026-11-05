@@ -11,10 +11,12 @@ from models.chofer_model import ChoferModel
 from models.mecanico_model import MecanicoModel
 from models.operador_model import OperadorModel
 from models.viaje_model import ViajeModel
+from models.reporte_model import ReporteModel
 from services.firebase_service import FirebaseAuthService, FirebaseConfigError
 
 from src.Chofer import Chofer
 from src.Usuario import Usuario
+from src.ReporteFalla import ReporteFalla
 from utils.auth_decorators import admin_required
 from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
@@ -32,8 +34,21 @@ logger = get_app_logger()
 
 class AdminUsuariosController:
     @staticmethod
-    def _impedimento_desactivacion_chofer(usuario, nuevo_estado):
-        if usuario.rol != Usuario.ROL_CHOFER or nuevo_estado not in {"inactivo", "pendiente"}:
+    def _impedimento_desactivacion(usuario, nuevo_estado):
+        if nuevo_estado not in {"inactivo", "pendiente"}:
+            return None
+
+        if usuario.rol == Usuario.ROL_MECANICO:
+            MecanicoModel.query.filter_by(Usuario_idUsuario=usuario.id_usuario).with_for_update().first()
+            reporte_activo = ReporteModel.query.filter(
+                ReporteModel.Mecanico_Usuario_idUsuario == usuario.id_usuario,
+                ReporteModel.estado.in_(ReporteFalla.ESTADOS_ACTIVOS),
+            ).first()
+            if reporte_activo:
+                return "No podés desactivar ni dejar pendiente al mecánico con reportes pendientes o en revisión asignados. Primero resolvelos o reasignalos a otro mecánico activo."
+            return None
+
+        if usuario.rol != Usuario.ROL_CHOFER:
             return None
 
         ChoferModel.query.filter_by(Usuario_idUsuario=usuario.id_usuario).with_for_update().first()
@@ -629,7 +644,7 @@ class AdminUsuariosController:
                 "mensaje": "Usuario no encontrado"
             }), 404
 
-        impedimento = AdminUsuariosController._impedimento_desactivacion_chofer(usuario_db, "inactivo")
+        impedimento = AdminUsuariosController._impedimento_desactivacion(usuario_db, "inactivo")
         if impedimento:
             return jsonify({"mensaje": impedimento}), 409
 
@@ -760,7 +775,7 @@ class AdminUsuariosController:
         if str(usuario_db.id_usuario) == str(admin.id_usuario) and estado != Usuario.ESTADO_ACTIVO:
             return jsonify({"mensaje": "No podés desactivar ni dejar pendiente tu propia cuenta de administrador."}), 400
 
-        impedimento = AdminUsuariosController._impedimento_desactivacion_chofer(usuario_db, estado)
+        impedimento = AdminUsuariosController._impedimento_desactivacion(usuario_db, estado)
         if impedimento:
             return jsonify({"mensaje": impedimento}), 409
 
