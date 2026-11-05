@@ -40,6 +40,16 @@ logger = get_app_logger()
 
 
 class ReporteController:
+    @staticmethod
+    def _convertir_id_mecanico(valor):
+        if isinstance(valor, bool) or not isinstance(valor, (str, int)):
+            return None
+        texto = str(valor).strip()
+        if not texto or len(texto) > 10 or not texto.isascii() or not texto.isdigit():
+            return None
+        numero = int(texto)
+        return numero if 0 < numero <= 2147483647 else None
+
 
     @staticmethod
     def crear_validador_creacion_reporte():
@@ -519,10 +529,9 @@ class ReporteController:
         id_mecanico_anterior = reporte_db.Mecanico_Usuario_idUsuario
         reporte_clase = ReporteController.crear_objeto_reporte(reporte_db)
         if nuevo_estado == ReporteFalla.ESTADO_EN_REVISION:
-            id_mecanico = cuerpo.get("Mecanico_Usuario_idUsuario", reporte_db.Mecanico_Usuario_idUsuario)
-            if isinstance(id_mecanico, bool) or not str(id_mecanico or "").isdigit() or int(id_mecanico) <= 0:
+            id_mecanico = ReporteController._convertir_id_mecanico(cuerpo.get("Mecanico_Usuario_idUsuario", reporte_db.Mecanico_Usuario_idUsuario))
+            if id_mecanico is None:
                 return jsonify({"mensaje": "Para poner el reporte en revisión, seleccioná un mecánico activo"}), 400
-            id_mecanico = int(id_mecanico)
             usuario_mecanico = UsuarioModel.query.filter_by(id_usuario=id_mecanico, rol=Usuario.ROL_MECANICO, estado=Usuario.ESTADO_ACTIVO).first()
             mecanico = ReporteController.obtener_mecanico_clase(id_mecanico) if usuario_mecanico else None
             if mecanico is None:
@@ -580,10 +589,13 @@ class ReporteController:
         if reporte_db is None:
             return jsonify({"mensaje": "Reporte no encontrado"}), 404
 
-        datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
-            campos_enteros=["Mecanico_Usuario_idUsuario"],
-        )
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict):
+            return jsonify({"mensaje": "Los datos de la asignación no son válidos."}), 400
+        id_mecanico = ReporteController._convertir_id_mecanico(cuerpo.get("Mecanico_Usuario_idUsuario"))
+        if id_mecanico is None:
+            return jsonify({"mensaje": "Seleccioná un mecánico válido: el identificador debe ser un entero positivo."}), 400
+        datos = {"Mecanico_Usuario_idUsuario": id_mecanico}
 
         # valida campo obligatorio
         validador = ReporteController.crear_validador_asignacion_mecanico()
