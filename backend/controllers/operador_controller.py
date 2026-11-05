@@ -22,7 +22,7 @@ from models.viaje_model import ViajeModel
 from models.chofer_model import ChoferModel
 from models.camion_model import CamionModel
 from utils.input_sanitizer import InputSanitizer
-from utils.auth_decorators import operador_required, roles_required
+from utils.auth_decorators import operador_required, roles_required, admin_required
 from services.camion_disponibilidad_service import actualizar_camion_tras_cancelacion
 from services.notificacion_service import NotificacionService
 from services.viaje_notificacion_service import notificar_cancelacion_chofer
@@ -60,31 +60,60 @@ class OperadorController:
         return True
 
     @staticmethod
+    @admin_required
     def listar_operadores():
         operadores = OperadorModel.query.all()
         return jsonify([operador.to_dict() for operador in operadores])
 
     @staticmethod
+    @roles_required("admin", "operador")
     def obtener_operador(id_usuario):
+        usuario = g.usuario_actual
+        if usuario.rol == "operador" and usuario.id_usuario != id_usuario:
+            return jsonify({"mensaje": "Solo podés consultar tus propios datos de operador"}), 403
         operador = OperadorModel.query.get(id_usuario)
         if operador is None:
             return jsonify({"mensaje": "Operador no encontrado"}), 404
         return jsonify(operador.to_dict())
 
     @staticmethod
+    @admin_required
     def crear_operador():
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict):
+            return jsonify({"mensaje": "Los datos del operador no son válidos"}), 400
+        id_usuario = cuerpo.get("Usuario_idUsuario")
+        texto_id = str(id_usuario)
+        if (isinstance(id_usuario, bool) or not texto_id.isascii() or not texto_id.isdigit()
+                or len(texto_id) > 10 or not 1 <= int(texto_id) <= 2147483647):
+            return jsonify({"mensaje": "El usuario del operador no es válido"}), 400
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=["Legajo", "Sector"],
             campos_enteros=["Usuario_idUsuario"],
         )
+        for campo in ("Legajo", "Sector"):
+            if not datos.get(campo) or len(datos[campo]) > 45:
+                return jsonify({"mensaje": f"El campo {campo} es obligatorio y admite hasta 45 caracteres"}), 400
+        usuario = db.session.get(UsuarioModel, datos["Usuario_idUsuario"])
+        if usuario is None:
+            return jsonify({"mensaje": "Usuario no encontrado"}), 404
+        if usuario.rol != "operador":
+            return jsonify({"mensaje": "El usuario no tiene rol de operador"}), 400
+        if db.session.get(OperadorModel, usuario.id_usuario) is not None:
+            return jsonify({"mensaje": "Este usuario ya tiene datos de operador"}), 409
         nuevo_operador = OperadorModel(
             Usuario_idUsuario=datos["Usuario_idUsuario"],
             legajo=datos["Legajo"],
             sector=datos["Sector"],
         )
-        db.session.add(nuevo_operador)
-        db.session.commit()
+        try:
+            db.session.add(nuevo_operador)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            logger.exception("No se pudieron guardar los datos del operador")
+            return jsonify({"mensaje": "No se pudieron guardar los datos del operador"}), 500
         return (
             jsonify(
                 {
