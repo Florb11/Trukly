@@ -23,7 +23,7 @@ from src.observer.NotificacionReporteListener import (
 
 from services.auth_service import AuthService
 from services.notificacion_service import NotificacionService
-from services.camion_disponibilidad_service import actualizar_camion_tras_cierre_reporte
+from services.camion_disponibilidad_service import actualizar_camion_tras_cierre_reporte, marcar_camion_tras_reporte
 from utils.auth_decorators import obtener_admin_actual_desde_token
 from utils.auth_decorators import roles_required
 from utils.app_logger import get_app_logger
@@ -267,21 +267,7 @@ class ReporteController:
         if reporte_clase.estado not in ReporteFalla.ESTADOS_ACTIVOS:
             return False
 
-        camion_model = CamionModel.query.get(reporte_clase.id_camion)
-        camion = ReporteController.crear_objeto_camion(camion_model)
-
-        if camion is None:
-            return False
-
-        camion_en_mantenimiento = camion.marcar_en_mantenimiento()
-
-        if camion_en_mantenimiento:
-            ReporteController.actualizar_modelo_camion(
-                camion_model,
-                camion
-            )
-
-        return camion_en_mantenimiento
+        return marcar_camion_tras_reporte(reporte_clase.id_camion)
 
     @staticmethod
     def notificar_reporte_asignado(reporte_clase, mecanico):
