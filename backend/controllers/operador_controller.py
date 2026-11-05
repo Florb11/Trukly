@@ -161,6 +161,8 @@ class OperadorController:
             ids_asignacion = convertir_ids_asignacion(cuerpo, ("Chofer_Usuario_idUsuario", "Camion_id_camion"))
         except ValueError as error:
             return jsonify({"mensaje": str(error)}), 400
+        if "recorrido" in cuerpo and not Viaje.numero_no_negativo(cuerpo["recorrido"]):
+            return jsonify({"mensaje": "El recorrido debe ser un número finito mayor o igual a cero."}), 400
         datos = InputSanitizer.sanitizar_campos(
             cuerpo,
             campos_texto=["origen", "destino", "observaciones"],

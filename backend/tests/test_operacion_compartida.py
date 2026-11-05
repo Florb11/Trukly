@@ -1112,3 +1112,44 @@ class OperacionCompartidaTest(unittest.TestCase):
             viaje = ViajeModel.query.order_by(ViajeModel.id_viaje.desc()).first()
             self.assertEqual((viaje.Chofer_Usuario_idUsuario,viaje.Camion_id_camion,viaje.estado),(91,90,'pendiente'))
             self.assertEqual(db.session.get(CamionModel,90).estado,'en viaje')
+
+
+    def test_creacion_recorrido_invalido_no_crea_ni_reserva(self):
+        from src.Viaje import Viaje
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        db.session.get(ViajeModel,50).estado = 'cancelado'
+        db.session.get(CamionModel,90).estado = 'disponible'
+        db.session.commit()
+        cantidad = ViajeModel.query.count()
+        datos = {'origen':'A','destino':'B','fecha_salida':date.today().isoformat(),'Chofer_Usuario_idUsuario':91,'Camion_id_camion':90}
+        invalidos = ['Infinity','-Infinity','NaN','1e999',True,False,None,[],{},'texto',-1,10**400]
+        for ruta in ['/api/operador/viajes','/api/viaje']:
+            for recorrido in invalidos:
+                with self.subTest(ruta=ruta,recorrido=str(recorrido)[:20]):
+                    self.assertFalse(Viaje.numero_no_negativo(recorrido))
+                    r = self.fixture.app.test_client().post(ruta,json={**datos,'recorrido':recorrido},headers={'Authorization':'Bearer '+token})
+                    self.assertEqual(r.status_code,400,r.get_json())
+                    self.assertIn('recorrido',r.get_json()['mensaje'])
+                    db.session.remove()
+                    self.assertEqual(ViajeModel.query.count(),cantidad)
+                    self.assertEqual(db.session.get(CamionModel,90).estado,'disponible')
+                    self.assertEqual(NotificacionModel.query.count(),0)
+                    self.enviar_push.assert_not_called()
+
+    def test_creacion_recorrido_cero_decimal_y_omitido(self):
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        for ruta in ['/api/operador/viajes','/api/viaje']:
+            for valor in [0,12.5,'12.5','omitido']:
+                for viaje in ViajeModel.query.filter(ViajeModel.id_viaje>=50).all():
+                    viaje.estado = 'cancelado'
+                db.session.get(CamionModel,90).estado = 'disponible'
+                db.session.commit()
+                datos = {'origen':'A','destino':'B','fecha_salida':date.today().isoformat(),'Chofer_Usuario_idUsuario':91,'Camion_id_camion':90}
+                if valor != 'omitido':
+                    datos['recorrido'] = valor
+                r = self.fixture.app.test_client().post(ruta,json=datos,headers={'Authorization':'Bearer '+token})
+                self.assertEqual(r.status_code,201,r.get_json())
+                db.session.remove()
+                viaje = ViajeModel.query.order_by(ViajeModel.id_viaje.desc()).first()
+                self.assertEqual(viaje.recorrido,0 if valor=='omitido' else float(valor))
+                self.assertEqual(db.session.get(CamionModel,90).estado,'en viaje')

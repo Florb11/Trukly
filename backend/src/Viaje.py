@@ -217,8 +217,8 @@ class Viaje:
     def numero_no_negativo(valor):
         # valida que un numero sea cero o positivo
         try:
-            return float(valor) >= 0
-        except (TypeError, ValueError):
+            return not isinstance(valor, bool) and math.isfinite(float(valor)) and float(valor) >= 0
+        except (TypeError, ValueError, OverflowError):
             return False
 
     @staticmethod
@@ -273,11 +273,7 @@ class Viaje:
             return False, "La fecha de llegada no puede ser anterior a la salida"
         if "recorrido" in datos:
             valor = datos["recorrido"]
-            try:
-                valido = not isinstance(valor, bool) and math.isfinite(float(valor)) and float(valor) >= 0
-            except (ValueError, TypeError, OverflowError):
-                valido = False
-            if not valido:
+            if not Viaje.numero_no_negativo(valor):
                 return False, "El recorrido debe ser un número finito mayor o igual a cero"
         for campo in ("origen", "destino"):
             if campo in datos and not texto_valido(datos[campo]):
@@ -338,7 +334,7 @@ class Viaje:
             return False, "Estado invalido"
 
         if not Viaje.numero_no_negativo(recorrido):
-            return False, "El recorrido no puede ser negativo"
+            return False, "El recorrido debe ser un número finito mayor o igual a cero"
 
         return True, None
 
