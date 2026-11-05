@@ -48,7 +48,7 @@ class PerfilValidacionTest(unittest.TestCase):
                 self.assertEqual((u.nombre,u.apellido,u.email), ('Ana','Garcia','ana@example.invalid'))
 
     def test_limites_validos_y_caracteres_codificados(self):
-        for nombre in ['A'*100, "'"*16]:
+        for nombre in ['A'*100, 'Á'*100]:
             r = self.put({'nombre': nombre, 'apellido': 'B'*100, 'email': 'C'*140+'@x.invalid'})
             self.assertEqual(r.status_code,200,r.get_json())
             self.assertEqual(r.get_json()['perfil']['nombre'],nombre)

@@ -105,7 +105,7 @@ class NombresPersonalesTest(unittest.TestCase):
         self.assertEqual(horas_por_chofer('2026-09')[0]['apellido'],"D'Amico")
 
     def test_guardar_repetidamente_no_duplica_codificacion_ni_cambia_nombres_omitidos(self):
-        datos = {'nombre':'María &quot;', 'apellido':"D'Amico"}
+        datos = {'nombre':'María José', 'apellido':'D Amico'}
         for _ in range(3):
             r = self.client.put('/api/perfil',headers=self.headers(1,'chofer'),json=datos)
             self.assertEqual(r.status_code,200,r.get_json())
@@ -119,7 +119,7 @@ class NombresPersonalesTest(unittest.TestCase):
             self.assertEqual(r.status_code,200,r.get_json())
             self.assertEqual((usuario.nombre,usuario.apellido),guardado)
         self.assertEqual(guardado,(escape(datos['nombre']),escape(datos['apellido'])))
-        self.assertEqual(self.get('/api/viaje/1')['chofer_nombre'],"María &quot; D'Amico")
+        self.assertEqual(self.get('/api/viaje/1')['chofer_nombre'],"María José D Amico")
 
     def test_nombre_del_destinatario_y_actor_del_historial(self):
         NotificacionService.crear(1,'Aviso','Prueba','prueba')
@@ -141,3 +141,38 @@ class NombresPersonalesTest(unittest.TestCase):
         self.assertEqual(r.status_code,200,r.get_json())
         self.assertEqual(r.get_json()['usuario']['apellido'],"D'Amico")
         self.assertEqual(usuario.apellido,"D&#x27;Amico")
+
+
+    def test_nuevos_nombres_rechazan_simbolos_en_todos_los_ingresos(self):
+        from utils.nombres_validacion import validar_nombres
+        invalidos = ["D'Amico",'D&#x27;Amico','Ana-María','Juan2','Sol & Luz','<Ana>','Ana\nMaria','Ana\tMaria']
+        rutas = [('put','/api/perfil',1,'chofer'),('put','/api/admin/usuarios/1',100,'admin'),
+                 ('post','/api/admin/usuarios',100,'admin'),('post','/api/auth/registro-firebase',None,None),
+                 ('post','/api/auth/registro',None,None)]
+        cantidad = UsuarioModel.query.count()
+        for campo in ['nombre','apellido']:
+            for valor in invalidos:
+                self.assertIsNotNone(validar_nombres({'nombre':'Ana','apellido':'Perez',campo:valor},True))
+                for metodo,ruta,uid,rol in rutas:
+                    headers = self.headers(uid,rol) if uid else {}
+                    with patch('controllers.auth_controller.FirebaseAuthService.verificar_token') as verificar, patch('controllers.admin_usuarios_controller.FirebaseAuthService.crear_o_obtener_usuario') as crear:
+                        r = getattr(self.client,metodo)(ruta,json={'nombre':'Ana','apellido':'Perez',campo:valor},headers=headers)
+                    self.assertEqual(r.status_code,400,(ruta,r.get_json()))
+                    self.assertIn('letras',r.get_json()['mensaje'])
+                    verificar.assert_not_called()
+                    crear.assert_not_called()
+                    db.session.remove()
+                    self.assertEqual(UsuarioModel.query.count(),cantidad)
+                    self.assertEqual(db.session.get(UsuarioModel,1).apellido,escape("D'Amico"))
+
+    def test_letras_tildes_enie_y_espacios_permitidos_y_correccion_legacy(self):
+        from utils.nombres_validacion import validar_nombres
+        for nombre in ['María José','Muñoz','ÁÉÍÓÚ Ü Ñ','Ana','José']:
+            self.assertIsNone(validar_nombres({'nombre':nombre,'apellido':'De la Peña'},True))
+        for ruta,uid,rol in [('/api/perfil',1,'chofer'),('/api/admin/usuarios/1',100,'admin')]:
+            db.session.get(UsuarioModel,1).apellido = escape(escape("D'Amico"))
+            db.session.commit()
+            r = self.client.put(ruta,json={'nombre':'Tomás','apellido':'D Amico'},headers=self.headers(uid,rol))
+            self.assertEqual(r.status_code,200,r.get_json())
+            db.session.remove()
+            self.assertEqual(db.session.get(UsuarioModel,1).apellido,'D Amico')

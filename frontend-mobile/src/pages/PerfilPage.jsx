@@ -81,7 +81,7 @@ export default function PerfilPage() {
       </article>}
       {perfil && <form className="profile-form" onSubmit={guardar}><fieldset disabled={ocupado}>
         <legend>Datos personales</legend>
-        {[["nombre", "Nombre", "text"], ["apellido", "Apellido", "text"], ["email", "Email", "email"]].map(([campo, texto, tipo]) => <label key={campo}>{texto}<input type={tipo} maxLength={campo === "email" ? 150 : 100} required readOnly={campo === "email" && Boolean(perfil.firebase_uid)} value={form[campo]} onChange={(event) => setForm({ ...form, [campo]: event.target.value })} /></label>)}
+        {[["nombre", "Nombre", "text"], ["apellido", "Apellido", "text"], ["email", "Email", "email"]].map(([campo, texto, tipo]) => <label key={campo}>{texto}<input type={tipo} maxLength={campo === "email" ? 150 : 100} pattern={campo === "nombre" || campo === "apellido" ? "[\\p{L} ]+" : undefined} title={campo === "nombre" || campo === "apellido" ? "Solo letras y espacios, incluidas tildes y ñ. Sin números ni símbolos." : undefined} required readOnly={campo === "email" && Boolean(perfil.firebase_uid)} value={form[campo]} onChange={(event) => setForm({ ...form, [campo]: event.target.value })} /></label>)}
         <label>Usuario<input readOnly value={perfil.username || ""} /></label>
         {perfil.rol === "chofer" ? [["licencia", "Licencia", "text"], ["vencimientoLicencia", "Vencimiento de licencia", "date"], ["legajo", "Legajo", "text"]].map(([campo, texto, tipo]) => <label key={campo}>{texto}<input type={tipo} maxLength={tipo === "text" ? 50 : undefined} required value={form[campo]} onChange={(event) => setForm({ ...form, [campo]: event.target.value })} /></label>) : <>
           <label>Legajo<input readOnly value={perfil.legajo || ""} /></label>

@@ -421,6 +421,8 @@ function PerfilPage() {
                   <input
                     type="text"
                   name="nombre"
+                  pattern="[\p{L} ]+"
+                  title="Solo letras y espacios, incluidas tildes y ñ. Sin números ni símbolos."
                   maxLength={100}
                   value={formPerfil.nombre}
                   onChange={handlePerfilChange}
@@ -433,6 +435,8 @@ function PerfilPage() {
                   <input
                     type="text"
                   name="apellido"
+                  pattern="[\p{L} ]+"
+                  title="Solo letras y espacios, incluidas tildes y ñ. Sin números ni símbolos."
                   maxLength={100}
                   value={formPerfil.apellido}
                   onChange={handlePerfilChange}

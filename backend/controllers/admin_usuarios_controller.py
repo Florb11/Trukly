@@ -1,3 +1,4 @@
+from utils.nombres_validacion import validar_nombres
 from utils.texto_personal import nombre_completo
 import secrets
 
@@ -723,6 +724,9 @@ class AdminUsuariosController:
         cuerpo = request.get_json(silent=True)
         if not isinstance(cuerpo, dict):
             return jsonify({"mensaje": "Los datos del usuario no son válidos."}), 400
+        error_nombres = validar_nombres(cuerpo)
+        if error_nombres:
+            return jsonify({"mensaje": error_nombres}), 400
         for campo, etiqueta in [("username", "El usuario"), ("nombre", "El nombre"), ("apellido", "El apellido")]:
             if campo in cuerpo:
                 valor = cuerpo[campo]
@@ -858,6 +862,10 @@ class AdminUsuariosController:
     def registrar_usuario():
         admin = g.admin_actual
 
+        cuerpo = request.get_json(silent=True)
+        error_nombres = validar_nombres(cuerpo, obligatorios=True)
+        if error_nombres:
+            return jsonify({"mensaje": error_nombres}), 400
         datos = AdminUsuariosController._sanitizar_datos_usuario(
             request.get_json(silent=True) or {}
         )

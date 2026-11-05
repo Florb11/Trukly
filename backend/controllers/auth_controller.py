@@ -1,3 +1,4 @@
+from utils.nombres_validacion import validar_nombres
 import secrets
 
 from flask import jsonify, request
@@ -317,6 +318,10 @@ class AuthController:
     @staticmethod
     def registrar_chofer():
         # recibe request de registro publico de chofer
+        cuerpo = request.get_json(silent=True)
+        error_nombres = validar_nombres(cuerpo, obligatorios=True)
+        if error_nombres:
+            return jsonify({"mensaje": error_nombres}), 400
         datos = AuthController._sanitizar_datos_registro(
             request.get_json(silent=True) or {}
         )
@@ -370,6 +375,10 @@ class AuthController:
 
     @staticmethod
     def registrar_chofer_firebase():
+        cuerpo = request.get_json(silent=True)
+        error_nombres = validar_nombres(cuerpo, obligatorios=True)
+        if error_nombres:
+            return jsonify({"mensaje": error_nombres}), 400
         datos = AuthController._sanitizar_datos_registro_firebase(
             request.get_json(silent=True) or {}
         )

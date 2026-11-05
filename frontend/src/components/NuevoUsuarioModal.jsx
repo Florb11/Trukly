@@ -66,6 +66,9 @@ function NuevoUsuarioModal({
                         <input
                             type="text"
                             name="nombre"
+                  maxLength={100}
+                  pattern="[\p{L} ]+"
+                  title="Solo letras y espacios, incluidas tildes y ñ. Sin números ni símbolos."
                             value={formNuevo.nombre}
                             onChange={onChange}
                         />
@@ -76,6 +79,9 @@ function NuevoUsuarioModal({
                         <input
                             type="text"
                             name="apellido"
+                  maxLength={100}
+                  pattern="[\p{L} ]+"
+                  title="Solo letras y espacios, incluidas tildes y ñ. Sin números ni símbolos."
                             value={formNuevo.apellido}
                             onChange={onChange}
                         />

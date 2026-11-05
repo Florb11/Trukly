@@ -1,3 +1,4 @@
+from utils.nombres_validacion import validar_nombres
 from services.horas_viaje_service import horas_chofer
 from services.foto_perfil_service import validar_contenido_foto
 import os
@@ -225,6 +226,9 @@ class PerfilController:
         cuerpo = request.get_json(silent=True)
         if not isinstance(cuerpo, dict):
             return jsonify({"mensaje": "Los datos del perfil no son válidos."}), 400
+        error_nombres = validar_nombres(cuerpo)
+        if error_nombres:
+            return jsonify({"mensaje": error_nombres}), 400
         for campo, etiqueta in [("nombre", "El nombre"), ("apellido", "El apellido")]:
             if campo in cuerpo:
                 valor = cuerpo[campo]

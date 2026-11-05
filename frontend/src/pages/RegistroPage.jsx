@@ -214,6 +214,10 @@ function RegistroPage() {
                   type="text"
                   id="nombre"
                   name="nombre"
+                  required
+                  maxLength={100}
+                  pattern="[\p{L} ]+"
+                  title="Solo letras y espacios, incluidas tildes y ñ. Sin números ni símbolos."
                   value={formulario.nombre}
                   onChange={handleChange}
                   placeholder="Ingresá tu nombre"
@@ -226,6 +230,10 @@ function RegistroPage() {
                   type="text"
                   id="apellido"
                   name="apellido"
+                  required
+                  maxLength={100}
+                  pattern="[\p{L} ]+"
+                  title="Solo letras y espacios, incluidas tildes y ñ. Sin números ni símbolos."
                   value={formulario.apellido}
                   onChange={handleChange}
                   placeholder="Ingresá tu apellido"

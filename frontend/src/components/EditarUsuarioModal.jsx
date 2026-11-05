@@ -61,6 +61,8 @@ function EditarUsuarioModal({
                         <input
                             type="text"
                             name="nombre"
+                  pattern="[\p{L} ]+"
+                  title="Solo letras y espacios, incluidas tildes y ñ. Sin números ni símbolos."
                             maxLength={100}
                             value={formEditar.nombre}
                             onChange={onChange}
@@ -72,6 +74,8 @@ function EditarUsuarioModal({
                         <input
                             type="text"
                             name="apellido"
+                  pattern="[\p{L} ]+"
+                  title="Solo letras y espacios, incluidas tildes y ñ. Sin números ni símbolos."
                             maxLength={100}
                             value={formEditar.apellido}
                             onChange={onChange}

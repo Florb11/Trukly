@@ -374,7 +374,7 @@ class AdminPropiaCuentaTest(unittest.TestCase):
 
     def test_edicion_limites_validos_y_apostrofes(self):
         from html import escape
-        for nombre in ['A'*100,"'"*16]:
+        for nombre in ['A'*100,'Á'*100]:
             datos = {'username':'u'*100,'nombre':nombre,'apellido':'B'*100,'email':'a'*140+'@x.invalid'}
             r = self.cliente.put('/api/admin/usuarios/1',json=datos,headers=self.headers)
             self.assertEqual(r.status_code,200,r.get_json())
