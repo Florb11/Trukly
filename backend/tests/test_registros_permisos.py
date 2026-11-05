@@ -152,3 +152,28 @@ class RegistrosPermisosTest(unittest.TestCase):
             ViajeModel.query.filter_by(id_viaje=78).delete()
             db.session.commit()
             db.session.remove()
+
+
+    def test_observaciones_legibles_en_listado_detalle_e_historial(self):
+        from html import escape
+        original = db.session.get(RegistroIngresoSalidaModel,90).observacion
+        try:
+            for texto in ['Entrega "confirmada" & recibida', "D'Amico", 'Texto literal &quot; sin convertir en comillas', '<carga> recibida', None, '']:
+                almacenado = escape(texto) if texto is not None else None
+                db.session.get(RegistroIngresoSalidaModel,90).observacion = almacenado
+                db.session.commit()
+                for uid,rol in [(1,'chofer'),(2,'operador'),(100,'admin')]:
+                    detalle = self.get('/90',uid,rol)
+                    self.assertEqual(detalle.status_code,200)
+                    self.assertEqual(detalle.get_json()['observacion'],texto)
+                    listado = self.get('',uid,rol)
+                    self.assertEqual(next(r for r in listado.get_json() if r['id_registro']==90)['observacion'],texto)
+                token = create_access_token(identity='1',additional_claims={'rol':'chofer'})
+                r = self.client.get('/api/choferes/mis-registros',headers={'Authorization':'Bearer '+token})
+                self.assertEqual(r.status_code,200,r.get_json())
+                self.assertEqual(next(f for f in r.get_json() if f['id_registro']==90)['observacion'],texto)
+                db.session.remove()
+                self.assertEqual(db.session.get(RegistroIngresoSalidaModel,90).observacion,almacenado)
+        finally:
+            db.session.get(RegistroIngresoSalidaModel,90).observacion = original
+            db.session.commit()

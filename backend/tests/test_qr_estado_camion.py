@@ -219,3 +219,13 @@ class QrEstadoCamionTest(unittest.TestCase):
         db.session.commit()
         self.assertEqual(self.escanear_con_observacion('salida',None)[1],201)
         self.assertIsNone(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90,tipo_registro='salida').one().observacion)
+
+
+    def test_qr_devuelve_observacion_legible_sin_modificar_almacenamiento(self):
+        from html import escape
+        texto = 'Entrega "OK" & recibida'
+        datos,codigo = self.escanear_con_observacion('ingreso',texto)
+        self.assertEqual(codigo,201,datos)
+        self.assertEqual(datos['registro']['observacion'],texto)
+        db.session.remove()
+        self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).one().observacion,escape(texto))

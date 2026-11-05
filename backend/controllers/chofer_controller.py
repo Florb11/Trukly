@@ -214,7 +214,7 @@ class ChoferController:
                     "id_registro": registro.id_registro,
                     "fecha_hora": registro.fecha_hora.isoformat(),
                     "tipo_registro": tipo_registro,
-                    "observacion": registro.observacion,
+                    "observacion": registro.observacion_texto,
                     "id_viaje": viaje.id_viaje,
                     "origen": viaje.origen,
                     "destino": viaje.destino,
