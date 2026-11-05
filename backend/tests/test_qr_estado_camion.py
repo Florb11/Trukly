@@ -1,5 +1,6 @@
 import unittest
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
+from unittest.mock import patch
 from types import SimpleNamespace
 
 from flask import g
@@ -108,3 +109,37 @@ class QrEstadoCamionTest(unittest.TestCase):
         db.session.commit()
         self.assertEqual(self.escanear('salida')[1], 201)
         self.assertEqual(db.session.get(ViajeModel, 90).estado, 'finalizado')
+
+    def test_salida_futura_no_registra_control_ni_cambia_estados(self):
+        viaje = db.session.get(ViajeModel, 90)
+        viaje.fecha_salida = hoy_operativo() + timedelta(days=7)
+        db.session.commit()
+        respuesta, codigo = self.escanear()
+        self.assertEqual(codigo, 409, respuesta)
+        self.assertIn(viaje.fecha_salida.strftime('%d/%m/%Y'), respuesta['mensaje'])
+        self.assertEqual(viaje.estado, 'aceptado')
+        self.assertEqual(db.session.get(CamionModel, 90).estado, 'disponible')
+        self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).count(), 0)
+
+    def test_limite_de_medianoche_argentina_y_salida_posterior(self):
+        viaje = db.session.get(ViajeModel, 90)
+        viaje.fecha_salida = hoy_operativo()
+        db.session.commit()
+        salida = viaje.fecha_salida
+        for hora_utc, esperado in [(2, 409), (3, 201)]:
+            instante = datetime(salida.year, salida.month, salida.day, hora_utc, tzinfo=timezone.utc)
+            with patch('controllers.chofer_controller.hoy_operativo', return_value=hoy_operativo(instante)):
+                self.assertEqual(self.escanear()[1], esperado)
+        self.assertEqual(viaje.estado, 'en curso')
+
+    def test_salida_demorada_sigue_permitida(self):
+        db.session.get(ViajeModel, 90).fecha_salida = hoy_operativo() - timedelta(days=1)
+        db.session.commit()
+        self.assertEqual(self.escanear()[1], 201)
+
+    def test_fecha_programada_no_bloquea_regreso(self):
+        self.assertEqual(self.escanear()[1], 201)
+        db.session.get(ViajeModel, 90).fecha_salida = hoy_operativo() + timedelta(days=1)
+        RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).one().fecha_hora = datetime.now() - timedelta(minutes=2)
+        db.session.commit()
+        self.assertEqual(self.escanear('salida')[1], 201)
