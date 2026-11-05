@@ -900,3 +900,101 @@ class OperacionCompartidaTest(unittest.TestCase):
         self.assertEqual(self.aceptar_como_chofer().status_code, 200)
         self.assertEqual(NotificacionModel.query.filter_by(Usuario_idUsuario=2, tipo='viaje_aceptado').count(), 2)
         self.assertEqual(NotificacionModel.query.filter_by(Usuario_idUsuario=90).count(), 0)
+
+    def preparar_reasignacion_mecanico(self):
+        from models.mecanico_model import MecanicoModel
+        from models.administrador_model import AdministradorModel
+        reporte = db.session.get(ReporteModel, 2)
+        original = (reporte.estado, reporte.Mecanico_Usuario_idUsuario)
+        db.session.get(UsuarioModel, 3).estado = 'activo'
+        db.session.add(UsuarioModel(id_usuario=77, username='mecanico_reasignacion', password='x',
+            nombre='Nuevo', apellido='Mecánico', rol='mecanico', estado='activo'))
+        db.session.add(MecanicoModel(Usuario_idUsuario=77, legajo='M77', especialidad='Motor'))
+        db.session.add(UsuarioModel(id_usuario=99, username='admin_reasignacion', password='x',
+            nombre='QA', apellido='Admin', rol='admin', estado='activo'))
+        db.session.add(AdministradorModel(Usuario_idUsuario=99, legajo='A99'))
+        db.session.commit()
+        return original
+
+    def limpiar_reasignacion_mecanico(self, original):
+        from models.mecanico_model import MecanicoModel
+        from models.administrador_model import AdministradorModel
+        db.session.rollback()
+        reporte = db.session.get(ReporteModel, 2)
+        reporte.estado, reporte.Mecanico_Usuario_idUsuario = original
+        NotificacionModel.query.delete()
+        db.session.flush()
+        MecanicoModel.query.filter_by(Usuario_idUsuario=77).delete()
+        AdministradorModel.query.filter_by(Usuario_idUsuario=99).delete()
+        UsuarioModel.query.filter(UsuarioModel.id_usuario.in_([77,99])).delete()
+        db.session.commit()
+        db.session.info.pop('push_pendientes', None)
+
+    def reasignar_mecanico(self, rol):
+        token = create_access_token(identity='99' if rol=='admin' else '90', additional_claims={'rol':rol})
+        ruta = '/api/reportes/2/estado' if rol=='admin' else '/api/reportes/2/asignar-mecanico'
+        return self.fixture.app.test_client().put(ruta, headers={'Authorization':'Bearer '+token},
+            json={'estado':'en revision', 'Mecanico_Usuario_idUsuario':77})
+
+    def test_reasignacion_mecanico_avisa_a_ambos_y_no_duplica_al_repetir(self):
+        original = self.preparar_reasignacion_mecanico()
+        try:
+            for rol in ['admin', 'operador']:
+                reporte = db.session.get(ReporteModel, 2)
+                reporte.estado = 'en revision'
+                reporte.Mecanico_Usuario_idUsuario = 3
+                NotificacionModel.query.delete()
+                db.session.commit()
+                r = self.reasignar_mecanico(rol)
+                self.assertEqual(r.status_code, 200, r.get_json())
+                self.assertEqual(reporte.Mecanico_Usuario_idUsuario, 77)
+                anterior = NotificacionModel.query.filter_by(Usuario_idUsuario=3).one()
+                nuevo = NotificacionModel.query.filter_by(Usuario_idUsuario=77).one()
+                self.assertEqual(anterior.tipo, 'reporte_reasignado')
+                self.assertIn('#2', anterior.mensaje)
+                self.assertEqual(nuevo.tipo, 'reporte_asignado')
+                self.assertEqual(self.reasignar_mecanico(rol).status_code, 200)
+                self.assertEqual(NotificacionModel.query.count(), 2)
+        finally:
+            self.limpiar_reasignacion_mecanico(original)
+
+    def test_no_se_reasigna_reporte_cerrado_aunque_el_mecanico_sea_el_mismo(self):
+        original = self.preparar_reasignacion_mecanico()
+        try:
+            for rol in ['admin', 'operador']:
+                for estado in ['resuelto', 'cancelado']:
+                    reporte = db.session.get(ReporteModel, 2)
+                    reporte.estado = estado
+                    reporte.Mecanico_Usuario_idUsuario = 77
+                    db.session.commit()
+                    r = self.reasignar_mecanico(rol)
+                    self.assertIn(r.status_code, [400,409], r.get_json())
+                    self.assertEqual(reporte.estado, estado)
+                    self.assertEqual(NotificacionModel.query.count(), 0)
+        finally:
+            self.limpiar_reasignacion_mecanico(original)
+
+    def test_fallo_en_aviso_anterior_o_commit_revierte_reasignacion_y_avisos(self):
+        original = self.preparar_reasignacion_mecanico()
+        try:
+            for rol in ['admin', 'operador']:
+                for fallo in ['aviso_anterior', 'commit']:
+                    reporte = db.session.get(ReporteModel, 2)
+                    reporte.estado = 'en revision'
+                    reporte.Mecanico_Usuario_idUsuario = 3
+                    NotificacionModel.query.delete()
+                    db.session.commit()
+                    self.enviar_push.reset_mock()
+                    if fallo=='commit':
+                        simular = patch.object(db.session, 'commit', side_effect=RuntimeError('Prueba'))
+                    else:
+                        simular = patch('controllers.reporte_controller.NotificacionService.crear', side_effect=RuntimeError('Prueba'))
+                    with simular, patch('controllers.reporte_controller.logger'):
+                        r = self.reasignar_mecanico(rol)
+                    self.assertEqual(r.status_code, 500, r.get_json())
+                    self.assertEqual(reporte.Mecanico_Usuario_idUsuario, 3)
+                    self.assertEqual(reporte.estado, 'en revision')
+                    self.assertEqual(NotificacionModel.query.count(), 0)
+                    self.enviar_push.assert_not_called()
+        finally:
+            self.limpiar_reasignacion_mecanico(original)

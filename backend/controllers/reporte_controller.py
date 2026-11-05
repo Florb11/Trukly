@@ -297,6 +297,13 @@ class ReporteController:
         )
 
     @staticmethod
+    def notificar_reasignacion_anterior(reporte_clase, id_anterior):
+        if id_anterior and id_anterior != reporte_clase.id_mecanico:
+            NotificacionService.crear(id_anterior, "Reparación reasignada",
+                f"El reporte #{reporte_clase.id_reporte} fue reasignado a otro mecánico. Ya no está a tu cargo.",
+                "reporte_reasignado")
+
+    @staticmethod
     @roles_required(
         Usuario.ROL_ADMIN,
         Usuario.ROL_OPERADOR,
@@ -507,6 +514,7 @@ class ReporteController:
                 return jsonify({"mensaje": "Ingresá un motivo de cancelación de hasta 255 caracteres"}), 400
             motivo = motivo.strip() if isinstance(motivo, str) else None
         mecanico_asignado = None
+        id_mecanico_anterior = reporte_db.Mecanico_Usuario_idUsuario
         reporte_clase = ReporteController.crear_objeto_reporte(reporte_db)
         if nuevo_estado == ReporteFalla.ESTADO_EN_REVISION:
             id_mecanico = cuerpo.get("Mecanico_Usuario_idUsuario", reporte_db.Mecanico_Usuario_idUsuario)
@@ -538,6 +546,7 @@ class ReporteController:
             camion_en_mantenimiento = ReporteController.marcar_camion_en_mantenimiento_si_corresponde(reporte_clase)
             if mecanico_asignado:
                 ReporteController.notificar_reporte_asignado(reporte_clase, mecanico_asignado)
+                ReporteController.notificar_reasignacion_anterior(reporte_clase, id_mecanico_anterior)
             if nuevo_estado == ReporteFalla.ESTADO_CANCELADO:
                 mensaje = f"El reporte #{reporte_db.id_reporte} fue cancelado."
                 if reporte_db.motivo_cancelacion:
@@ -589,6 +598,7 @@ class ReporteController:
         if mecanico is None:
             return jsonify({"mensaje": "Mecanico no encontrado"}), 404
 
+        id_mecanico_anterior = reporte_db.Mecanico_Usuario_idUsuario
         reporte_clase = ReporteController.crear_objeto_reporte(reporte_db)
 
         # el mecanico registra el reporte asignado
@@ -596,6 +606,11 @@ class ReporteController:
             return jsonify({
                 "mensaje": "No se pudo asignar el mecanico"
             }), 400
+
+        if id_mecanico_anterior == id_mecanico and reporte_db.estado == reporte_clase.estado:
+            return jsonify({"mensaje": "El mecánico ya está asignado a este reporte",
+                "reporte": ReporteController.preparar_respuesta_reporte(reporte_db),
+                "camion_en_mantenimiento": False}), 200
 
         # aplica cambios al modelo
         ReporteController.actualizar_modelo_reporte(
@@ -612,10 +627,9 @@ class ReporteController:
 
         try:
             # La notificacion se confirma junto con la asignacion.
-            ReporteController.notificar_reporte_asignado(
-                reporte_clase,
-                mecanico
-            )
+            if id_mecanico_anterior != id_mecanico:
+                ReporteController.notificar_reporte_asignado(reporte_clase, mecanico)
+                ReporteController.notificar_reasignacion_anterior(reporte_clase, id_mecanico_anterior)
             db.session.commit()
             NotificacionService.enviar_push_pendientes()
         except Exception:
