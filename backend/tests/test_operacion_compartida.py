@@ -1,5 +1,5 @@
 import unittest
-from datetime import date
+from datetime import date, timedelta
 from unittest.mock import patch
 
 from flask import g
@@ -159,6 +159,52 @@ class OperacionCompartidaTest(unittest.TestCase):
             self.assertEqual(self.editar({'observaciones':'No confirmado'})[1], 500)
         self.assertIsNone(db.session.get(ViajeModel, 50).observaciones)
         self.assertEqual(ViajeCambioModel.query.count(), 0)
+
+    def test_edicion_rechaza_fechas_y_kilometros_invalidos_sin_cambios(self):
+        viaje = db.session.get(ViajeModel, 50)
+        original = (viaje.fecha_salida, viaje.fecha_llegada, viaje.recorrido)
+        casos = [{'fecha_salida': (date.today()-timedelta(days=1)).isoformat()},
+                 {'fecha_salida':'no-es-fecha'}, {'fecha_salida':''},
+                 {'fecha_salida':'2026-02-30'}, {'fecha_salida':'2026-11-04T12:00:00'},
+                 {'fecha_llegada':'1999-01-01'}, {'fecha_llegada':'incorrecta'},
+                 {'recorrido':-25}, {'recorrido':'NaN'}, {'recorrido':'Infinity'},
+                 {'recorrido':'abc'}, {'recorrido':None}, {'recorrido':True}]
+        for datos in casos:
+            with self.subTest(datos=datos):
+                r, codigo = self.editar(datos)
+                self.assertEqual(codigo, 400, r.get_json())
+                db.session.refresh(viaje)
+                self.assertEqual((viaje.fecha_salida, viaje.fecha_llegada, viaje.recorrido), original)
+                self.assertEqual(ViajeCambioModel.query.count(), 0)
+        self.enviar_push.assert_not_called()
+
+    def test_observaciones_de_viaje_antiguo_admiten_fechas_sin_modificar(self):
+        viaje = db.session.get(ViajeModel, 50)
+        viaje.fecha_salida = date(2000,1,1)
+        viaje.fecha_llegada = date(2000,1,2)
+        db.session.commit()
+        r, codigo = self.editar({'fecha_salida':'2000-01-01', 'fecha_llegada':'2000-01-02',
+                                'observaciones':'Corrección de notas'})
+        self.assertEqual(codigo, 200, r.get_json())
+        self.assertEqual(viaje.fecha_salida, date(2000,1,1))
+        self.assertEqual(viaje.fecha_llegada, date(2000,1,2))
+
+    def test_edicion_futura_valida_y_recorrido_cero(self):
+        salida = date.today()+timedelta(days=1)
+        llegada = salida+timedelta(days=1)
+        r, codigo = self.editar({'fecha_salida':salida.isoformat(), 'fecha_llegada':llegada.isoformat(), 'recorrido':0})
+        self.assertEqual(codigo, 200, r.get_json())
+        self.assertEqual(r.get_json()['viaje']['recorrido'], 0)
+        self.assertEqual(r.get_json()['viaje']['fecha_salida'], salida.isoformat())
+        r, codigo = self.editar({'fecha_llegada':''})
+        self.assertEqual(codigo, 200, r.get_json())
+        self.assertIsNone(r.get_json()['viaje']['fecha_llegada'])
+
+    def test_viaje_en_curso_conserva_fecha_salida_pero_admite_observaciones(self):
+        db.session.get(ViajeModel, 50).estado = 'en curso'
+        db.session.commit()
+        self.assertEqual(self.editar({'fecha_salida':(date.today()+timedelta(days=1)).isoformat()})[1], 400)
+        self.assertEqual(self.editar({'observaciones':'Actualización en ruta'})[1], 200)
 
     def test_estadisticas_permiten_operacion_completa_o_creados_por_mi(self):
         for alcance, esperado in [('mios', 0), ('todos', 1)]:
