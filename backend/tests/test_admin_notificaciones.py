@@ -106,7 +106,8 @@ class AdminNotificacionesTest(unittest.TestCase):
         def actualizar(modelo, _dominio):
             modelo.estado = "cancelado"
         with self.fixture.app.test_request_context("/", method="PUT", json={"motivo": "Avería"}), patch.object(ViajeController, "crear_objeto_viaje", return_value=dominio), patch.object(ViajeController, "actualizar_modelo_viaje", side_effect=actualizar), patch("controllers.viaje_controller.actualizar_camion_tras_cancelacion"), patch("services.notificacion_service.NotificacionService.enviar_push_pendientes"), patch.object(db.session, "commit", side_effect=db.session.flush):
-            respuesta, codigo = ViajeController.cancelar_viaje_admin.__wrapped__(1)
+            with patch.object(ViajeController, "obtener_id_usuario_actual", return_value=100):
+                respuesta, codigo = ViajeController.cancelar_viaje_admin.__wrapped__(1)
         self.assertEqual(codigo, 200)
         self.assertEqual(NotificacionModel.query.filter_by(tipo="admin_cancelacion:1").count(), 2)
 

@@ -26,7 +26,7 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
         fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/viajes`, {
           method: "GET",
         }),
-        fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/estadisticas`, {
+        fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/estadisticas?alcance=todos`, {
           method: "GET",
         }),
       ]);
@@ -157,7 +157,7 @@ function DashboardOperatorPage({ title = "Panel de operador logístico" }) {
             <article className="operator-table-card">
               <div className="operator-table-card__header">
                 <h2>Distribución de estados</h2>
-                <span>Mis viajes</span>
+                <span>Todos los viajes</span>
               </div>
               <div className="operator-progress-list">
                 {[

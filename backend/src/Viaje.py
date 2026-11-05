@@ -344,7 +344,7 @@ class Viaje:
             return self.pertenece_a_chofer(id_usuario)
 
         if rol == Usuario.ROL_OPERADOR:
-            return self.pertenece_a_operador(id_usuario)
+            return True
 
         return False
 
@@ -375,7 +375,7 @@ class Viaje:
 
         self.estado = self.ESTADO_CANCELADO
         self.observaciones = (
-            f"Cancelado por admin. Motivo: {motivo.strip()}"
+            f"Cancelado. Motivo: {motivo.strip()}"
         )
 
         return True

@@ -20,9 +20,11 @@ from models.viaje_model import ViajeModel
 from models.chofer_model import ChoferModel
 from models.camion_model import CamionModel
 from utils.input_sanitizer import InputSanitizer
-from utils.auth_decorators import operador_required
+from utils.auth_decorators import operador_required, roles_required
 from services.camion_disponibilidad_service import actualizar_camion_tras_cancelacion
 from services.notificacion_service import NotificacionService
+from services.viaje_cambios_service import snapshot, registrar
+from models.viaje_cambio_model import ViajeCambioModel
 
 from models.usuario_model import UsuarioModel
 from src.Viaje import Viaje
@@ -95,15 +97,25 @@ class OperadorController:
     def listar_viajes():
         operador = g.operador_actual
         try:
-            viajes = ViajeModel.query.filter_by(
-                OperadorLogistico_Usuario_idUsuario=operador.id_usuario
-            ).all()
+            consulta = ViajeModel.query
+            if request.args.get("alcance") == "mios":
+                consulta = consulta.filter_by(OperadorLogistico_Usuario_idUsuario=operador.id_usuario)
+            viajes = consulta.order_by(ViajeModel.id_viaje.desc()).all()
             return jsonify([v.to_dict() for v in viajes]), 200
         except Exception:
             logger.exception(
                 f"Error al listar viajes del operador {operador.id_usuario}"
             )
             return jsonify({"mensaje": "Error interno del servidor"}), 500
+
+    @staticmethod
+    @roles_required("admin", "operador")
+    def historial_viaje(id_viaje):
+        if db.session.get(ViajeModel, id_viaje) is None:
+            return jsonify({"mensaje": "Viaje no encontrado"}), 404
+        cambios = ViajeCambioModel.query.filter_by(id_viaje=id_viaje).order_by(
+            ViajeCambioModel.fecha_hora.desc(), ViajeCambioModel.id_cambio.desc()).all()
+        return jsonify([c.to_dict() for c in cambios]), 200
 
     @staticmethod
     @operador_required
@@ -193,8 +205,8 @@ class OperadorController:
                 OperadorLogistico_Usuario_idUsuario=operador.id_usuario,
                 Chofer_Usuario_idUsuario=id_chofer,
                 Camion_id_camion=id_camion,
-                fecha_salida=fecha_salida,
-                fecha_llegada=fecha_llegada,
+                fecha_salida=Viaje.convertir_fecha(fecha_salida),
+                fecha_llegada=Viaje.convertir_fecha(fecha_llegada),
                 origen=origen,
                 destino=destino,
                 origen_lat=datos.get("origen_lat"),
@@ -210,6 +222,7 @@ class OperadorController:
 
             db.session.add(nuevo_viaje)
             db.session.flush()
+            registrar(nuevo_viaje, operador.id_usuario, "viaje_creado")
             NotificacionService.crear(
                 id_chofer,
                 "Nuevo viaje asignado",
@@ -240,11 +253,12 @@ class OperadorController:
         if not motivo:
             return jsonify({"mensaje": "El motivo es obligatorio"}), 400
 
-        viaje_model = ViajeModel.query.get(id_viaje)
+        viaje_model = ViajeModel.query.filter_by(id_viaje=id_viaje).populate_existing().with_for_update().first()
         if viaje_model is None:
             return jsonify({"mensaje": "Viaje no encontrado"}), 404
 
         viaje = Viaje.crear_desde_datos(viaje_model.to_dict())
+        antes = snapshot(viaje_model)
 
         if not operador.cancelar_viaje(viaje, motivo):
             return (
@@ -257,6 +271,7 @@ class OperadorController:
         try:
             viaje_model.estado = viaje.estado
             viaje_model.observaciones = viaje.observaciones
+            registrar(viaje_model, operador.id_usuario, "viaje_cancelado", antes, {"motivo": motivo})
             actualizar_camion_tras_cancelacion(viaje_model)
             AdminNotificacionService.viaje_cancelado(viaje_model, motivo)
             db.session.commit()
@@ -286,7 +301,7 @@ class OperadorController:
         if any(len(datos.get(campo) or "") > 255 for campo in ("origen", "destino")):
             return jsonify({"mensaje": "La dirección supera los 255 caracteres"}), 400
 
-        viaje_model = ViajeModel.query.filter_by(id_viaje=id_viaje, OperadorLogistico_Usuario_idUsuario=operador.id_usuario).with_for_update().first()
+        viaje_model = ViajeModel.query.filter_by(id_viaje=id_viaje).populate_existing().with_for_update().first()
         if viaje_model is None:
             return jsonify({"mensaje": "Viaje no encontrado"}), 404
 
@@ -294,9 +309,19 @@ class OperadorController:
         id_camion = datos.get("Camion_id_camion")
         id_chofer_anterior = viaje_model.Chofer_Usuario_idUsuario
         id_camion_anterior = viaje_model.Camion_id_camion
+        antes = snapshot(viaje_model)
 
         if id_chofer and not ChoferModel.query.get(id_chofer):
             return jsonify({"mensaje": "El chofer no existe"}), 400
+
+        if id_chofer and id_chofer != id_chofer_anterior:
+            usuario_chofer = db.session.get(UsuarioModel, id_chofer)
+            if not usuario_chofer or usuario_chofer.estado != Usuario.ESTADO_ACTIVO:
+                return jsonify({"mensaje": "El chofer no está activo"}), 409
+            ocupado = ViajeModel.query.filter(ViajeModel.Chofer_Usuario_idUsuario == id_chofer,
+                ViajeModel.id_viaje != id_viaje, ViajeModel.estado.in_(ESTADOS_VIAJE_OCUPADO)).first()
+            if ocupado:
+                return jsonify({"mensaje": "El chofer ya tiene otro viaje activo"}), 409
 
         if id_camion and not CamionModel.query.get(id_camion):
             return jsonify({"mensaje": "El camión no existe"}), 400
@@ -328,7 +353,7 @@ class OperadorController:
             return jsonify({"mensaje": mensaje_error}), 400
 
         for prefijo in ("origen", "destino"):
-            if datos.get(prefijo) != getattr(viaje_model, prefijo):
+            if prefijo in datos and datos.get(prefijo) != getattr(viaje_model, prefijo):
                 setattr(viaje_model, f"{prefijo}_lat", datos.get(f"{prefijo}_lat"))
                 setattr(viaje_model, f"{prefijo}_lon", datos.get(f"{prefijo}_lon"))
 
@@ -343,6 +368,7 @@ class OperadorController:
         viaje_model.Camion_id_camion = viaje.id_camion
 
         try:
+            registrar(viaje_model, operador.id_usuario, "viaje_editado", antes)
             if viaje.id_camion != id_camion_anterior:
                 camion_destino.estado = Camion.ESTADO_EN_VIAJE
                 actualizar_camion_tras_cancelacion(SimpleNamespace(
@@ -448,9 +474,9 @@ class OperadorController:
             return jsonify({"mensaje": "El mes debe tener el formato AAAA-MM"}), 400
 
         try:
-            viajes_operador = ViajeModel.query.filter_by(
-                OperadorLogistico_Usuario_idUsuario=operador.id_usuario
-            )
+            viajes_operador = ViajeModel.query
+            if request.args.get("alcance") != "todos":
+                viajes_operador = viajes_operador.filter_by(OperadorLogistico_Usuario_idUsuario=operador.id_usuario)
             viajes = viajes_operador.filter(
                 ViajeModel.fecha_salida >= inicio,
                 ViajeModel.fecha_salida < fin,
@@ -508,6 +534,7 @@ class OperadorController:
 
             return jsonify({
                 "mes": mes,
+                "alcance": "todos" if request.args.get("alcance") == "todos" else "mios",
                 "resumen": {
                     "total_viajes": total_viajes,
                     "viajes_pendientes": viajes_pendientes,
