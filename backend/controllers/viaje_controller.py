@@ -1,3 +1,4 @@
+from utils.identificadores import convertir_ids_asignacion
 from utils.texto_personal import texto_personal
 from services.viaje_asignaciones_service import obtener_asignaciones
 from services.admin_notificacion_service import AdminNotificacionService
@@ -319,8 +320,16 @@ class ViajeController:
         rol = ViajeController.obtener_rol_actual()
         id_usuario = ViajeController.obtener_id_usuario_actual()
 
+        cuerpo = request.get_json(silent=True)
+        try:
+            ids_asignacion = convertir_ids_asignacion(cuerpo, (
+                "OperadorLogistico_Usuario_idUsuario", "id_operador",
+                "Chofer_Usuario_idUsuario", "id_chofer", "Camion_id_camion", "id_camion",
+            ))
+        except ValueError as error:
+            return jsonify({"mensaje": str(error)}), 400
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=[
                 "fecha_salida",
                 "fecha_llegada",
@@ -330,16 +339,10 @@ class ViajeController:
                 "estado",
                 "observaciones",
             ],
-            campos_enteros=[
-                "OperadorLogistico_Usuario_idUsuario",
-                "id_operador",
-                "Chofer_Usuario_idUsuario",
-                "id_chofer",
-                "Camion_id_camion",
-                "id_camion",
-            ],
             campos_decimales=["recorrido"],
         )
+
+        datos.update(ids_asignacion)
 
         # valores por defecto
         # Una asignación nueva siempre debe ser aceptada por el chofer.
