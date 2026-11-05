@@ -6,6 +6,8 @@ from flask import g
 
 from controllers.chofer_controller import ChoferController
 from db_instance import db
+from models.chofer_model import ChoferModel
+from utils.fecha_operativa import hoy_operativo
 from models.camion_model import CamionModel
 from models.viaje_model import ViajeModel
 from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
@@ -27,6 +29,7 @@ class QrEstadoCamionTest(unittest.TestCase):
         cls.fixture.tearDownClass()
 
     def setUp(self):
+        db.session.get(ChoferModel, 1).vencimientoLicencia = hoy_operativo() + timedelta(days=365)
         db.session.add(ViajeModel(id_viaje=90, OperadorLogistico_Usuario_idUsuario=2,
                                   Chofer_Usuario_idUsuario=1, Camion_id_camion=90,
                                   fecha_salida=date.today(), origen='A', destino='B',
@@ -85,3 +88,23 @@ class QrEstadoCamionTest(unittest.TestCase):
         db.session.commit()
         self.assertEqual(self.escanear('salida')[1], 201)
         self.assertEqual(db.session.get(CamionModel, 90).estado, 'en mantenimiento')
+
+    def test_licencia_vencida_bloquea_salida_sin_mutaciones(self):
+        db.session.get(ChoferModel, 1).vencimientoLicencia = hoy_operativo() - timedelta(days=1)
+        db.session.commit()
+        respuesta, codigo = self.escanear()
+        self.assertEqual(codigo, 409, respuesta)
+        self.assertIn('licencia', respuesta['mensaje'])
+        self.assertEqual(db.session.get(ViajeModel, 90).estado, 'aceptado')
+        self.assertEqual(db.session.get(CamionModel, 90).estado, 'disponible')
+        self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).count(), 0)
+
+    def test_licencia_valida_hoy_y_vencida_al_regresar(self):
+        db.session.get(ChoferModel, 1).vencimientoLicencia = hoy_operativo()
+        db.session.commit()
+        self.assertEqual(self.escanear()[1], 201)
+        db.session.get(ChoferModel, 1).vencimientoLicencia = hoy_operativo() - timedelta(days=1)
+        RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).one().fecha_hora = datetime.now() - timedelta(minutes=2)
+        db.session.commit()
+        self.assertEqual(self.escanear('salida')[1], 201)
+        self.assertEqual(db.session.get(ViajeModel, 90).estado, 'finalizado')

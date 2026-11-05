@@ -5,6 +5,7 @@ from flask import jsonify, request
 from db_instance import db
 from models.camion_model import CamionModel
 from models.chofer_model import ChoferModel
+from services.licencia_service import licencia_vigente, MENSAJE_LICENCIA
 from models.operador_model import OperadorModel
 from models.usuario_model import UsuarioModel
 from models.viaje_model import ViajeModel
@@ -397,6 +398,9 @@ class ViajeController:
 
         if chofer is None:
             return jsonify({"mensaje": "Chofer no encontrado"}), 404
+
+        if not licencia_vigente(db.session.get(ChoferModel, id_chofer)):
+            return jsonify({"mensaje": MENSAJE_LICENCIA}), 409
 
         if camion is None:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
