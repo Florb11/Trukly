@@ -2,7 +2,7 @@ from services.admin_notificacion_service import AdminNotificacionService
 from services.notificacion_service import NotificacionService
 from datetime import datetime
 
-from flask import jsonify, request
+from flask import g, jsonify, request
 from db_instance import db
 
 from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
@@ -108,7 +108,12 @@ class RegistroIngresoSalidaController:
         Usuario.ROL_CHOFER,
     )
     def listar_registros():
-        registros = RegistroIngresoSalidaModel.query.all()
+        consulta = RegistroIngresoSalidaModel.query
+        if g.usuario_actual.rol == Usuario.ROL_CHOFER:
+            consulta = consulta.join(
+                ViajeModel, ViajeModel.id_viaje == RegistroIngresoSalidaModel.Viaje_id_viaje
+            ).filter(ViajeModel.Chofer_Usuario_idUsuario == g.usuario_actual.id_usuario)
+        registros = consulta.all()
 
         return jsonify([registro.to_dict() for registro in registros])
 
@@ -119,7 +124,12 @@ class RegistroIngresoSalidaController:
         Usuario.ROL_CHOFER,
     )
     def obtener_registro(id_registro):
-        registro = RegistroIngresoSalidaModel.query.get(id_registro)
+        consulta = RegistroIngresoSalidaModel.query.filter_by(id_registro=id_registro)
+        if g.usuario_actual.rol == Usuario.ROL_CHOFER:
+            consulta = consulta.join(
+                ViajeModel, ViajeModel.id_viaje == RegistroIngresoSalidaModel.Viaje_id_viaje
+            ).filter(ViajeModel.Chofer_Usuario_idUsuario == g.usuario_actual.id_usuario)
+        registro = consulta.first()
 
         if registro is None:
             return jsonify({"mensaje": "Registro no encontrado"}), 404
