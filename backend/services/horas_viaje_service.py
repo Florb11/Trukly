@@ -1,4 +1,5 @@
 from utils.texto_personal import texto_personal
+from html import unescape
 """Tiempo entre controles; no representa tiempo efectivo de conducción.
 
 Los registros existentes son DATETIME sin zona: se conserva el reloj del servidor
@@ -95,7 +96,7 @@ def resumen_horas(viajes, mes, ahora=None):
             if not inicio_mes.date() <= viaje.fecha_salida < fin_mes.date():
                 continue
         conteos[tiempo["estado"]] += 1
-        historial.append({"id_viaje": viaje.id_viaje, "origen": viaje.origen, "destino": viaje.destino,
+        historial.append({"id_viaje": viaje.id_viaje, "origen": unescape(viaje.origen), "destino": unescape(viaje.destino),
                           **tiempo, "duracion_mes": formato_duracion(segundos_mes)})
     # Un chofer no acumula dos veces el mismo tiempo si hay viajes superpuestos.
     fusionados = []

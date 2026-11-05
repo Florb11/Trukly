@@ -1181,3 +1181,38 @@ class OperacionCompartidaTest(unittest.TestCase):
                 self.assertEqual(r.status_code,200,r.get_json())
                 db.session.remove()
                 self.assertEqual(db.session.get(ViajeModel,50).observaciones,almacenado)
+
+
+    def test_ruta_legible_no_reinicia_aceptacion_al_guardar_sin_cambios(self):
+        from html import escape
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        client = self.fixture.app.test_client()
+        for origen, destino in [('Depósito "A" & carga', "D'Amico"),('Literal &quot; conservado','<destino>'),('Origen normal','Destino normal')]:
+            viaje = db.session.get(ViajeModel,50)
+            viaje.origen, viaje.destino = escape(origen), escape(destino)
+            viaje.origen_lat, viaje.origen_lon = -34,-58
+            viaje.destino_lat, viaje.destino_lon = -33,-57
+            db.session.commit()
+            for _ in range(3):
+                for uid,rol in [('90','operador'),('91','chofer')]:
+                    headers = {'Authorization':'Bearer '+create_access_token(identity=uid,additional_claims={'rol':rol})}
+                    detalle = client.get('/api/viaje/50',headers=headers)
+                    self.assertEqual(detalle.status_code,200)
+                    self.assertEqual((detalle.get_json()['origen'],detalle.get_json()['destino']),(origen,destino))
+                r = client.put('/api/operador/viajes/50',json={'origen':origen,'destino':destino},headers={'Authorization':'Bearer '+token})
+                self.assertEqual(r.status_code,200,r.get_json())
+                self.assertEqual((r.get_json()['viaje']['origen'],r.get_json()['viaje']['destino']),(origen,destino))
+                db.session.remove()
+                viaje = db.session.get(ViajeModel,50)
+                self.assertEqual((viaje.origen,viaje.destino),(escape(origen),escape(destino)))
+                self.assertEqual(viaje.estado,'aceptado')
+                self.assertEqual((viaje.origen_lat,viaje.origen_lon,viaje.destino_lat,viaje.destino_lon),(-34,-58,-33,-57))
+                self.assertEqual(NotificacionModel.query.count(),0)
+                self.assertTrue(all(c.datos["cambios"] == {} for c in ViajeCambioModel.query.filter_by(id_viaje=50).all()))
+            r = client.put('/api/operador/viajes/50',json={'recorrido':11},headers={'Authorization':'Bearer '+token})
+            self.assertEqual(r.status_code,200)
+            db.session.remove()
+            viaje = db.session.get(ViajeModel,50)
+            self.assertEqual((viaje.origen,viaje.destino),(escape(origen),escape(destino)))
+            ViajeCambioModel.query.delete()
+            db.session.commit()

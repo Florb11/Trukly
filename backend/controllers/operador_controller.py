@@ -1,3 +1,4 @@
+from html import unescape
 from utils.identificadores import convertir_ids_asignacion
 from utils.texto_personal import texto_personal
 from types import SimpleNamespace
@@ -273,7 +274,7 @@ class OperadorController:
                 "Nuevo viaje asignado",
                 (
                     f"Se te asignó el viaje #{nuevo_viaje.id_viaje}: "
-                    f"{origen} → {destino}, con salida el {fecha_salida}."
+                    f"{unescape(origen)} → {unescape(destino)}, con salida el {fecha_salida}."
                 ),
                 "viaje_asignado",
             )
@@ -406,6 +407,8 @@ class OperadorController:
         viaje_dict = viaje_model.to_dict()
         # La edición conserva el texto almacenado cuando el campo se omite.
         viaje_dict["observaciones"] = viaje_model.observaciones
+        viaje_dict["origen"] = viaje_model.origen
+        viaje_dict["destino"] = viaje_model.destino
         viaje_dict["id_operador"] = viaje_dict.get("OperadorLogistico_Usuario_idUsuario")
         viaje_dict["id_chofer"] = viaje_dict.get("Chofer_Usuario_idUsuario")
         viaje_dict["id_camion"] = viaje_dict.get("Camion_id_camion")
@@ -450,7 +453,7 @@ class OperadorController:
                     "Viaje asignado",
                     (
                         f"Se te reasignó el viaje #{viaje_model.id_viaje}: "
-                        f"{viaje.origen} → {viaje.destino}."
+                        f"{unescape(viaje.origen)} → {unescape(viaje.destino)}."
                     ),
                     "viaje_asignado",
                 )

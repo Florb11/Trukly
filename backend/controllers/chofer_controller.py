@@ -216,8 +216,8 @@ class ChoferController:
                     "tipo_registro": tipo_registro,
                     "observacion": registro.observacion_texto,
                     "id_viaje": viaje.id_viaje,
-                    "origen": viaje.origen,
-                    "destino": viaje.destino,
+                    "origen": viaje.origen_texto,
+                    "destino": viaje.destino_texto,
                     "id_camion": viaje.Camion_id_camion,
                 })
 

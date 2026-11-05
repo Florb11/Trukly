@@ -62,6 +62,14 @@ class ViajeModel(db.Model):
     )
 
     @property
+    def origen_texto(self):
+        return unescape(self.origen) if self.origen is not None else None
+
+    @property
+    def destino_texto(self):
+        return unescape(self.destino) if self.destino is not None else None
+
+    @property
     def observaciones_texto(self):
         return unescape(self.observaciones) if self.observaciones is not None else None
 
@@ -89,8 +97,8 @@ class ViajeModel(db.Model):
             "Camion_id_camion": self.Camion_id_camion,
             "fecha_salida": self.fecha_salida.isoformat() if self.fecha_salida else None,
             "fecha_llegada": self.fecha_llegada.isoformat() if self.fecha_llegada else None,
-            "origen": self.origen,
-            "destino": self.destino,
+            "origen": self.origen_texto,
+            "destino": self.destino_texto,
             "origen_lat": self.origen_lat,
             "origen_lon": self.origen_lon,
             "destino_lat": self.destino_lat,

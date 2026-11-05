@@ -475,7 +475,7 @@ class ViajeController:
                 "Nuevo viaje asignado",
                 (
                     f"Se te asignó el viaje #{nuevo_viaje.id_viaje}: "
-                    f"{nuevo_viaje.origen} → {nuevo_viaje.destino}, "
+                    f"{nuevo_viaje.origen_texto} → {nuevo_viaje.destino_texto}, "
                     f"con salida el {nuevo_viaje.fecha_salida}."
                 ),
                 "viaje_asignado",
