@@ -335,12 +335,24 @@ class OperadorController:
         if not isinstance(cuerpo, dict) or isinstance(cuerpo.get("recorrido"), bool):
             return jsonify({"mensaje": "Los datos de edición o el recorrido no son válidos"}), 400
 
+        ids_asignacion = {}
+        for campo in ("Chofer_Usuario_idUsuario", "Camion_id_camion"):
+            if campo not in cuerpo:
+                continue
+            valor = cuerpo[campo]
+            texto = str(valor).strip()
+            if (isinstance(valor, bool) or not isinstance(valor, (str, int))
+                    or not texto or len(texto) > 10 or not texto.isascii() or not texto.isdigit()
+                    or not 0 < int(texto) <= 2147483647):
+                return jsonify({"mensaje": "Seleccioná un chofer y un camión válidos: sus identificadores deben ser enteros positivos."}), 400
+            ids_asignacion[campo] = int(texto)
+
         datos = InputSanitizer.sanitizar_campos(
             cuerpo,
             campos_texto=["origen", "destino", "observaciones"],
-            campos_enteros=["Chofer_Usuario_idUsuario", "Camion_id_camion"],
             campos_decimales=["recorrido", "origen_lat", "origen_lon", "destino_lat", "destino_lon"],
         )
+        datos.update(ids_asignacion)
 
         if not OperadorController._ubicaciones_validas(datos):
             return jsonify({"mensaje": "Coordenadas de origen o destino inválidas"}), 400

@@ -1033,3 +1033,43 @@ class OperacionCompartidaTest(unittest.TestCase):
         for texto, esperado in [('A'*200,True),('A'*201,False),("'"*34,False),('',True),(None,True)]:
             valido, mensaje = Viaje.validar_datos_viaje({**datos,'observaciones':InputSanitizer.texto(texto)})
             self.assertEqual(valido,esperado,mensaje)
+
+
+    def test_ids_asignacion_invalidos_no_modifican_viaje_ni_recursos(self):
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        client = self.fixture.app.test_client()
+        original = db.session.get(ViajeModel,50).to_dict()
+        invalidos = [1.9,91.9,True,False,0,-1,None,[],{},'1.9','1e0','١','¹',2147483648,'9'*5000]
+        for campo in ['Camion_id_camion','Chofer_Usuario_idUsuario']:
+            for valor in invalidos:
+                with self.subTest(campo=campo,valor=str(valor)[:20]):
+                    r = client.put('/api/operador/viajes/50',headers={'Authorization':'Bearer '+token},json={campo:valor,'observaciones':'No guardar'})
+                    self.assertEqual(r.status_code,400,r.get_json())
+                    db.session.remove()
+                    viaje = db.session.get(ViajeModel,50)
+                    self.assertEqual((viaje.Camion_id_camion,viaje.Chofer_Usuario_idUsuario,viaje.estado,viaje.observaciones),(original['Camion_id_camion'],original['Chofer_Usuario_idUsuario'],original['estado'],original['observaciones']))
+                    self.assertEqual(db.session.get(CamionModel,90).estado,'en viaje')
+                    self.assertEqual(db.session.get(CamionModel,1).estado,'disponible')
+                    self.assertEqual(ViajeCambioModel.query.filter_by(id_viaje=50).count(),0)
+                    self.assertEqual(NotificacionModel.query.count(),0)
+                    self.enviar_push.assert_not_called()
+
+    def test_ids_enteros_en_texto_o_numero_conservan_asignacion(self):
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        for chofer, camion in [(91,90),('91','90'),(' 91 ',' 90 ')]:
+            r = self.fixture.app.test_client().put('/api/operador/viajes/50',headers={'Authorization':'Bearer '+token},json={'Chofer_Usuario_idUsuario':chofer,'Camion_id_camion':camion})
+            self.assertEqual(r.status_code,200,r.get_json())
+            db.session.remove()
+            viaje = db.session.get(ViajeModel,50)
+            self.assertEqual((viaje.Chofer_Usuario_idUsuario,viaje.Camion_id_camion,viaje.estado),(91,90,'aceptado'))
+
+    def test_camion_decimal_disponible_no_se_asigna_por_truncamiento(self):
+        db.session.get(ViajeModel,2).estado = 'finalizado'
+        db.session.commit()
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        r = self.fixture.app.test_client().put('/api/operador/viajes/50',headers={'Authorization':'Bearer '+token},json={'Camion_id_camion':1.9})
+        self.assertEqual(r.status_code,400,r.get_json())
+        db.session.remove()
+        self.assertEqual(db.session.get(ViajeModel,50).Camion_id_camion,90)
+        self.assertEqual(db.session.get(CamionModel,90).estado,'en viaje')
+        self.assertEqual(db.session.get(CamionModel,1).estado,'disponible')
