@@ -1,3 +1,4 @@
+import { regresoReal } from "../utils/regresoReal";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaHistory, FaMapMarkerAlt, FaRoute, FaCheckCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -53,6 +54,8 @@ export default function ViajesPage() {
       <div className="trip-card-top"><span>Viaje #{viaje.id_viaje}</span><span className={`status ${viaje.estado?.replace(" ", "-")}`}>{viaje.estado}</span></div>
       <h2>{viaje.origen}</h2><div className="route-line"><i /><span /></div><h2>{viaje.destino}</h2>
       <div className="trip-meta"><span><FaMapMarkerAlt /> {viaje.recorrido || 0} km</span><span><FaRoute /> {viaje.fecha_salida}</span></div>
+      <p>Llegada estimada: {viaje.fecha_llegada_estimada || viaje.fecha_llegada || "Sin estimación"}</p>
+      <p>Regreso real (QR): {regresoReal(viaje)}</p>
       {viaje.estado === "pendiente" && <button className="button primary wide" disabled={aceptando !== null} onClick={() => aceptar(viaje.id_viaje)}><FaCheckCircle /> {aceptando === viaje.id_viaje ? "Aceptando..." : "Aceptar viaje"}</button>}
       {["aceptado", "en curso"].includes(viaje.estado) && <Link className="button primary wide" to="/escanear">{viaje.estado === "aceptado" ? "Escanear QR de salida" : "Escanear QR de regreso"}</Link>}
     </article>)}</div>}

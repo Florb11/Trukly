@@ -1,4 +1,5 @@
 from services.horas_viaje_service import horas_chofer
+from services.foto_perfil_service import validar_contenido_foto
 import os
 import time
 
@@ -499,10 +500,9 @@ class PerfilController:
                 "mensaje": mensaje_error
             }), 400
 
-        os.makedirs(
-            PerfilController.CARPETA_PERFILES,
-            exist_ok=True
-        )
+        foto_valida, mensaje_error = validar_contenido_foto(foto)
+        if not foto_valida:
+            return jsonify({"mensaje": mensaje_error}), 400
 
         nombre_archivo = Usuario.generar_nombre_foto_perfil(
             foto.filename
@@ -513,28 +513,31 @@ class PerfilController:
             nombre_archivo
         )
 
-        foto.save(ruta_archivo)
-
-        PerfilController._eliminar_foto_anterior(
-            usuario_db.foto_perfil
-        )
-
-        usuario_db.foto_perfil = (
-            f"/uploads/perfiles/{nombre_archivo}"
-        )
-
+        foto_anterior = usuario_db.foto_perfil
         try:
+            os.makedirs(PerfilController.CARPETA_PERFILES, exist_ok=True)
+            foto.save(ruta_archivo)
+            usuario_db.foto_perfil = f"/uploads/perfiles/{nombre_archivo}"
             db.session.commit()
         except Exception:
             db.session.rollback()
             logger.exception("No se pudo actualizar la foto de perfil")
 
-            if os.path.exists(ruta_archivo):
-                os.remove(ruta_archivo)
+            try:
+                if os.path.exists(ruta_archivo):
+                    os.remove(ruta_archivo)
+            except OSError:
+                logger.exception("No se pudo limpiar la foto de perfil fallida")
 
             return jsonify({
                 "mensaje": "No se pudo actualizar la foto de perfil"
             }), 500
+
+        try:
+            PerfilController._eliminar_foto_anterior(foto_anterior)
+        except OSError:
+            # La foto nueva ya está confirmada: no invalidar el cambio por la limpieza.
+            logger.exception("No se pudo eliminar la foto de perfil anterior")
 
         return jsonify({
             "mensaje": "Foto de perfil actualizada correctamente",

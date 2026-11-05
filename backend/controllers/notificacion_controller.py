@@ -1,4 +1,5 @@
 from services.admin_notificacion_service import AdminNotificacionService
+from services.avisos_licencias_service import generar_aviso_licencia
 from flask import g, jsonify
 
 from db_instance import db
@@ -90,6 +91,12 @@ class NotificacionController:
         # lista notificaciones del usuario logueado
         usuario_actual = g.usuario_actual
         id_usuario = usuario_actual.id_usuario
+        if usuario_actual.rol == Usuario.ROL_CHOFER:
+            try:
+                generar_aviso_licencia(id_usuario)
+            except Exception:
+                # El fallo del recordatorio no debe impedir leer otros avisos.
+                logger.exception("No se pudo revisar el vencimiento de licencia")
         notificaciones = (
             NotificacionModel.query
             .filter_by(Usuario_idUsuario=id_usuario)

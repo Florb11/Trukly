@@ -37,6 +37,7 @@ function MecanicoResolverModal({
             <span>Nota de reparación</span>
             <textarea
               value={notaReparacion}
+              maxLength={255}
               onChange={(e) => setNotaReparacion(e.target.value)}
               placeholder="Ej: Se revisó el sistema de frenos y se cambió una manguera dañada."
               rows="5"

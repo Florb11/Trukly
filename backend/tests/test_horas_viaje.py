@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from datetime import datetime, date
 from types import SimpleNamespace
 from services.horas_viaje_service import tiempo_viaje, resumen_horas, limites_mes
@@ -146,7 +147,7 @@ class HorasIntegracionTest(unittest.TestCase):
             self.assertEqual(escanear("ingreso")[1], 400)
             self.assertEqual(escanear("salida")[1], 400)
             self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=99).count(), 0)
-            with self.fixture.app.test_request_context("/", method="PUT"):
+            with self.fixture.app.test_request_context("/", method="PUT"), patch("controllers.chofer_controller.NotificacionService.enviar_push_pendientes"):
                 g.chofer_actual = SimpleNamespace(id_usuario=1, iniciar_viaje=lambda viaje: (viaje.aceptar(), None))
                 respuesta, codigo = ChoferController.iniciar_viaje.__wrapped__(99)
                 self.assertEqual(codigo, 200)
@@ -159,7 +160,7 @@ class HorasIntegracionTest(unittest.TestCase):
             otro_activo.estado = "finalizado"
             db.session.commit()
             self.assertEqual(escanear("ingreso")[1], 201)
-            with self.fixture.app.test_request_context("/", method="PUT"):
+            with self.fixture.app.test_request_context("/", method="PUT"), patch("controllers.chofer_controller.NotificacionService.enviar_push_pendientes"):
                 g.chofer_actual = SimpleNamespace(id_usuario=1)
                 self.assertEqual(ChoferController.finalizar_viaje.__wrapped__(99)[1], 409)
             self.assertEqual(escanear("ingreso")[1], 400)

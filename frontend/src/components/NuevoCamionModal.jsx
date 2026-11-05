@@ -32,6 +32,7 @@ function NuevoCamionModal({ formNuevo, errorNuevo, onChange, onSubmit, onClose }
                                 type="text"
                                 id="matricula"
                                 name="matricula"
+                                maxLength={15}
                                 value={formNuevo.matricula}
                                 onChange={onChange}
                                 placeholder="Ej: ABC1234"
@@ -44,6 +45,7 @@ function NuevoCamionModal({ formNuevo, errorNuevo, onChange, onSubmit, onClose }
                                 type="text"
                                 id="marca"
                                 name="marca"
+                                maxLength={20}
                                 value={formNuevo.marca}
                                 onChange={onChange}
                                 placeholder="Ej: Volvo"
@@ -56,6 +58,7 @@ function NuevoCamionModal({ formNuevo, errorNuevo, onChange, onSubmit, onClose }
                                 type="text"
                                 id="modelo"
                                 name="modelo"
+                                maxLength={20}
                                 value={formNuevo.modelo}
                                 onChange={onChange}
                                 placeholder="Ej: FH"

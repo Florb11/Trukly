@@ -316,7 +316,7 @@ function AdminReportesPage() {
 
                                                     <button
                                                         type="button"
-                                                        className="btn-reporte btn-reporte--estado"
+                                                        className="btn-reporte btn-reporte--estado" disabled={["cancelado", "resuelto"].includes(reporte.estado)}
                                                         onClick={() => abrirCambiarEstadoReporte(reporte)}
                                                     >
                                                         Cambiar estado
@@ -380,7 +380,7 @@ function AdminReportesPage() {
 
                                         <button
                                             type="button"
-                                            className="btn-reporte btn-reporte--estado"
+                                            className="btn-reporte btn-reporte--estado" disabled={["cancelado", "resuelto"].includes(reporte.estado)}
                                             onClick={() => abrirCambiarEstadoReporte(reporte)}
                                         >
                                             Cambiar estado

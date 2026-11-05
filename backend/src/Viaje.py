@@ -393,15 +393,7 @@ class Viaje:
 
         estado_actual = self.normalizar_estado(self.estado)
 
-        estados_no_cancelables = [
-            self.ESTADO_CANCELADO,
-            self.ESTADO_FINALIZADO,
-        ]
-
-        if estado_actual in estados_no_cancelables:
-            return False
-
-        return True
+        return estado_actual in [self.ESTADO_PENDIENTE, self.ESTADO_ACEPTADO]
 
     def cancelar(self, motivo):
         # cancela el viaje con un motivo

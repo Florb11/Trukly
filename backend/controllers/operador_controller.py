@@ -13,7 +13,7 @@ from src.Camion import Camion
 from src.Usuario import Usuario
 from src.Viaje import Viaje
 from models.chofer_model import ChoferModel
-from services.licencia_service import licencia_vigente, MENSAJE_LICENCIA
+from services.licencia_service import licencia_vigente, MENSAJE_LICENCIA, MENSAJE_LICENCIA_FECHA
 from utils.fecha_operativa import hoy_operativo
 from models.camion_model import CamionModel
 from models.reporte_model import ReporteModel
@@ -22,9 +22,10 @@ from models.viaje_model import ViajeModel
 from models.chofer_model import ChoferModel
 from models.camion_model import CamionModel
 from utils.input_sanitizer import InputSanitizer
-from utils.auth_decorators import operador_required, roles_required
+from utils.auth_decorators import operador_required, roles_required, admin_required
 from services.camion_disponibilidad_service import actualizar_camion_tras_cancelacion
 from services.notificacion_service import NotificacionService
+from services.viaje_notificacion_service import notificar_cancelacion_chofer
 from services.viaje_cambios_service import snapshot, registrar
 from models.viaje_cambio_model import ViajeCambioModel
 
@@ -59,31 +60,60 @@ class OperadorController:
         return True
 
     @staticmethod
+    @admin_required
     def listar_operadores():
         operadores = OperadorModel.query.all()
         return jsonify([operador.to_dict() for operador in operadores])
 
     @staticmethod
+    @roles_required("admin", "operador")
     def obtener_operador(id_usuario):
+        usuario = g.usuario_actual
+        if usuario.rol == "operador" and usuario.id_usuario != id_usuario:
+            return jsonify({"mensaje": "Solo podés consultar tus propios datos de operador"}), 403
         operador = OperadorModel.query.get(id_usuario)
         if operador is None:
             return jsonify({"mensaje": "Operador no encontrado"}), 404
         return jsonify(operador.to_dict())
 
     @staticmethod
+    @admin_required
     def crear_operador():
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict):
+            return jsonify({"mensaje": "Los datos del operador no son válidos"}), 400
+        id_usuario = cuerpo.get("Usuario_idUsuario")
+        texto_id = str(id_usuario)
+        if (isinstance(id_usuario, bool) or not texto_id.isascii() or not texto_id.isdigit()
+                or len(texto_id) > 10 or not 1 <= int(texto_id) <= 2147483647):
+            return jsonify({"mensaje": "El usuario del operador no es válido"}), 400
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=["Legajo", "Sector"],
             campos_enteros=["Usuario_idUsuario"],
         )
+        for campo in ("Legajo", "Sector"):
+            if not datos.get(campo) or len(datos[campo]) > 45:
+                return jsonify({"mensaje": f"El campo {campo} es obligatorio y admite hasta 45 caracteres"}), 400
+        usuario = db.session.get(UsuarioModel, datos["Usuario_idUsuario"])
+        if usuario is None:
+            return jsonify({"mensaje": "Usuario no encontrado"}), 404
+        if usuario.rol != "operador":
+            return jsonify({"mensaje": "El usuario no tiene rol de operador"}), 400
+        if db.session.get(OperadorModel, usuario.id_usuario) is not None:
+            return jsonify({"mensaje": "Este usuario ya tiene datos de operador"}), 409
         nuevo_operador = OperadorModel(
             Usuario_idUsuario=datos["Usuario_idUsuario"],
             legajo=datos["Legajo"],
             sector=datos["Sector"],
         )
-        db.session.add(nuevo_operador)
-        db.session.commit()
+        try:
+            db.session.add(nuevo_operador)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            logger.exception("No se pudieron guardar los datos del operador")
+            return jsonify({"mensaje": "No se pudieron guardar los datos del operador"}), 500
         return (
             jsonify(
                 {
@@ -165,8 +195,8 @@ class OperadorController:
         if not chofer_model:
             return jsonify({"mensaje": "El chofer no existe"}), 400
 
-        if not licencia_vigente(chofer_model):
-            return jsonify({"mensaje": MENSAJE_LICENCIA}), 409
+        if not licencia_vigente(chofer_model, Viaje.convertir_fecha(fecha_salida)):
+            return jsonify({"mensaje": MENSAJE_LICENCIA_FECHA}), 409
 
         usuario_chofer = UsuarioModel.query.get(id_chofer)
         if not usuario_chofer or usuario_chofer.estado != Usuario.ESTADO_ACTIVO:
@@ -269,7 +299,7 @@ class OperadorController:
         if not operador.cancelar_viaje(viaje, motivo):
             return (
                 jsonify(
-                    {"mensaje": "El viaje no puede cancelarse en su estado actual"}
+                    {"mensaje": "Solo se pueden cancelar viajes pendientes o aceptados."}
                 ),
                 400,
             )
@@ -279,6 +309,7 @@ class OperadorController:
             viaje_model.observaciones = viaje.observaciones
             registrar(viaje_model, operador.id_usuario, "viaje_cancelado", antes, {"motivo": motivo})
             actualizar_camion_tras_cancelacion(viaje_model)
+            notificar_cancelacion_chofer(viaje_model, motivo)
             AdminNotificacionService.viaje_cancelado(viaje_model, motivo)
             db.session.commit()
             NotificacionService.enviar_push_pendientes()
@@ -362,6 +393,13 @@ class OperadorController:
         if not editado:
             return jsonify({"mensaje": mensaje_error}), 400
 
+        cambia_asignacion = viaje.id_chofer != id_chofer_anterior
+        cambia_salida = Viaje.convertir_fecha(viaje.fecha_salida) != viaje_model.fecha_salida
+        if (cambia_asignacion or cambia_salida) and not licencia_vigente(
+            db.session.get(ChoferModel, viaje.id_chofer), Viaje.convertir_fecha(viaje.fecha_salida)
+        ):
+            return jsonify({"mensaje": MENSAJE_LICENCIA_FECHA}), 409
+
         for prefijo in ("origen", "destino"):
             if prefijo in datos and datos.get(prefijo) != getattr(viaje_model, prefijo):
                 setattr(viaje_model, f"{prefijo}_lat", datos.get(f"{prefijo}_lat"))
@@ -399,6 +437,18 @@ class OperadorController:
                     f"El viaje #{viaje_model.id_viaje} fue reasignado a otro chofer.",
                     "viaje_reasignado",
                 )
+            else:
+                etiquetas = {"origen": "origen", "destino": "destino",
+                    "fecha_salida": "fecha de salida", "Camion_id_camion": "camión"}
+                despues = snapshot(viaje_model)
+                modificados = [etiqueta for campo, etiqueta in etiquetas.items()
+                    if antes[campo] != despues[campo]]
+                if modificados:
+                    indicacion = (" Revisá los datos y aceptá el viaje antes de escanear la salida."
+                        if viaje_model.estado == Viaje.ESTADO_PENDIENTE else " Revisá los datos actualizados del viaje.")
+                    NotificacionService.crear(viaje.id_chofer, "Viaje actualizado",
+                        f"Se actualizó el viaje #{viaje_model.id_viaje}: {', '.join(modificados)}.{indicacion}",
+                        "viaje_actualizado")
             db.session.commit()
             NotificacionService.enviar_push_pendientes()
             return jsonify({"mensaje": "Viaje actualizado correctamente", "viaje": viaje_model.to_dict()}), 200
@@ -498,6 +548,7 @@ class OperadorController:
 
             total_viajes = len(viajes)
             viajes_pendientes = sum(1 for v in viajes if v.estado == Viaje.ESTADO_PENDIENTE)
+            viajes_aceptados = sum(1 for v in viajes if v.estado == Viaje.ESTADO_ACEPTADO)
             viajes_en_curso = sum(1 for v in viajes if v.estado == Viaje.ESTADO_EN_CURSO)
             viajes_finalizados = sum(1 for v in viajes if v.estado == Viaje.ESTADO_FINALIZADO)
             viajes_cancelados = sum(1 for v in viajes if v.estado == Viaje.ESTADO_CANCELADO)
@@ -552,6 +603,7 @@ class OperadorController:
                 "resumen": {
                     "total_viajes": total_viajes,
                     "viajes_pendientes": viajes_pendientes,
+                    "viajes_aceptados": viajes_aceptados,
                     "viajes_en_curso": viajes_en_curso,
                     "viajes_finalizados": viajes_finalizados,
                     "viajes_cancelados": viajes_cancelados,

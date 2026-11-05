@@ -62,6 +62,7 @@ useEffect(() => {
             <textarea
               id="descripcion"
               name="descripcion"
+              maxLength={200}
               value={formNuevo.descripcion || ""}
               onChange={onChange}
               placeholder="Describí la falla con el mayor detalle posible..."

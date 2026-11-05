@@ -32,7 +32,7 @@ class AdminNotificacionesTest(unittest.TestCase):
         db.session.info.pop("push_pendientes", None)
 
     def reporte(self):
-        return SimpleNamespace(id_reporte=99, Camion_id_camion=1, Chofer_Usuario_idUsuario=1, descripcion="Ruido en el motor")
+        return SimpleNamespace(id_reporte=99, Camion_id_camion=1, Chofer_Usuario_idUsuario=1, descripcion="Ruido en el motor", descripcion_texto="Ruido en el motor")
 
     def test_nueva_falla_solo_admins_activos_y_sin_duplicados(self):
         Avisos.nueva_falla(self.reporte())

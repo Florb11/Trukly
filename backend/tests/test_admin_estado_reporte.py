@@ -123,6 +123,111 @@ class AdminEstadoReporteTest(unittest.TestCase):
         self.assertEqual([m["id_usuario"] for m in respuesta.get_json()["mecanicos"]], [3])
         self.assertNotIn("password", respuesta.get_json()["mecanicos"][0])
 
+    def test_estados_cerrados_son_finales_para_admin_y_operador(self):
+        from models.camion_model import CamionModel
+        modelo = db.session.get(ReporteModel, 80)
+        for cerrado in ['cancelado', 'resuelto']:
+            for rol in ['admin', 'operador']:
+                for destino in ReporteFalla.ESTADOS_VALIDOS:
+                    with self.subTest(cerrado=cerrado, rol=rol, destino=destino):
+                        modelo.estado = cerrado
+                        modelo.Mecanico_Usuario_idUsuario = 3
+                        modelo.nota_reparacion = 'Nota original'
+                        modelo.motivo_cancelacion = 'Motivo original'
+                        db.session.commit()
+                        camion = db.session.get(CamionModel, 1)
+                        estado_camion = camion.estado
+                        dominio = ReporteController.crear_objeto_reporte(modelo)
+                        self.assertFalse(dominio.cambiar_estado(destino))
+                        with patch.object(ReporteController, 'notificar_reporte_asignado') as aviso:
+                            datos, codigo = self.cambiar({'estado':destino,
+                                'Mecanico_Usuario_idUsuario':3, 'motivo_cancelacion':'Otro motivo'}, rol)
+                        self.assertEqual(codigo, 409, datos)
+                        aviso.assert_not_called()
+                        db.session.refresh(modelo)
+                        self.assertEqual(modelo.estado, cerrado)
+                        self.assertEqual(modelo.nota_reparacion, 'Nota original')
+                        self.assertEqual(modelo.motivo_cancelacion, 'Motivo original')
+                        self.assertEqual(modelo.Mecanico_Usuario_idUsuario, 3)
+                        self.assertEqual(camion.estado, estado_camion)
+                        self.assertEqual(NotificacionModel.query.count(), 0)
+
+    def test_cierre_avisa_al_chofer_para_admin_y_operador_sin_duplicar(self):
+        modelo = db.session.get(ReporteModel, 80)
+        for rol in ['admin', 'operador']:
+            for estado in ['cancelado', 'resuelto']:
+                with self.subTest(rol=rol, estado=estado):
+                    NotificacionModel.query.delete()
+                    modelo.estado = 'pendiente'
+                    modelo.motivo_cancelacion = None
+                    db.session.commit()
+                    datos = {'estado':estado, 'motivo_cancelacion':'Duplicado "motor" & revisión'}
+                    r, codigo = self.cambiar(datos, rol)
+                    self.assertEqual(codigo, 200, r)
+                    avisos = NotificacionModel.query.all()
+                    self.assertEqual(len(avisos), 1)
+                    aviso = avisos[0]
+                    self.assertEqual(aviso.Usuario_idUsuario, 1)
+                    self.assertEqual(aviso.tipo, 'reporte_'+estado)
+                    self.assertIn('#80', aviso.mensaje)
+                    self.assertFalse(aviso.leida)
+                    if estado == 'cancelado':
+                        self.assertIn(datos['motivo_cancelacion'], aviso.mensaje)
+                    self.assertEqual(self.cambiar(datos, rol)[1], 409)
+                    self.assertEqual(NotificacionModel.query.count(), 1)
+
+    def test_cancelacion_operador_sin_motivo_no_inventa_uno(self):
+        r, codigo = self.cambiar({'estado':'cancelado'}, 'operador')
+        self.assertEqual(codigo, 200, r)
+        aviso = NotificacionModel.query.one()
+        self.assertIn('cancelado', aviso.mensaje)
+        self.assertNotIn('Motivo:', aviso.mensaje)
+
+    def test_fallo_de_aviso_revierte_cierre_y_estado_camion(self):
+        from models.camion_model import CamionModel
+        for estado in ['cancelado', 'resuelto']:
+            modelo = db.session.get(ReporteModel, 80)
+            camion = db.session.get(CamionModel, 1)
+            original = camion.estado
+            with patch('controllers.reporte_controller.NotificacionService.crear', side_effect=RuntimeError('Aviso fallido')), patch('controllers.reporte_controller.logger'):
+                r, codigo = self.cambiar({'estado':estado, 'motivo_cancelacion':'Duplicado'})
+            self.assertEqual(codigo, 500, r)
+            db.session.refresh(modelo)
+            self.assertEqual(modelo.estado, 'pendiente')
+            self.assertIsNone(modelo.motivo_cancelacion)
+            self.assertIsNone(modelo.fecha_resolucion)
+            self.assertEqual(camion.estado, original)
+            self.assertEqual(NotificacionModel.query.count(), 0)
+
+    def test_resolucion_registra_fecha_para_admin_y_operador_y_no_la_reescribe(self):
+        momento = datetime(2026, 11, 5, 14, 25, 30)
+        modelo = db.session.get(ReporteModel, 80)
+        for rol in ['admin', 'operador']:
+            for estado in ['pendiente', 'en revision']:
+                with self.subTest(rol=rol, estado=estado):
+                    modelo.estado = estado
+                    modelo.Mecanico_Usuario_idUsuario = 3 if estado == 'en revision' else None
+                    modelo.fecha_resolucion = None
+                    db.session.commit()
+                    with patch('src.ReporteFalla.datetime') as reloj:
+                        reloj.now.return_value = momento
+                        datos, codigo = self.cambiar({'estado':'resuelto'}, rol)
+                    self.assertEqual(codigo, 200, datos)
+                    db.session.refresh(modelo)
+                    self.assertEqual(modelo.fecha_resolucion, momento)
+                    self.assertEqual(datos['reporte']['fecha_resolucion'], '2026-11-05 14:25:30')
+                    self.assertEqual(self.cambiar({'estado':'resuelto'}, rol)[1], 409)
+                    db.session.refresh(modelo)
+                    self.assertEqual(modelo.fecha_resolucion, momento)
+
+    def test_cancelar_o_poner_en_revision_no_crea_fecha_de_resolucion(self):
+        datos, codigo = self.cambiar({'estado':'en revision', 'Mecanico_Usuario_idUsuario':3})
+        self.assertEqual(codigo, 200, datos)
+        self.assertIsNone(db.session.get(ReporteModel, 80).fecha_resolucion)
+        datos, codigo = self.cambiar({'estado':'cancelado', 'motivo_cancelacion':'Duplicado'})
+        self.assertEqual(codigo, 200, datos)
+        self.assertIsNone(db.session.get(ReporteModel, 80).fecha_resolucion)
+
 
 if __name__ == "__main__":
     unittest.main()

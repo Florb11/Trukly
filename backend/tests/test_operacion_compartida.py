@@ -15,6 +15,7 @@ from models.camion_model import CamionModel
 from models.viaje_model import ViajeModel
 from models.viaje_cambio_model import ViajeCambioModel
 from models.carga_model import CargaModel
+from models.reporte_model import ReporteModel
 from models.notificacion_model import NotificacionModel
 from src.OperadorLogistico import OperadorLogistico
 from services.notificacion_service import NotificacionService
@@ -32,6 +33,12 @@ class OperacionCompartidaTest(unittest.TestCase):
         from routes.viaje_routes import viaje_routes
         cls.fixture.app.register_blueprint(operador_routes)
         cls.fixture.app.register_blueprint(viaje_routes)
+        from routes.reporte_routes import reporte_routes
+        cls.fixture.app.register_blueprint(reporte_routes)
+        from routes.mecanico_routes import mecanico_routes
+        cls.fixture.app.register_blueprint(mecanico_routes)
+        from routes.chofer_routes import chofer_routes
+        cls.fixture.app.register_blueprint(chofer_routes)
 
     @classmethod
     def tearDownClass(cls):
@@ -43,6 +50,7 @@ class OperacionCompartidaTest(unittest.TestCase):
         self.enviar_push = push.start()
         self.addCleanup(push.stop)
         db.session.get(ViajeModel, 2).estado = 'en curso'
+        db.session.get(CamionModel, 1).estado = 'disponible'
         db.session.add_all([
             UsuarioModel(id_usuario=90, username='operador2', password='x', nombre='Segundo', apellido='Operador', rol='operador', estado='activo'),
             OperadorModel(Usuario_idUsuario=90, legajo='O90', sector='Logística'),
@@ -62,6 +70,7 @@ class OperacionCompartidaTest(unittest.TestCase):
         NotificacionModel.query.delete()
         ViajeCambioModel.query.delete()
         CargaModel.query.filter_by(Viaje_id_viaje=50).delete()
+        ReporteModel.query.filter_by(Chofer_Usuario_idUsuario=91).delete()
         ViajeModel.query.filter(ViajeModel.id_viaje >= 50).delete()
         ChoferModel.query.filter_by(Usuario_idUsuario=91).delete()
         OperadorModel.query.filter_by(Usuario_idUsuario=90).delete()
@@ -395,6 +404,7 @@ class OperacionCompartidaTest(unittest.TestCase):
         self.enviar_push.assert_not_called()
 
     def test_ruta_general_permite_chofer_con_viaje_cerrado(self):
+        db.session.get(ViajeModel, 2).estado = "finalizado"
         from utils.fecha_operativa import hoy_operativo
         token = create_access_token(identity='90', additional_claims={'rol':'operador'})
         client = self.fixture.app.test_client()
@@ -412,3 +422,579 @@ class OperacionCompartidaTest(unittest.TestCase):
                 creado.estado = 'finalizado'
                 db.session.get(CamionModel, 1).estado = 'disponible'
                 db.session.commit()
+
+    def crear_general(self, chofer=91, camion=90):
+        from utils.fecha_operativa import hoy_operativo
+        token = create_access_token(identity='90', additional_claims={'rol':'operador'})
+        return self.fixture.app.test_client().post('/api/viaje',
+            headers={'Authorization':'Bearer '+token}, json={
+                'origen':'A', 'destino':'B', 'fecha_salida':hoy_operativo().isoformat(),
+                'Chofer_Usuario_idUsuario':chofer, 'Camion_id_camion':camion, 'recorrido':10})
+
+    def test_general_rechaza_chofer_inactivo_o_pendiente(self):
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        db.session.get(CamionModel, 90).estado = 'disponible'
+        for estado in ['inactivo', 'pendiente']:
+            db.session.get(UsuarioModel, 91).estado = estado
+            db.session.commit()
+            r = self.crear_general()
+            self.assertEqual(r.status_code, 400, r.get_json())
+            self.assertIn('chofer', r.get_json()['mensaje'])
+            self.assertEqual(db.session.get(CamionModel, 90).estado, 'disponible')
+            self.assertEqual(ViajeModel.query.filter(ViajeModel.id_viaje>50).count(), 0)
+            self.assertEqual(NotificacionModel.query.count(), 0)
+            self.assertEqual(ViajeCambioModel.query.count(), 0)
+        self.enviar_push.assert_not_called()
+
+    def test_general_reserva_camion_e_impide_segunda_asignacion(self):
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        db.session.get(ViajeModel, 2).estado = 'finalizado'
+        db.session.get(CamionModel, 90).estado = 'disponible'
+        db.session.get(UsuarioModel, 1).estado = 'activo'
+        db.session.commit()
+        r = self.crear_general()
+        self.assertEqual(r.status_code, 201, r.get_json())
+        self.assertEqual(db.session.get(CamionModel, 90).estado, 'en viaje')
+        r = self.crear_general(chofer=1)
+        self.assertEqual(r.status_code, 400, r.get_json())
+        self.assertEqual(ViajeModel.query.filter(ViajeModel.id_viaje>50).count(), 1)
+        self.assertEqual(NotificacionModel.query.count(), 1)
+        self.assertEqual(ViajeCambioModel.query.count(), 1)
+
+    def test_general_rechaza_camion_con_viaje_aunque_diga_disponible(self):
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        db.session.commit()
+        # El camión 1 figura disponible pero conserva el viaje 2 en curso.
+        r = self.crear_general(camion=1)
+        self.assertEqual(r.status_code, 400, r.get_json())
+        self.assertIn('camión ya tiene', r.get_json()['mensaje'])
+        self.assertEqual(ViajeModel.query.filter(ViajeModel.id_viaje>50).count(), 0)
+
+    def test_general_revierte_reserva_si_falla_guardado(self):
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        db.session.get(CamionModel, 90).estado = 'disponible'
+        db.session.commit()
+        with patch.object(db.session, 'commit', side_effect=RuntimeError('Fallo de prueba')), patch('controllers.viaje_controller.logger'):
+            r = self.crear_general()
+        self.assertEqual(r.status_code, 500, r.get_json())
+        self.assertEqual(db.session.get(CamionModel, 90).estado, 'disponible')
+        self.assertEqual(ViajeModel.query.filter(ViajeModel.id_viaje>50).count(), 0)
+        self.assertEqual(NotificacionModel.query.count(), 0)
+        self.assertEqual(ViajeCambioModel.query.count(), 0)
+        self.enviar_push.assert_not_called()
+
+    def test_cancelacion_solo_antes_de_iniciar_para_admin_y_operador(self):
+        db.session.add(UsuarioModel(id_usuario=99, username='admin_cancelacion', password='x',
+            nombre='QA', apellido='Admin', rol='admin', estado='activo'))
+        db.session.commit()
+        try:
+            for rol, identidad, ruta in [('operador','90','/api/operador/viajes/50/cancelar'),
+                                         ('admin','99','/api/admin/viajes/50/cancelar')]:
+                token = create_access_token(identity=identidad, additional_claims={'rol':rol})
+                for estado in ['en curso', 'finalizado', 'cancelado', 'pendiente', 'aceptado']:
+                    with self.subTest(rol=rol, estado=estado):
+                        NotificacionModel.query.delete()
+                        ViajeCambioModel.query.delete()
+                        viaje = db.session.get(ViajeModel, 50)
+                        viaje.estado = estado
+                        viaje.observaciones = 'Original'
+                        db.session.get(CamionModel, 90).estado = 'en viaje'
+                        db.session.commit()
+                        r = self.fixture.app.test_client().put(ruta,
+                            headers={'Authorization':'Bearer '+token}, json={'motivo':'Cambio de plan'})
+                        permitido = estado in ['pendiente', 'aceptado']
+                        self.assertEqual(r.status_code, 200 if permitido else 400, r.get_json())
+                        self.assertEqual(viaje.estado, 'cancelado' if permitido else estado)
+                        self.assertEqual(db.session.get(CamionModel, 90).estado,
+                                         'disponible' if permitido else 'en viaje')
+                        if not permitido:
+                            self.assertEqual(viaje.observaciones, 'Original')
+                            self.assertEqual(ViajeCambioModel.query.count(), 0)
+                            self.assertEqual(NotificacionModel.query.count(), 0)
+        finally:
+            db.session.rollback()
+            NotificacionModel.query.delete()
+            ViajeCambioModel.query.delete()
+            UsuarioModel.query.filter_by(id_usuario=99).delete()
+            db.session.commit()
+
+    def test_descripcion_reporte_conserva_simbolos_en_creacion_y_consulta(self):
+        from models.reporte_model import ReporteModel
+        from controllers.mecanico_controller import MecanicoController
+        from services.admin_notificacion_service import AdminNotificacionService
+        db.session.get(ViajeModel, 50).estado = 'en curso'
+        db.session.commit()
+        token = create_access_token(identity='91', additional_claims={'rol':'chofer'})
+        headers = {'Authorization':'Bearer '+token}
+        client = self.fixture.app.test_client()
+        for texto in ['El motor hace "tac tac" & vibra', "Pérdida en caño <motor> y 'válvula'", 'Escribí &quot; literalmente', '<script>alert(1)</script>']:
+            r = client.post('/api/reportes', headers=headers,
+                json={'Camion_id_camion':90, 'descripcion':texto})
+            self.assertEqual(r.status_code, 201, r.get_json())
+            datos = r.get_json()['reporte']
+            self.assertEqual(datos['descripcion'], texto)
+            reporte = db.session.get(ReporteModel, datos['id_reporte'])
+            self.assertEqual(reporte.to_dict()['descripcion'], texto)
+            self.assertEqual(MecanicoController.preparar_respuesta_reporte(reporte)['descripcion'], texto)
+            r = client.get('/api/reportes/'+str(reporte.id_reporte), headers=headers)
+            self.assertEqual(r.get_json()['reporte']['descripcion'], texto)
+            with patch.object(AdminNotificacionService, '_crear') as aviso:
+                AdminNotificacionService.nueva_falla(reporte)
+                # El aviso administrativo tampoco debe mostrar entidades HTML.
+                self.assertIn(texto, aviso.call_args.args[3])
+
+    def test_descripcion_historica_se_decodifica_una_sola_vez(self):
+        from models.reporte_model import ReporteModel
+        from controllers.reporte_controller import ReporteController
+        reporte = db.session.get(ReporteModel, 1)
+        original = reporte.descripcion
+        try:
+            reporte.descripcion = 'Motor &quot;tac&quot; &amp; válvula &lt;A&gt;'
+            esperado = 'Motor "tac" & válvula <A>'
+            self.assertEqual(reporte.to_dict()['descripcion'], esperado)
+            self.assertEqual(ReporteController.preparar_respuesta_reporte(reporte)['descripcion'], esperado)
+            self.assertEqual(reporte.descripcion, 'Motor &quot;tac&quot; &amp; válvula &lt;A&gt;')
+        finally:
+            reporte.descripcion = original
+
+    def test_nota_reparacion_conserva_simbolos_y_notificacion(self):
+        from controllers.reporte_controller import ReporteController
+        from controllers.mecanico_controller import MecanicoController
+        db.session.get(UsuarioModel, 3).estado = 'activo'
+        token = create_access_token(identity='3', additional_claims={'rol':'mecanico'})
+        client = self.fixture.app.test_client()
+        reporte = db.session.get(ReporteModel, 2)
+        original = (reporte.estado, reporte.nota_reparacion, reporte.fecha_resolucion)
+        try:
+            for nota in ['Se cambió la pieza "A" & el caño', "Ajuste <motor> y 'válvula'", 'Texto literal &quot; &amp;', '<script>alert(1)</script>']:
+                reporte.estado = 'en revision'
+                db.session.commit()
+                r = client.put('/api/mecanico/reportes/2/resolver',
+                    headers={'Authorization':'Bearer '+token}, json={'nota_reparacion':nota})
+                self.assertEqual(r.status_code, 200, r.get_json())
+                self.assertEqual(r.get_json()['reporte']['nota_reparacion'], nota)
+                self.assertEqual(reporte.to_dict()['nota_reparacion'], nota)
+                self.assertEqual(ReporteController.preparar_respuesta_reporte(reporte)['nota_reparacion'], nota)
+                self.assertEqual(MecanicoController.preparar_respuesta_reporte(reporte)['nota_reparacion'], nota)
+                aviso = NotificacionModel.query.filter_by(tipo='reporte_resuelto').order_by(NotificacionModel.id_notificacion.desc()).first()
+                self.assertIn(nota, aviso.mensaje)
+        finally:
+            reporte.estado, reporte.nota_reparacion, reporte.fecha_resolucion = original
+            db.session.commit()
+
+    def test_nota_historica_no_se_decodifica_al_persistir_otros_cambios(self):
+        from controllers.reporte_controller import ReporteController
+        from controllers.mecanico_controller import MecanicoController
+        reporte = db.session.get(ReporteModel, 2)
+        original = reporte.nota_reparacion
+        try:
+            reporte.nota_reparacion = 'Pieza &quot;A&quot; &amp; texto &amp;quot;'
+            esperado = 'Pieza "A" & texto &quot;'
+            for controller in [ReporteController, MecanicoController]:
+                self.assertEqual(controller.preparar_respuesta_reporte(reporte)['nota_reparacion'], esperado)
+                dominio = controller.crear_objeto_reporte(reporte)
+                controller.actualizar_modelo_reporte(reporte, dominio)
+                self.assertEqual(reporte.nota_reparacion, 'Pieza &quot;A&quot; &amp; texto &amp;quot;')
+            self.assertEqual(reporte.to_dict()['nota_reparacion'], esperado)
+        finally:
+            reporte.nota_reparacion = original
+
+    def test_cambios_importantes_piden_aceptar_y_avisan_una_vez(self):
+        from utils.fecha_operativa import hoy_operativo
+        db.session.get(ViajeModel, 2).estado = 'finalizado'
+        db.session.commit()
+        for datos in [{'origen':'Nuevo origen'}, {'destino':'Nuevo destino'},
+                      {'fecha_salida':(hoy_operativo()+timedelta(days=1)).isoformat()},
+                      {'Camion_id_camion':1}]:
+            with self.subTest(datos=datos):
+                viaje = db.session.get(ViajeModel, 50)
+                viaje.estado = 'aceptado'
+                NotificacionModel.query.delete()
+                db.session.commit()
+                r, codigo = self.editar(datos)
+                self.assertEqual(codigo, 200, r.get_json())
+                self.assertEqual(viaje.estado, 'pendiente')
+                aviso = NotificacionModel.query.one()
+                self.assertEqual(aviso.Usuario_idUsuario, 91)
+                self.assertEqual(aviso.tipo, 'viaje_actualizado')
+                self.assertIn('aceptá', aviso.mensaje)
+                # Reenviar el mismo formulario no invalida una nueva aceptación.
+                viaje.estado = 'aceptado'
+                db.session.commit()
+                r, codigo = self.editar(datos)
+                self.assertEqual(codigo, 200, r.get_json())
+                self.assertEqual(viaje.estado, 'aceptado')
+                self.assertEqual(NotificacionModel.query.count(), 1)
+
+    def test_observaciones_no_invalidan_aceptacion_ni_generan_aviso(self):
+        viaje = db.session.get(ViajeModel, 50)
+        r, codigo = self.editar({'observaciones':'Nueva observación'})
+        self.assertEqual(codigo, 200, r.get_json())
+        self.assertEqual(viaje.estado, 'aceptado')
+        self.assertEqual(NotificacionModel.query.count(), 0)
+
+    def test_qr_requiere_nueva_aceptacion_despues_de_cambiar_destino(self):
+        token = create_access_token(identity='91', additional_claims={'rol':'chofer'})
+        client = self.fixture.app.test_client()
+        headers = {'Authorization':'Bearer '+token}
+        r, codigo = self.editar({'destino':'Nuevo destino'})
+        self.assertEqual(codigo, 200, r.get_json())
+        r = client.post('/api/choferes/viajes/50/registro', headers=headers, json={'tipo_registro':'ingreso'})
+        self.assertEqual(r.status_code, 400, r.get_json())
+        r = client.put('/api/choferes/viajes/50/aceptar', headers=headers)
+        self.assertEqual(r.status_code, 200, r.get_json())
+        r = client.post('/api/choferes/viajes/50/registro', headers=headers, json={'tipo_registro':'ingreso'})
+        self.assertEqual(r.status_code, 201, r.get_json())
+        from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
+        RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=50).delete()
+        db.session.commit()
+
+    def test_cambio_importante_fallido_revierte_aceptacion_y_aviso(self):
+        with patch.object(db.session, 'commit', side_effect=RuntimeError('Fallo de prueba')), patch('controllers.operador_controller.logger'):
+            r, codigo = self.editar({'destino':'No guardar'})
+        self.assertEqual(codigo, 500, r.get_json())
+        viaje = db.session.get(ViajeModel, 50)
+        self.assertEqual(viaje.estado, 'aceptado')
+        self.assertEqual(viaje.destino, 'B')
+        self.assertEqual(NotificacionModel.query.count(), 0)
+        self.assertEqual(ViajeCambioModel.query.count(), 0)
+        self.enviar_push.assert_not_called()
+
+    def test_cambio_destino_en_curso_no_vuelve_a_pendiente(self):
+        viaje = db.session.get(ViajeModel, 50)
+        viaje.estado = 'en curso'
+        db.session.commit()
+        r, codigo = self.editar({'destino':'Desvío autorizado'})
+        self.assertEqual(codigo, 200, r.get_json())
+        self.assertEqual(viaje.estado, 'en curso')
+        aviso = NotificacionModel.query.one()
+        self.assertIn('actualizados', aviso.mensaje)
+        self.assertNotIn('aceptá', aviso.mensaje)
+
+    def test_creacion_exige_licencia_hasta_salida_en_ambas_rutas(self):
+        from utils.fecha_operativa import hoy_operativo
+        salida = hoy_operativo()+timedelta(days=7)
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        db.session.get(CamionModel, 90).estado = 'disponible'
+        db.session.get(ChoferModel, 91).vencimientoLicencia = salida-timedelta(days=1)
+        db.session.commit()
+        token = create_access_token(identity='90', additional_claims={'rol':'operador'})
+        datos = {'origen':'A', 'destino':'B', 'fecha_salida':salida.isoformat(),
+                 'Chofer_Usuario_idUsuario':91, 'Camion_id_camion':90, 'recorrido':10}
+        for ruta in ['/api/operador/viajes', '/api/viaje']:
+            r = self.fixture.app.test_client().post(ruta, headers={'Authorization':'Bearer '+token}, json=datos)
+            self.assertEqual(r.status_code, 409, r.get_json())
+            self.assertIn('fecha de salida', r.get_json()['mensaje'])
+            self.assertEqual(ViajeModel.query.filter(ViajeModel.id_viaje>50).count(), 0)
+            self.assertEqual(db.session.get(CamionModel, 90).estado, 'disponible')
+            self.assertEqual(NotificacionModel.query.count(), 0)
+            self.assertEqual(ViajeCambioModel.query.count(), 0)
+        self.enviar_push.assert_not_called()
+
+    def test_reprogramar_rechaza_licencia_insuficiente_sin_mutar(self):
+        from utils.fecha_operativa import hoy_operativo
+        db.session.get(ChoferModel, 91).vencimientoLicencia = hoy_operativo()+timedelta(days=1)
+        db.session.commit()
+        viaje = db.session.get(ViajeModel, 50)
+        salida_original = viaje.fecha_salida
+        r, codigo = self.editar({'fecha_salida':(hoy_operativo()+timedelta(days=7)).isoformat()})
+        self.assertEqual(codigo, 409, r.get_json())
+        self.assertEqual(viaje.fecha_salida, salida_original)
+        self.assertEqual(viaje.estado, 'aceptado')
+        self.assertEqual(NotificacionModel.query.count(), 0)
+        self.assertEqual(ViajeCambioModel.query.count(), 0)
+        # Las observaciones siguen pudiendo editarse.
+        self.assertEqual(self.editar({'observaciones':'Confirmar renovación'})[1], 200)
+
+    def test_reasignar_comprueba_la_fecha_final_del_formulario(self):
+        from utils.fecha_operativa import hoy_operativo
+        salida = hoy_operativo()+timedelta(days=7)
+        viaje = db.session.get(ViajeModel, 50)
+        viaje.fecha_salida = salida
+        db.session.get(ViajeModel, 2).estado = 'finalizado'
+        db.session.get(UsuarioModel, 1).estado = 'activo'
+        db.session.get(ChoferModel, 1).vencimientoLicencia = salida-timedelta(days=1)
+        db.session.commit()
+        r, codigo = self.editar({'Chofer_Usuario_idUsuario':1})
+        self.assertEqual(codigo, 409, r.get_json())
+        self.assertEqual(viaje.Chofer_Usuario_idUsuario, 91)
+        self.assertEqual(viaje.estado, 'aceptado')
+        self.assertEqual(NotificacionModel.query.count(), 0)
+        # Si se adelanta a una fecha cubierta, puede reasignarse conjuntamente.
+        r, codigo = self.editar({'Chofer_Usuario_idUsuario':1, 'fecha_salida':(salida-timedelta(days=1)).isoformat()})
+        self.assertEqual(codigo, 200, r.get_json())
+        self.assertEqual(viaje.Chofer_Usuario_idUsuario, 1)
+        self.assertEqual(viaje.estado, 'pendiente')
+
+    def test_licencia_valida_el_mismo_dia_de_salida(self):
+        from utils.fecha_operativa import hoy_operativo
+        salida = hoy_operativo()+timedelta(days=7)
+        db.session.get(ChoferModel, 91).vencimientoLicencia = salida
+        db.session.commit()
+        r, codigo = self.editar({'fecha_salida':salida.isoformat()})
+        self.assertEqual(codigo, 200, r.get_json())
+        self.assertEqual(db.session.get(ViajeModel, 50).estado, 'pendiente')
+
+    def test_descripcion_larga_o_expandida_no_guarda_reporte(self):
+        viaje = db.session.get(ViajeModel, 50)
+        viaje.estado = 'en curso'
+        db.session.commit()
+        token = create_access_token(identity='91', additional_claims={'rol':'chofer'})
+        client = self.fixture.app.test_client()
+        cantidad = ReporteModel.query.count()
+        for texto in ['A'*201, '"'*34, '&'*41]:
+            r = client.post('/api/reportes', headers={'Authorization':'Bearer '+token},
+                json={'Camion_id_camion':90, 'descripcion':texto})
+            self.assertEqual(r.status_code, 400, r.get_json())
+            self.assertIn('larga', r.get_json()['mensaje'])
+            self.assertEqual(ReporteModel.query.count(), cantidad)
+            self.assertEqual(NotificacionModel.query.count(), 0)
+            self.assertEqual(viaje.estado, 'en curso')
+            self.assertEqual(db.session.get(CamionModel, 90).estado, 'en viaje')
+        self.enviar_push.assert_not_called()
+
+    def test_nota_larga_o_expandida_no_resuelve_ni_modifica_reporte(self):
+        db.session.get(UsuarioModel, 3).estado = 'activo'
+        reporte = db.session.get(ReporteModel, 2)
+        original = (reporte.estado, reporte.nota_reparacion, reporte.fecha_resolucion)
+        reporte.estado = 'en revision'
+        reporte.nota_reparacion = 'Original'
+        reporte.fecha_resolucion = None
+        db.session.commit()
+        token = create_access_token(identity='3', additional_claims={'rol':'mecanico'})
+        try:
+            for nota in ['B'*256, '"'*43, '&'*52]:
+                r = self.fixture.app.test_client().put('/api/mecanico/reportes/2/resolver',
+                    headers={'Authorization':'Bearer '+token}, json={'nota_reparacion':nota})
+                self.assertEqual(r.status_code, 400, r.get_json())
+                self.assertIn('larga', r.get_json()['mensaje'])
+                self.assertEqual(reporte.estado, 'en revision')
+                self.assertEqual(reporte.nota_reparacion, 'Original')
+                self.assertIsNone(reporte.fecha_resolucion)
+                self.assertEqual(NotificacionModel.query.count(), 0)
+            self.enviar_push.assert_not_called()
+        finally:
+            reporte.estado, reporte.nota_reparacion, reporte.fecha_resolucion = original
+            db.session.commit()
+
+    def test_textos_en_limite_se_conservan_completos_incluso_con_simbolos(self):
+        db.session.get(ViajeModel, 50).estado = 'en curso'
+        db.session.get(UsuarioModel, 3).estado = 'activo'
+        db.session.commit()
+        client = self.fixture.app.test_client()
+        driver = create_access_token(identity='91', additional_claims={'rol':'chofer'})
+        mecanico = create_access_token(identity='3', additional_claims={'rol':'mecanico'})
+        for descripcion, nota in [('D'*200, 'N'*255), ('D'*194+'"', 'N'*249+'"')]:
+            r = client.post('/api/reportes', headers={'Authorization':'Bearer '+driver},
+                json={'Camion_id_camion':90, 'descripcion':descripcion})
+            self.assertEqual(r.status_code, 201, r.get_json())
+            reporte = db.session.get(ReporteModel, r.get_json()['reporte']['id_reporte'])
+            self.assertEqual(len(reporte.descripcion), 200)
+            self.assertEqual(r.get_json()['reporte']['descripcion'], descripcion)
+            reporte.Mecanico_Usuario_idUsuario = 3
+            reporte.estado = 'en revision'
+            db.session.commit()
+            r = client.put('/api/mecanico/reportes/'+str(reporte.id_reporte)+'/resolver',
+                headers={'Authorization':'Bearer '+mecanico}, json={'nota_reparacion':nota})
+            self.assertEqual(r.status_code, 200, r.get_json())
+            self.assertEqual(len(reporte.nota_reparacion), 255)
+            self.assertEqual(r.get_json()['reporte']['nota_reparacion'], nota)
+            aviso = NotificacionModel.query.filter_by(tipo='reporte_resuelto').order_by(NotificacionModel.id_notificacion.desc()).first()
+            self.assertLessEqual(len(aviso.mensaje), 255)
+            self.assertIn('nota completa', aviso.mensaje)
+
+    def test_estadisticas_cuentan_aceptados_y_estados_suman_total_segun_alcance(self):
+        token = create_access_token(identity='90', additional_claims={'rol':'operador'})
+        campos = {'pendiente':'viajes_pendientes', 'aceptado':'viajes_aceptados',
+                  'en curso':'viajes_en_curso', 'finalizado':'viajes_finalizados', 'cancelado':'viajes_cancelados'}
+        viaje = db.session.get(ViajeModel, 50)
+        mes = viaje.fecha_salida.strftime('%Y-%m')
+        for creador in [2, 90]:
+            for estado, campo in campos.items():
+                viaje.OperadorLogistico_Usuario_idUsuario = creador
+                viaje.estado = estado
+                db.session.commit()
+                for alcance in ['todos', 'mios']:
+                    with self.subTest(creador=creador, estado=estado, alcance=alcance):
+                        r = self.fixture.app.test_client().get('/api/operador/estadisticas?mes='+mes+'&alcance='+alcance,
+                            headers={'Authorization':'Bearer '+token})
+                        self.assertEqual(r.status_code, 200, r.get_json())
+                        resumen = r.get_json()['resumen']
+                        esperado = int(alcance=='todos' or creador==90)
+                        self.assertEqual(resumen['total_viajes'], esperado)
+                        self.assertEqual(resumen[campo], esperado)
+                        self.assertEqual(sum(resumen[c] for c in campos.values()), resumen['total_viajes'])
+                        self.assertEqual(len(r.get_json()['ultimos_viajes']), esperado)
+
+    def test_estadisticas_mes_vacio_incluye_aceptados_en_cero(self):
+        token = create_access_token(identity='90', additional_claims={'rol':'operador'})
+        r = self.fixture.app.test_client().get('/api/operador/estadisticas?mes=2024-01&alcance=todos',
+            headers={'Authorization':'Bearer '+token})
+        self.assertEqual(r.status_code, 200, r.get_json())
+        self.assertEqual(r.get_json()['resumen']['viajes_aceptados'], 0)
+        self.assertEqual(r.get_json()['resumen']['total_viajes'], 0)
+
+    def aceptar_como_chofer(self, identidad='91', accion='aceptar'):
+        token = create_access_token(identity=identidad, additional_claims={'rol':'chofer'})
+        return self.fixture.app.test_client().put('/api/choferes/viajes/50/'+accion,
+            headers={'Authorization':'Bearer '+token})
+
+    def test_aceptacion_avisa_solo_al_operador_creador_sin_iniciar_horas(self):
+        from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
+        for accion in ['aceptar', 'iniciar']:
+            NotificacionModel.query.delete()
+            viaje = db.session.get(ViajeModel, 50)
+            viaje.estado = 'pendiente'
+            db.session.commit()
+            eventos = []
+            commit = db.session.commit
+            def guardar():
+                commit()
+                eventos.append('commit')
+            self.enviar_push.reset_mock()
+            self.enviar_push.side_effect = lambda: eventos.append('push')
+            with patch.object(db.session, 'commit', side_effect=guardar):
+                r = self.aceptar_como_chofer(accion=accion)
+            self.assertEqual(r.status_code, 200, r.get_json())
+            self.assertEqual(eventos, ['commit', 'push'])
+            self.assertEqual(viaje.estado, 'aceptado')
+            aviso = NotificacionModel.query.one()
+            self.assertEqual(aviso.Usuario_idUsuario, 2)
+            self.assertEqual(aviso.tipo, 'viaje_aceptado')
+            self.assertIn('Segundo Chofer', aviso.mensaje)
+            self.assertIn('#50', aviso.mensaje)
+            self.assertIn('pendiente de salida', aviso.mensaje)
+            self.assertFalse(aviso.leida)
+            self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=50).count(), 0)
+            self.assertIsNone(r.get_json()['viaje']['tiempo_viaje']['segundos_confirmados'])
+            self.assertEqual(self.aceptar_como_chofer(accion=accion).status_code, 400)
+            self.assertEqual(NotificacionModel.query.count(), 1)
+            self.enviar_push.assert_called_once()
+
+    def test_aceptacion_fallida_no_guarda_estado_ni_aviso(self):
+        viaje = db.session.get(ViajeModel, 50)
+        viaje.estado = 'pendiente'
+        db.session.commit()
+        with patch.object(db.session, 'commit', side_effect=RuntimeError('Prueba')), patch('controllers.chofer_controller.logger'):
+            r = self.aceptar_como_chofer()
+        self.assertEqual(r.status_code, 500, r.get_json())
+        self.assertEqual(viaje.estado, 'pendiente')
+        self.assertEqual(NotificacionModel.query.count(), 0)
+        self.enviar_push.assert_not_called()
+
+    def test_otro_chofer_no_acepta_ni_genera_aviso(self):
+        db.session.get(UsuarioModel, 1).estado = 'activo'
+        db.session.get(ViajeModel, 50).estado = 'pendiente'
+        db.session.commit()
+        r = self.aceptar_como_chofer('1')
+        self.assertEqual(r.status_code, 404, r.get_json())
+        self.assertEqual(db.session.get(ViajeModel, 50).estado, 'pendiente')
+        self.assertEqual(NotificacionModel.query.count(), 0)
+        self.enviar_push.assert_not_called()
+
+    def test_nueva_aceptacion_por_cambio_importante_genera_otro_aviso(self):
+        db.session.get(ViajeModel, 50).estado = 'pendiente'
+        db.session.commit()
+        self.assertEqual(self.aceptar_como_chofer().status_code, 200)
+        self.assertEqual(self.editar({'destino':'Nuevo destino'})[1], 200)
+        self.assertEqual(self.aceptar_como_chofer().status_code, 200)
+        self.assertEqual(NotificacionModel.query.filter_by(Usuario_idUsuario=2, tipo='viaje_aceptado').count(), 2)
+        self.assertEqual(NotificacionModel.query.filter_by(Usuario_idUsuario=90).count(), 0)
+
+    def preparar_reasignacion_mecanico(self):
+        from models.mecanico_model import MecanicoModel
+        from models.administrador_model import AdministradorModel
+        reporte = db.session.get(ReporteModel, 2)
+        original = (reporte.estado, reporte.Mecanico_Usuario_idUsuario)
+        db.session.get(UsuarioModel, 3).estado = 'activo'
+        db.session.add(UsuarioModel(id_usuario=77, username='mecanico_reasignacion', password='x',
+            nombre='Nuevo', apellido='Mecánico', rol='mecanico', estado='activo'))
+        db.session.add(MecanicoModel(Usuario_idUsuario=77, legajo='M77', especialidad='Motor'))
+        db.session.add(UsuarioModel(id_usuario=99, username='admin_reasignacion', password='x',
+            nombre='QA', apellido='Admin', rol='admin', estado='activo'))
+        db.session.add(AdministradorModel(Usuario_idUsuario=99, legajo='A99'))
+        db.session.commit()
+        return original
+
+    def limpiar_reasignacion_mecanico(self, original):
+        from models.mecanico_model import MecanicoModel
+        from models.administrador_model import AdministradorModel
+        db.session.rollback()
+        reporte = db.session.get(ReporteModel, 2)
+        reporte.estado, reporte.Mecanico_Usuario_idUsuario = original
+        NotificacionModel.query.delete()
+        db.session.flush()
+        MecanicoModel.query.filter_by(Usuario_idUsuario=77).delete()
+        AdministradorModel.query.filter_by(Usuario_idUsuario=99).delete()
+        UsuarioModel.query.filter(UsuarioModel.id_usuario.in_([77,99])).delete()
+        db.session.commit()
+        db.session.info.pop('push_pendientes', None)
+
+    def reasignar_mecanico(self, rol):
+        token = create_access_token(identity='99' if rol=='admin' else '90', additional_claims={'rol':rol})
+        ruta = '/api/reportes/2/estado' if rol=='admin' else '/api/reportes/2/asignar-mecanico'
+        return self.fixture.app.test_client().put(ruta, headers={'Authorization':'Bearer '+token},
+            json={'estado':'en revision', 'Mecanico_Usuario_idUsuario':77})
+
+    def test_reasignacion_mecanico_avisa_a_ambos_y_no_duplica_al_repetir(self):
+        original = self.preparar_reasignacion_mecanico()
+        try:
+            for rol in ['admin', 'operador']:
+                reporte = db.session.get(ReporteModel, 2)
+                reporte.estado = 'en revision'
+                reporte.Mecanico_Usuario_idUsuario = 3
+                NotificacionModel.query.delete()
+                db.session.commit()
+                r = self.reasignar_mecanico(rol)
+                self.assertEqual(r.status_code, 200, r.get_json())
+                self.assertEqual(reporte.Mecanico_Usuario_idUsuario, 77)
+                anterior = NotificacionModel.query.filter_by(Usuario_idUsuario=3).one()
+                nuevo = NotificacionModel.query.filter_by(Usuario_idUsuario=77).one()
+                self.assertEqual(anterior.tipo, 'reporte_reasignado')
+                self.assertIn('#2', anterior.mensaje)
+                self.assertEqual(nuevo.tipo, 'reporte_asignado')
+                self.assertEqual(self.reasignar_mecanico(rol).status_code, 200)
+                self.assertEqual(NotificacionModel.query.count(), 2)
+        finally:
+            self.limpiar_reasignacion_mecanico(original)
+
+    def test_no_se_reasigna_reporte_cerrado_aunque_el_mecanico_sea_el_mismo(self):
+        original = self.preparar_reasignacion_mecanico()
+        try:
+            for rol in ['admin', 'operador']:
+                for estado in ['resuelto', 'cancelado']:
+                    reporte = db.session.get(ReporteModel, 2)
+                    reporte.estado = estado
+                    reporte.Mecanico_Usuario_idUsuario = 77
+                    db.session.commit()
+                    r = self.reasignar_mecanico(rol)
+                    self.assertIn(r.status_code, [400,409], r.get_json())
+                    self.assertEqual(reporte.estado, estado)
+                    self.assertEqual(NotificacionModel.query.count(), 0)
+        finally:
+            self.limpiar_reasignacion_mecanico(original)
+
+    def test_fallo_en_aviso_anterior_o_commit_revierte_reasignacion_y_avisos(self):
+        original = self.preparar_reasignacion_mecanico()
+        try:
+            for rol in ['admin', 'operador']:
+                for fallo in ['aviso_anterior', 'commit']:
+                    reporte = db.session.get(ReporteModel, 2)
+                    reporte.estado = 'en revision'
+                    reporte.Mecanico_Usuario_idUsuario = 3
+                    NotificacionModel.query.delete()
+                    db.session.commit()
+                    self.enviar_push.reset_mock()
+                    if fallo=='commit':
+                        simular = patch.object(db.session, 'commit', side_effect=RuntimeError('Prueba'))
+                    else:
+                        simular = patch('controllers.reporte_controller.NotificacionService.crear', side_effect=RuntimeError('Prueba'))
+                    with simular, patch('controllers.reporte_controller.logger'):
+                        r = self.reasignar_mecanico(rol)
+                    self.assertEqual(r.status_code, 500, r.get_json())
+                    self.assertEqual(reporte.Mecanico_Usuario_idUsuario, 3)
+                    self.assertEqual(reporte.estado, 'en revision')
+                    self.assertEqual(NotificacionModel.query.count(), 0)
+                    self.enviar_push.assert_not_called()
+        finally:
+            self.limpiar_reasignacion_mecanico(original)

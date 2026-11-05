@@ -62,7 +62,7 @@ export default function MecanicoPage() {
     {seleccionado && <div className="modal-backdrop"><form className="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="repair-title" onSubmit={resolver}>
       <span>REPORTE #{seleccionado.id_reporte}</span><h2 id="repair-title">Finalizar reparación</h2><p>{seleccionado.descripcion}</p>
       {error && <p className="feedback error" role="alert">{error}</p>}
-      <label>Reparación realizada<textarea required maxLength="200" value={nota} onChange={(event) => setNota(event.target.value)} /></label>
+      <label>Reparación realizada<textarea required maxLength="255" value={nota} onChange={(event) => setNota(event.target.value)} /></label>
       <div><button className="button secondary" type="button" disabled={guardando} onClick={() => setSeleccionado(null)}>Cancelar</button><button className="button primary" disabled={guardando}>{guardando ? "Guardando..." : "Confirmar"}</button></div>
     </form></div>}
   </section>;

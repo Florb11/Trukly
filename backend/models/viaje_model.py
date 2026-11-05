@@ -60,6 +60,7 @@ class ViajeModel(db.Model):
     )
 
     def to_dict(self):
+        tiempo = tiempo_viaje(self)
         return {
             "id_viaje": self.id_viaje,
             "chofer_nombre": (
@@ -74,7 +75,9 @@ class ViajeModel(db.Model):
                 f"{self.camion.marca} {self.camion.modelo} ({self.camion.matricula})"
                 if self.camion else None
             ),
-            "tiempo_viaje": tiempo_viaje(self),
+            "tiempo_viaje": tiempo,
+            "fecha_llegada_estimada": self.fecha_llegada.isoformat() if self.fecha_llegada else None,
+            "fecha_regreso_real": tiempo["regreso"] if tiempo["estado"] == "confirmado" else None,
             "OperadorLogistico_Usuario_idUsuario": self.OperadorLogistico_Usuario_idUsuario,
             "Chofer_Usuario_idUsuario": self.Chofer_Usuario_idUsuario,
             "Camion_id_camion": self.Camion_id_camion,

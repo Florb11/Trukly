@@ -76,7 +76,7 @@ export default function OperadorPage() {
       <div><FaTools /><span>Reporte #{item.id_reporte}</span><b className="status">{item.estado}</b></div><h2>{item.descripcion}</h2>
       <p>Camión #{item.Camion_id_camion}</p><p>{item.Mecanico_Usuario_idUsuario ? `Mecánico #${item.Mecanico_Usuario_idUsuario}` : "Sin mecánico asignado"}</p><small>{item.fecha_hora}</small>
       {item.nota_reparacion && <p>Reparación: {item.nota_reparacion}</p>}
-      <button className="button secondary wide" onClick={() => abrir(item)}><FaTools /> Gestionar reporte</button>
+      <button className="button secondary wide" disabled={!activos(item)} onClick={() => abrir(item)}><FaTools /> Gestionar reporte</button>
     </article>)}</div>}
     {reporte && <div className="modal-backdrop"><form className="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="manage-title" onSubmit={guardar}>
       <span>REPORTE #{reporte.id_reporte}</span><h2 id="manage-title">Gestionar reporte</h2><p>{reporte.descripcion}</p>

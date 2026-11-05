@@ -143,3 +143,34 @@ class QrEstadoCamionTest(unittest.TestCase):
         RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).one().fecha_hora = datetime.now() - timedelta(minutes=2)
         db.session.commit()
         self.assertEqual(self.escanear('salida')[1], 201)
+
+    def test_regreso_conserva_estimacion_y_expone_control_real(self):
+        viaje = db.session.get(ViajeModel, 90)
+        estimada = hoy_operativo() + timedelta(days=7)
+        viaje.fecha_llegada = estimada
+        db.session.commit()
+        self.assertEqual(self.escanear()[1], 201)
+        RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).one().fecha_hora = datetime.now() - timedelta(minutes=2)
+        db.session.commit()
+        datos, codigo = self.escanear('salida')
+        self.assertEqual(codigo, 201, datos)
+        resultado = datos['viaje']
+        self.assertEqual(resultado['estado'], 'finalizado')
+        self.assertEqual(resultado['fecha_llegada_estimada'], estimada.isoformat())
+        self.assertEqual(resultado['fecha_llegada'], estimada.isoformat())
+        self.assertEqual(resultado['fecha_regreso_real'], resultado['tiempo_viaje']['regreso'])
+        self.assertIsNotNone(resultado['fecha_regreso_real'])
+        self.assertEqual(viaje.fecha_llegada, estimada)
+
+    def test_sin_estimacion_regreso_no_inventa_una(self):
+        self.assertEqual(self.escanear()[1], 201)
+        antes = db.session.get(ViajeModel, 90).to_dict()
+        self.assertIsNone(antes['fecha_llegada_estimada'])
+        self.assertIsNone(antes['fecha_regreso_real'])
+        RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).one().fecha_hora = datetime.now() - timedelta(minutes=2)
+        db.session.commit()
+        datos, codigo = self.escanear('salida')
+        self.assertEqual(codigo, 201, datos)
+        self.assertIsNone(datos['viaje']['fecha_llegada'])
+        self.assertIsNone(datos['viaje']['fecha_llegada_estimada'])
+        self.assertIsNotNone(datos['viaje']['fecha_regreso_real'])

@@ -45,6 +45,7 @@ function EditarCamionModal({
                                 type="text"
                                 id="editar-matricula"
                                 name="matricula"
+                                maxLength={15}
                                 value={formEditar.matricula}
                                 onChange={onChange}
                             />
@@ -56,6 +57,7 @@ function EditarCamionModal({
                                 type="text"
                                 id="editar-marca"
                                 name="marca"
+                                maxLength={20}
                                 value={formEditar.marca}
                                 onChange={onChange}
                             />
@@ -67,6 +69,7 @@ function EditarCamionModal({
                                 type="text"
                                 id="editar-modelo"
                                 name="modelo"
+                                maxLength={20}
                                 value={formEditar.modelo}
                                 onChange={onChange}
                             />

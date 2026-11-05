@@ -1,3 +1,6 @@
+import math
+
+
 class Camion:
     ESTADO_DISPONIBLE = "disponible"
     ESTADO_EN_VIAJE = "en viaje"
@@ -24,7 +27,7 @@ class Camion:
         reportes_falla=None,
     ):
         self.id_camion = id_camion
-        self.matricula = matricula
+        self.matricula = self.normalizar_matricula(matricula)
         self.marca = marca
         self.modelo = modelo
         self.capacidad_carga = capacidad_carga
@@ -58,12 +61,45 @@ class Camion:
         return camion
 
     @staticmethod
+    def normalizar_matricula(valor):
+        if valor is None:
+            return None
+        return "".join(str(valor).upper().split()).replace("-", "")
+
+    @staticmethod
+    def convertir_capacidad(valor):
+        if valor is None or isinstance(valor, bool):
+            return None
+        try:
+            capacidad = float(valor)
+        except (TypeError, ValueError, OverflowError):
+            return None
+        return capacidad if math.isfinite(capacidad) and capacidad > 0 else None
+
+    @staticmethod
+    def convertir_numero_tanque(valor):
+        if isinstance(valor, bool):
+            return None
+        if isinstance(valor, str):
+            texto = valor.strip()
+            if not texto.isascii() or not texto.isdigit() or len(texto) > 10:
+                return None
+            valor = int(texto)
+        elif isinstance(valor, float):
+            if not math.isfinite(valor) or not valor.is_integer():
+                return None
+            valor = int(valor)
+        if not isinstance(valor, int) or not 1 <= valor <= 2147483647:
+            return None
+        return valor
+
+    @staticmethod
     def validar_datos_camion(datos):
         # valida datos antes de crear o modificar
         if datos is None:
             return False, "Faltan datos del camion"
 
-        matricula = datos.get("matricula")
+        matricula = Camion.normalizar_matricula(datos.get("matricula"))
         marca = datos.get("marca")
         modelo = datos.get("modelo")
         capacidad_carga = datos.get("capacidad_carga")
@@ -79,11 +115,16 @@ class Camion:
         if not Camion._texto_valido(modelo):
             return False, "El modelo es obligatorio"
 
+        for campo, etiqueta, limite in [("matricula", "matrícula", 15), ("marca", "marca", 20), ("modelo", "modelo", 20)]:
+            valor = matricula if campo == "matricula" else datos[campo]
+            if len(str(valor).strip()) > limite:
+                return False, f"El campo {etiqueta} admite hasta {limite} caracteres"
+
         if capacidad_carga is None:
             return False, "La capacidad de carga es obligatoria"
 
-        if capacidad_carga <= 0:
-            return False, "La capacidad de carga debe ser mayor a 0"
+        if Camion.convertir_capacidad(capacidad_carga) is None:
+            return False, "La capacidad de carga debe ser un número finito mayor a 0"
 
         if not Camion._texto_valido(estado):
             return False, "El estado es obligatorio"
@@ -94,8 +135,8 @@ class Camion:
         if nro_tanque is None:
             return False, "El numero de tanque es obligatorio"
 
-        if nro_tanque <= 0:
-            return False, "El numero de tanque debe ser mayor a 0"
+        if Camion.convertir_numero_tanque(nro_tanque) is None:
+            return False, "El número de tanque debe ser un entero entre 1 y 2147483647"
 
         return True, None
 

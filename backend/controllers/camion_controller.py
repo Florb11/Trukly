@@ -4,6 +4,7 @@ from flask import g, jsonify, request
 from db_instance import db
 from models.camion_model import CamionModel
 from models.reporte_model import ReporteModel
+from models.viaje_model import ViajeModel
 
 from src.Camion import Camion
 from src.ReporteFalla import ReporteFalla
@@ -22,6 +23,29 @@ logger = get_app_logger()
 class CamionController:
 
     @staticmethod
+    def _matricula_duplicada(matricula, excluir_id=None):
+        consulta = db.session.query(CamionModel.id_camion, CamionModel.matricula)
+        if excluir_id is not None:
+            consulta = consulta.filter(CamionModel.id_camion != excluir_id)
+        # Comparar también matrículas históricas con espacios, guiones o minúsculas.
+        normalizada = Camion.normalizar_matricula(matricula)
+        return any(Camion.normalizar_matricula(fila.matricula) == normalizada for fila in consulta.all())
+
+    @staticmethod
+    def _impedimento_desactivacion(camion, nuevo_estado):
+        if nuevo_estado != Camion.ESTADO_INACTIVO:
+            return None
+        viajes = ViajeModel.query.filter(
+            ViajeModel.Camion_id_camion == camion.id_camion,
+            ViajeModel.estado.in_(("pendiente", "aceptado", "en curso")),
+        ).all()
+        if any(v.estado == "en curso" for v in viajes):
+            return "No podés desactivar el camión mientras tenga un viaje en curso. Primero debe registrarse el regreso por QR."
+        if viajes:
+            return "No podés desactivar el camión con viajes pendientes o aceptados. Primero cancelalos o reasigná el camión."
+        return None
+
+    @staticmethod
     def _sanitizar_datos_camion(datos):
         # limpia los datos que vienen del request
         datos_limpios = InputSanitizer.sanitizar_campos(
@@ -32,9 +56,17 @@ class CamionController:
                 "modelo",
                 "estado",
             ],
-            campos_enteros=["nroTanque"],
-            campos_decimales=["capacidad_carga"],
         )
+
+        if "matricula" in datos_limpios:
+            datos_limpios["matricula"] = Camion.normalizar_matricula(datos_limpios["matricula"])
+
+        for campo, convertir in [("nroTanque", Camion.convertir_numero_tanque),
+                                  ("capacidad_carga", Camion.convertir_capacidad)]:
+            if campo in datos_limpios:
+                numero = convertir(datos_limpios[campo])
+                if numero is not None:
+                    datos_limpios[campo] = numero
 
         if datos_limpios.get("estado") is not None:
             datos_limpios["estado"] = str(
@@ -213,11 +245,7 @@ class CamionController:
             }), 400
 
         # valida unicidad en BD
-        camion_existente = CamionModel.query.filter_by(
-            matricula=camion_clase.matricula
-        ).first()
-
-        if camion_existente:
+        if CamionController._matricula_duplicada(camion_clase.matricula):
             return jsonify({
                 "mensaje": "Ya existe un camion con esa matricula"
             }), 400
@@ -254,7 +282,7 @@ class CamionController:
         # recibe el request
         admin = g.admin_actual
 
-        camion_db = CamionModel.query.get(id_camion)
+        camion_db = CamionModel.query.filter_by(id_camion=id_camion).populate_existing().with_for_update().first()
 
         if camion_db is None:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
@@ -268,6 +296,10 @@ class CamionController:
             datos,
             camion_db
         )
+
+        impedimento = CamionController._impedimento_desactivacion(camion_db, datos_camion["estado"])
+        if impedimento:
+            return jsonify({"mensaje": impedimento}), 409
 
         # valida campos obligatorios
         datos_validos, mensaje_error = CamionController._validar_datos_basicos(
@@ -309,11 +341,7 @@ class CamionController:
         )
 
         # valida que la matricula no este repetida
-        camion_existente = CamionModel.query.filter_by(
-            matricula=camion_clase.matricula
-        ).first()
-
-        if camion_existente and camion_existente.id_camion != id_camion:
+        if CamionController._matricula_duplicada(camion_clase.matricula, excluir_id=id_camion):
             return jsonify({
                 "mensaje": "Ya existe otro camion con esa matricula"
             }), 400
@@ -345,7 +373,7 @@ class CamionController:
         # recibe el request
         admin = g.admin_actual
 
-        camion_db = CamionModel.query.get(id_camion)
+        camion_db = CamionModel.query.filter_by(id_camion=id_camion).populate_existing().with_for_update().first()
 
         if camion_db is None:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
@@ -363,6 +391,10 @@ class CamionController:
         # el controller solo valida que el campo venga
         if nuevo_estado is None or str(nuevo_estado).strip() == "":
             return jsonify({"mensaje": "El estado es obligatorio"}), 400
+
+        impedimento = CamionController._impedimento_desactivacion(camion_db, nuevo_estado)
+        if impedimento:
+            return jsonify({"mensaje": impedimento}), 409
 
         # reconstruye el objeto desde la BD
         camion_clase = admin.preparar_modificacion_camion(

@@ -138,6 +138,16 @@ class OperadorLogistico(Usuario):
             return False, mensaje
 
         nuevo_chofer = datos.get("Chofer_Usuario_idUsuario")
+        cambio_importante = any(
+            campo in datos and datos[campo] != getattr(viaje, campo)
+            for campo in ("origen", "destino")
+        )
+        if "fecha_salida" in datos:
+            cambio_importante |= Viaje.convertir_fecha(datos["fecha_salida"]) != Viaje.convertir_fecha(viaje.fecha_salida)
+        if datos.get("Camion_id_camion"):
+            cambio_importante |= datos["Camion_id_camion"] != viaje.id_camion
+        if viaje.estado == Viaje.ESTADO_ACEPTADO and cambio_importante:
+            viaje.estado = Viaje.ESTADO_PENDIENTE
         if nuevo_chofer and nuevo_chofer != viaje.id_chofer:
             if viaje.estado == Viaje.ESTADO_EN_CURSO:
                 return False, "No se puede reasignar el chofer de un viaje en curso"
