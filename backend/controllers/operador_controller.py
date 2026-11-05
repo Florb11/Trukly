@@ -13,6 +13,8 @@ from src.Camion import Camion
 from src.Usuario import Usuario
 from src.Viaje import Viaje
 from models.chofer_model import ChoferModel
+from services.licencia_service import licencia_vigente, MENSAJE_LICENCIA
+from utils.fecha_operativa import hoy_operativo
 from models.camion_model import CamionModel
 from models.reporte_model import ReporteModel
 from models.operador_model import OperadorModel
@@ -162,6 +164,9 @@ class OperadorController:
         chofer_model = ChoferModel.query.get(id_chofer)
         if not chofer_model:
             return jsonify({"mensaje": "El chofer no existe"}), 400
+
+        if not licencia_vigente(chofer_model):
+            return jsonify({"mensaje": MENSAJE_LICENCIA}), 409
 
         usuario_chofer = UsuarioModel.query.get(id_chofer)
         if not usuario_chofer or usuario_chofer.estado != Usuario.ESTADO_ACTIVO:
@@ -318,6 +323,8 @@ class OperadorController:
             return jsonify({"mensaje": "El chofer no existe"}), 400
 
         if id_chofer and id_chofer != id_chofer_anterior:
+            if not licencia_vigente(db.session.get(ChoferModel, id_chofer)):
+                return jsonify({"mensaje": MENSAJE_LICENCIA}), 409
             usuario_chofer = db.session.get(UsuarioModel, id_chofer)
             if not usuario_chofer or usuario_chofer.estado != Usuario.ESTADO_ACTIVO:
                 return jsonify({"mensaje": "El chofer no está activo"}), 409
@@ -435,6 +442,9 @@ class OperadorController:
             if solo_disponibles:
                 choferes = choferes.filter(
                     UsuarioModel.estado == Usuario.ESTADO_ACTIVO,
+                    ChoferModel.vencimientoLicencia >= hoy_operativo(),
+                    ChoferModel.licencia.isnot(None),
+                    db.func.trim(ChoferModel.licencia) != "",
                     ~ChoferModel.Usuario_idUsuario.in_(
                         db.session.query(ViajeModel.Chofer_Usuario_idUsuario)
                         .filter(ViajeModel.estado.in_(ESTADOS_VIAJE_OCUPADO))

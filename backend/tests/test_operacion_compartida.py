@@ -323,3 +323,53 @@ class OperacionCompartidaTest(unittest.TestCase):
         self.assertEqual(db.session.get(ViajeModel, r.get_json()['viaje']['id_viaje']).estado, 'pendiente')
         self.assertEqual(NotificacionModel.query.filter_by(Usuario_idUsuario=91).count(), 1)
         self.assertNotIn('push_pendientes', db.session.info)
+
+    def test_licencia_vencida_impide_crear_y_reasignar(self):
+        from utils.fecha_operativa import hoy_operativo
+        db.session.get(ChoferModel, 91).vencimientoLicencia = hoy_operativo() - timedelta(days=1)
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        db.session.get(CamionModel, 90).estado = 'disponible'
+        db.session.commit()
+        with self.fixture.app.test_request_context('/', method='POST', json={
+            'origen':'A', 'destino':'B', 'fecha_salida':hoy_operativo().isoformat(),
+            'Chofer_Usuario_idUsuario':91, 'Camion_id_camion':90, 'recorrido':10,
+        }):
+            g.operador_actual = self.operador
+            respuesta, codigo = OperadorController.crear_viaje.__wrapped__()
+        self.assertEqual(codigo, 409, respuesta.get_json())
+        viaje = db.session.get(ViajeModel, 50)
+        viaje.estado = 'pendiente'
+        viaje.Chofer_Usuario_idUsuario = 1
+        db.session.commit()
+        respuesta, codigo = self.editar({'Chofer_Usuario_idUsuario':91})
+        self.assertEqual(codigo, 409, respuesta.get_json())
+        self.assertEqual(viaje.Chofer_Usuario_idUsuario, 1)
+        self.assertEqual(ViajeCambioModel.query.count(), 0)
+
+    def test_disponibles_excluye_licencia_vencida_pero_admite_vencimiento_hoy(self):
+        from utils.fecha_operativa import hoy_operativo
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        for vencimiento, incluido in [(hoy_operativo()-timedelta(days=1), False), (hoy_operativo(), True)]:
+            db.session.get(ChoferModel, 91).vencimientoLicencia = vencimiento
+            db.session.commit()
+            with self.fixture.app.test_request_context('/?disponibles=1'):
+                g.operador_actual = self.operador
+                respuesta, codigo = OperadorController.listar_choferes.__wrapped__()
+            self.assertEqual(codigo, 200)
+            self.assertEqual(any(c['id_usuario']==91 for c in respuesta.get_json()), incluido)
+
+    def test_ruta_general_tambien_bloquea_licencia_vencida(self):
+        from utils.fecha_operativa import hoy_operativo
+        db.session.get(ChoferModel, 91).vencimientoLicencia = hoy_operativo() - timedelta(days=1)
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        db.session.get(CamionModel, 90).estado = 'disponible'
+        db.session.commit()
+        token = create_access_token(identity='90', additional_claims={'rol':'operador'})
+        respuesta = self.fixture.app.test_client().post('/api/viaje',
+            headers={'Authorization':'Bearer '+token}, json={
+                'origen':'A', 'destino':'B', 'fecha_salida':hoy_operativo().isoformat(),
+                'Chofer_Usuario_idUsuario':91, 'Camion_id_camion':90, 'recorrido':10,
+            })
+        self.assertEqual(respuesta.status_code, 409, respuesta.get_json())
+        self.assertIn('licencia', respuesta.get_json()['mensaje'])
+        self.assertEqual(ViajeModel.query.filter(ViajeModel.id_viaje > 50).count(), 0)

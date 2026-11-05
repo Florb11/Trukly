@@ -14,6 +14,7 @@ from models.reporte_model import ReporteModel
 from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
 from models.camion_model import CamionModel
 from models.chofer_model import ChoferModel
+from services.licencia_service import licencia_vigente, MENSAJE_LICENCIA
 from utils.input_sanitizer import InputSanitizer
 from utils.auth_decorators import chofer_required
 from models.viaje_model import ViajeModel
@@ -199,7 +200,7 @@ class ChoferController:
         if tipo_registro not in {"ingreso", "salida"}:
             return jsonify({"mensaje": "El tipo debe ser ingreso o salida"}), 400
 
-        ChoferModel.query.filter_by(Usuario_idUsuario=chofer.id_usuario).with_for_update().first()
+        chofer_model = ChoferModel.query.filter_by(Usuario_idUsuario=chofer.id_usuario).populate_existing().with_for_update().first()
         viaje_model = ViajeModel.query.filter_by(
             id_viaje=id_viaje,
             Chofer_Usuario_idUsuario=chofer.id_usuario,
@@ -221,6 +222,8 @@ class ChoferController:
             }), 400
 
         if tipo_registro == "ingreso":
+            if not licencia_vigente(chofer_model):
+                return jsonify({"mensaje": MENSAJE_LICENCIA}), 409
             otro_en_curso = ViajeModel.query.filter(
                 ViajeModel.Chofer_Usuario_idUsuario == chofer.id_usuario,
                 ViajeModel.id_viaje != id_viaje,
