@@ -538,6 +538,18 @@ class ReporteController:
             camion_en_mantenimiento = ReporteController.marcar_camion_en_mantenimiento_si_corresponde(reporte_clase)
             if mecanico_asignado:
                 ReporteController.notificar_reporte_asignado(reporte_clase, mecanico_asignado)
+            if nuevo_estado == ReporteFalla.ESTADO_CANCELADO:
+                mensaje = f"El reporte #{reporte_db.id_reporte} fue cancelado."
+                if reporte_db.motivo_cancelacion:
+                    mensaje += f" Motivo: {reporte_db.motivo_cancelacion}"
+                NotificacionService.crear(reporte_db.Chofer_Usuario_idUsuario,
+                    "Reporte cancelado", mensaje, "reporte_cancelado")
+            elif nuevo_estado == ReporteFalla.ESTADO_RESUELTO:
+                mensaje = f"El reporte #{reporte_db.id_reporte} fue marcado como resuelto."
+                if reporte_db.nota_reparacion_texto:
+                    mensaje += f" Nota: {reporte_db.nota_reparacion_texto}"
+                NotificacionService.crear(reporte_db.Chofer_Usuario_idUsuario,
+                    "Reporte resuelto", mensaje, "reporte_resuelto")
             db.session.commit()
             NotificacionService.enviar_push_pendientes()
         except Exception:

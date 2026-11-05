@@ -152,6 +152,52 @@ class AdminEstadoReporteTest(unittest.TestCase):
                         self.assertEqual(camion.estado, estado_camion)
                         self.assertEqual(NotificacionModel.query.count(), 0)
 
+    def test_cierre_avisa_al_chofer_para_admin_y_operador_sin_duplicar(self):
+        modelo = db.session.get(ReporteModel, 80)
+        for rol in ['admin', 'operador']:
+            for estado in ['cancelado', 'resuelto']:
+                with self.subTest(rol=rol, estado=estado):
+                    NotificacionModel.query.delete()
+                    modelo.estado = 'pendiente'
+                    modelo.motivo_cancelacion = None
+                    db.session.commit()
+                    datos = {'estado':estado, 'motivo_cancelacion':'Duplicado "motor" & revisión'}
+                    r, codigo = self.cambiar(datos, rol)
+                    self.assertEqual(codigo, 200, r)
+                    avisos = NotificacionModel.query.all()
+                    self.assertEqual(len(avisos), 1)
+                    aviso = avisos[0]
+                    self.assertEqual(aviso.Usuario_idUsuario, 1)
+                    self.assertEqual(aviso.tipo, 'reporte_'+estado)
+                    self.assertIn('#80', aviso.mensaje)
+                    self.assertFalse(aviso.leida)
+                    if estado == 'cancelado':
+                        self.assertIn(datos['motivo_cancelacion'], aviso.mensaje)
+                    self.assertEqual(self.cambiar(datos, rol)[1], 409)
+                    self.assertEqual(NotificacionModel.query.count(), 1)
+
+    def test_cancelacion_operador_sin_motivo_no_inventa_uno(self):
+        r, codigo = self.cambiar({'estado':'cancelado'}, 'operador')
+        self.assertEqual(codigo, 200, r)
+        aviso = NotificacionModel.query.one()
+        self.assertIn('cancelado', aviso.mensaje)
+        self.assertNotIn('Motivo:', aviso.mensaje)
+
+    def test_fallo_de_aviso_revierte_cierre_y_estado_camion(self):
+        from models.camion_model import CamionModel
+        for estado in ['cancelado', 'resuelto']:
+            modelo = db.session.get(ReporteModel, 80)
+            camion = db.session.get(CamionModel, 1)
+            original = camion.estado
+            with patch('controllers.reporte_controller.NotificacionService.crear', side_effect=RuntimeError('Aviso fallido')), patch('controllers.reporte_controller.logger'):
+                r, codigo = self.cambiar({'estado':estado, 'motivo_cancelacion':'Duplicado'})
+            self.assertEqual(codigo, 500, r)
+            db.session.refresh(modelo)
+            self.assertEqual(modelo.estado, 'pendiente')
+            self.assertIsNone(modelo.motivo_cancelacion)
+            self.assertEqual(camion.estado, original)
+            self.assertEqual(NotificacionModel.query.count(), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
