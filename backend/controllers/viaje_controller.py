@@ -510,12 +510,18 @@ class ViajeController:
     @staticmethod
     @roles_required(Usuario.ROL_ADMIN)
     def cancelar_viaje_admin(id_viaje):
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict) or not isinstance(cuerpo.get("motivo"), str):
+            return jsonify({"mensaje": "Ingresá un motivo de cancelación válido."}), 400
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=["motivo"],
         )
 
         motivo = datos.get("motivo")
+        valido, mensaje = Viaje.validar_motivo_cancelacion(motivo)
+        if not valido:
+            return jsonify({"mensaje": mensaje}), 400
 
         validador = ViajeController.crear_validador_cancelacion_viaje()
         datos_validos, mensaje_error = validador.validar(datos)

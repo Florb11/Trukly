@@ -446,6 +446,7 @@ function AdminViajesPage() {
               <textarea
                 disabled={guardando}
                 value={motivoCancelacion}
+                maxLength={181}
                 onChange={(e) => setMotivoCancelacion(e.target.value)}
                 placeholder="Ej: El camión tuvo una falla mecánica"
                 rows="4"

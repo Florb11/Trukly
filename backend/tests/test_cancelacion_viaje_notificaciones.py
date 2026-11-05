@@ -115,3 +115,34 @@ class CancelacionViajeNotificacionesTest(unittest.TestCase):
             with patch.object(db.session, 'commit', side_effect=RuntimeError('Prueba')), patch('controllers.operador_controller.logger'), patch('controllers.viaje_controller.logger'):
                 self.assertEqual(self.cancelar(rol).status_code, 500)
             self.comprobar_reversion()
+
+
+    def test_motivo_invalido_no_cancela_ni_genera_avisos(self):
+        for rol in ['admin','operador']:
+            for motivo in ['A'*182, 'A'*200, "'"*31, None, [], '   ']:
+                with self.subTest(rol=rol,motivo=motivo):
+                    self.preparar()
+                    r = self.cancelar(rol,motivo)
+                    self.assertEqual(r.status_code,400,r.get_json())
+                    db.session.remove()
+                    self.comprobar_reversion()
+
+    def test_motivo_al_limite_cancela_sin_exceder_columna(self):
+        for rol in ['admin','operador']:
+            for motivo in ['A'*181, "'"*30]:
+                self.preparar()
+                r = self.cancelar(rol,motivo)
+                self.assertEqual(r.status_code,200,r.get_json())
+                db.session.remove()
+                viaje = db.session.get(ViajeModel,2)
+                self.assertEqual(viaje.estado,'cancelado')
+                self.assertLessEqual(len(viaje.observaciones),200)
+                self.assertEqual(NotificacionModel.query.count(),2)
+
+    def test_dominio_no_muta_si_motivo_excede_limite(self):
+        from src.Viaje import Viaje
+        self.preparar()
+        viaje = Viaje.crear_desde_datos(db.session.get(ViajeModel,2).to_dict())
+        self.assertFalse(viaje.cancelar('A'*182))
+        self.assertEqual(viaje.estado,'aceptado')
+        self.assertEqual(viaje.observaciones,'Observación original')

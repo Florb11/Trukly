@@ -282,11 +282,17 @@ class OperadorController:
     def cancelar_viaje(id_viaje):
         operador = g.operador_actual
 
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict) or not isinstance(cuerpo.get("motivo"), str):
+            return jsonify({"mensaje": "Ingresá un motivo de cancelación válido."}), 400
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=["motivo"],
         )
         motivo = datos.get("motivo")
+        valido, mensaje = Viaje.validar_motivo_cancelacion(motivo)
+        if not valido:
+            return jsonify({"mensaje": mensaje}), 400
         if not motivo:
             return jsonify({"mensaje": "El motivo es obligatorio"}), 400
 

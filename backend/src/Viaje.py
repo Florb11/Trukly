@@ -395,9 +395,17 @@ class Viaje:
 
         return estado_actual in [self.ESTADO_PENDIENTE, self.ESTADO_ACEPTADO]
 
+    @staticmethod
+    def validar_motivo_cancelacion(motivo):
+        if not isinstance(motivo, str) or not motivo.strip():
+            return False, "El motivo de cancelación es obligatorio."
+        if len(f"Cancelado. Motivo: {motivo.strip()}") > 200:
+            return False, "El motivo es demasiado largo. Acortá el texto o reducí los símbolos (máximo 181 caracteres almacenados)."
+        return True, None
+
     def cancelar(self, motivo):
         # cancela el viaje con un motivo
-        if not motivo or motivo.strip() == "":
+        if not self.validar_motivo_cancelacion(motivo)[0]:
             return False
 
         if not self.se_puede_cancelar():
