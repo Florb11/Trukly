@@ -98,6 +98,7 @@ function EditarUsuarioModal({
                         <input
                             type="text"
                             name="legajo"
+                        maxLength={formEditar.rol === "chofer" ? 50 : undefined}
                             value={formEditar.legajo}
                             onChange={onChange}
                         />
@@ -110,6 +111,7 @@ function EditarUsuarioModal({
                                 <input
                                     type="text"
                                     name="licencia"
+                        maxLength={50}
                                     value={formEditar.licencia}
                                     onChange={onChange}
                                 />

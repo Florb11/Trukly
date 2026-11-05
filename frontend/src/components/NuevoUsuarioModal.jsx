@@ -99,6 +99,7 @@ function NuevoUsuarioModal({
                         <input
                             type="text"
                             name="legajo"
+                        maxLength={formNuevo.rol === "chofer" ? 50 : undefined}
                             value={formNuevo.legajo}
                             onChange={onChange}
                         />
@@ -111,6 +112,7 @@ function NuevoUsuarioModal({
                                 <input
                                     type="text"
                                     name="licencia"
+                        maxLength={50}
                                     value={formNuevo.licencia}
                                     onChange={onChange}
                                 />

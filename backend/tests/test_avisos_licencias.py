@@ -28,6 +28,7 @@ class AvisosLicenciasTest(unittest.TestCase):
         cls.fixture.tearDownClass()
 
     def setUp(self):
+        db.session.remove()
         NotificacionModel.query.delete()
         usuario = db.session.get(UsuarioModel, 1)
         usuario.estado = "activo"
@@ -42,10 +43,16 @@ class AvisosLicenciasTest(unittest.TestCase):
     def tearDown(self):
         db.session.rollback()
         db.session.info.pop("push_pendientes", None)
+        db.session.remove()
 
     def test_limites_y_mensaje_con_fecha_real(self):
         for dias, etapa in [(91, None), (90, 90), (31, 90), (30, 30), (8, 30), (7, 7), (1, 7), (0, 0), (-1, 0)]:
             with self.subTest(dias=dias):
+                # Cada escenario usa una sesión nueva: SQLite reutiliza el ID
+                # eliminado y el aviso anterior no debe seguir en el identity map.
+                db.session.info.pop("push_pendientes", None)
+                db.session.remove()
+                self.chofer = db.session.get(ChoferModel, 1)
                 NotificacionModel.query.delete()
                 self.chofer.vencimientoLicencia = self.HOY + timedelta(days=dias)
                 db.session.commit()

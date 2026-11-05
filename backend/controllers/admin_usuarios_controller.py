@@ -120,6 +120,7 @@ class AdminUsuariosController:
         return ValidadorCompuesto(
             [
                 CampoObligatorio("licencia"),
+                ValidacionFuncion("legajo", Chofer.validar_legajo),
                 CampoObligatorio("vencimientoLicencia"),
                 ValidacionFuncion(
                     "licencia",

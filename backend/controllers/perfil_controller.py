@@ -95,6 +95,7 @@ class PerfilController:
             )
         )
 
+        validador.agregar(ValidacionFuncion("legajo", Chofer.validar_legajo))
         return validador
 
     @staticmethod

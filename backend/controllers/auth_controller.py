@@ -110,6 +110,7 @@ class AuthController:
             )
         )
 
+        validador.agregar(ValidacionFuncion("legajo", Chofer.validar_legajo))
         return validador
 
     @staticmethod
@@ -132,6 +133,7 @@ class AuthController:
 
         validador.agregar(ValidacionFuncion("licencia", Chofer.validar_licencia))
         validador.agregar(ValidacionFuncion("vencimientoLicencia", Chofer.validar_vencimiento_licencia))
+        validador.agregar(ValidacionFuncion("legajo", Chofer.validar_legajo))
         return validador
 
     @staticmethod

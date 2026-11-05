@@ -74,3 +74,34 @@ class PerfilValidacionTest(unittest.TestCase):
         for cuerpo in [[], ['x'], 'texto', 42]:
             self.assertEqual(self.put(cuerpo).status_code,400)
 
+
+
+    def test_licencia_y_legajo_respetan_limites_sin_cambios_parciales(self):
+        from models.chofer_model import ChoferModel
+        chofer = db.session.get(ChoferModel,1)
+        original = (chofer.licencia,chofer.legajo,chofer.vencimientoLicencia)
+        for campo, valor in [("licencia","A"*51),("legajo","B"*51),("legajo","'"*9)]:
+            datos = {"nombre":"No guardar","licencia":"LIC12345","legajo":"C1","vencimientoLicencia":"2099-01-01"}
+            datos[campo] = valor
+            r = self.put(datos)
+            self.assertEqual(r.status_code,400,r.get_json())
+            db.session.remove()
+            chofer = db.session.get(ChoferModel,1)
+            self.assertEqual((chofer.licencia,chofer.legajo,chofer.vencimientoLicencia),original)
+            self.assertEqual(db.session.get(UsuarioModel,1).nombre,"Ana")
+        r = self.put({"licencia":"A"*50,"legajo":"B"*50,"vencimientoLicencia":"2099-01-01"})
+        self.assertEqual(r.status_code,200,r.get_json())
+        db.session.remove()
+        chofer = db.session.get(ChoferModel,1)
+        self.assertEqual((chofer.licencia,chofer.legajo),("A"*50,"B"*50))
+
+    def test_validadores_compartidos_rechazan_legajo_y_licencia_largos(self):
+        from controllers.auth_controller import AuthController
+        from controllers.admin_usuarios_controller import AdminUsuariosController
+        from src.Chofer import Chofer
+        datos = {"licencia":"A"*50,"legajo":"B"*50,"vencimientoLicencia":"2099-01-01"}
+        for crear in [AuthController._crear_validador_datos_chofer, AdminUsuariosController._crear_validador_datos_chofer]:
+            self.assertTrue(crear().validar(datos)[0])
+            for campo in ["licencia","legajo"]:
+                self.assertFalse(crear().validar({**datos,campo:"A"*51})[0])
+        self.assertTrue(Chofer.validar_legajo("'"*8)[0])

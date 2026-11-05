@@ -462,6 +462,7 @@ function PerfilPage() {
                       <input
                         type="text"
                         name="licencia"
+                        maxLength={50}
                         value={formPerfil.licencia}
                         onChange={handlePerfilChange}
                         pattern="[A-Za-z0-9 -]+"
@@ -487,6 +488,7 @@ function PerfilPage() {
                     <input
                       type="text"
                       name="legajo"
+                        maxLength={50}
                       value={formPerfil.legajo}
                       onChange={handlePerfilChange}
                       required
