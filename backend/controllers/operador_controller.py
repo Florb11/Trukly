@@ -1,3 +1,6 @@
+from html import unescape
+from utils.identificadores import convertir_ids_asignacion
+from utils.texto_personal import texto_personal
 from types import SimpleNamespace
 from services.carga_service import comprobar_capacidad, ErrorCarga
 from services.admin_notificacion_service import AdminNotificacionService
@@ -154,12 +157,20 @@ class OperadorController:
     def crear_viaje():
         operador = g.operador_actual
 
+        cuerpo = request.get_json(silent=True)
+        try:
+            ids_asignacion = convertir_ids_asignacion(cuerpo, ("Chofer_Usuario_idUsuario", "Camion_id_camion"))
+        except ValueError as error:
+            return jsonify({"mensaje": str(error)}), 400
+        if "recorrido" in cuerpo and not Viaje.numero_no_negativo(cuerpo["recorrido"]):
+            return jsonify({"mensaje": "El recorrido debe ser un número finito mayor o igual a cero."}), 400
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=["origen", "destino", "observaciones"],
-            campos_enteros=["Chofer_Usuario_idUsuario", "Camion_id_camion"],
             campos_decimales=["recorrido", "origen_lat", "origen_lon", "destino_lat", "destino_lon"],
         )
+
+        datos.update(ids_asignacion)
 
         origen = datos.get("origen")
         destino = datos.get("destino")
@@ -263,7 +274,7 @@ class OperadorController:
                 "Nuevo viaje asignado",
                 (
                     f"Se te asignó el viaje #{nuevo_viaje.id_viaje}: "
-                    f"{origen} → {destino}, con salida el {fecha_salida}."
+                    f"{unescape(origen)} → {unescape(destino)}, con salida el {fecha_salida}."
                 ),
                 "viaje_asignado",
             )
@@ -281,11 +292,17 @@ class OperadorController:
     def cancelar_viaje(id_viaje):
         operador = g.operador_actual
 
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict) or not isinstance(cuerpo.get("motivo"), str):
+            return jsonify({"mensaje": "Ingresá un motivo de cancelación válido."}), 400
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=["motivo"],
         )
         motivo = datos.get("motivo")
+        valido, mensaje = Viaje.validar_motivo_cancelacion(motivo)
+        if not valido:
+            return jsonify({"mensaje": mensaje}), 400
         if not motivo:
             return jsonify({"mensaje": "El motivo es obligatorio"}), 400
 
@@ -328,12 +345,17 @@ class OperadorController:
         if not isinstance(cuerpo, dict) or isinstance(cuerpo.get("recorrido"), bool):
             return jsonify({"mensaje": "Los datos de edición o el recorrido no son válidos"}), 400
 
+        try:
+            ids_asignacion = convertir_ids_asignacion(cuerpo, ("Chofer_Usuario_idUsuario", "Camion_id_camion"))
+        except ValueError as error:
+            return jsonify({"mensaje": str(error)}), 400
+
         datos = InputSanitizer.sanitizar_campos(
             cuerpo,
             campos_texto=["origen", "destino", "observaciones"],
-            campos_enteros=["Chofer_Usuario_idUsuario", "Camion_id_camion"],
             campos_decimales=["recorrido", "origen_lat", "origen_lon", "destino_lat", "destino_lon"],
         )
+        datos.update(ids_asignacion)
 
         if not OperadorController._ubicaciones_validas(datos):
             return jsonify({"mensaje": "Coordenadas de origen o destino inválidas"}), 400
@@ -383,6 +405,10 @@ class OperadorController:
                 return jsonify({"mensaje": str(error)}), error.codigo
 
         viaje_dict = viaje_model.to_dict()
+        # La edición conserva el texto almacenado cuando el campo se omite.
+        viaje_dict["observaciones"] = viaje_model.observaciones
+        viaje_dict["origen"] = viaje_model.origen
+        viaje_dict["destino"] = viaje_model.destino
         viaje_dict["id_operador"] = viaje_dict.get("OperadorLogistico_Usuario_idUsuario")
         viaje_dict["id_chofer"] = viaje_dict.get("Chofer_Usuario_idUsuario")
         viaje_dict["id_camion"] = viaje_dict.get("Camion_id_camion")
@@ -427,7 +453,7 @@ class OperadorController:
                     "Viaje asignado",
                     (
                         f"Se te reasignó el viaje #{viaje_model.id_viaje}: "
-                        f"{viaje.origen} → {viaje.destino}."
+                        f"{unescape(viaje.origen)} → {unescape(viaje.destino)}."
                     ),
                     "viaje_asignado",
                 )
@@ -507,8 +533,8 @@ class OperadorController:
                 resultado.append(
                     {
                         "id_usuario": usuario.id_usuario,
-                        "nombre": usuario.nombre,
-                        "apellido": usuario.apellido,
+                        "nombre": texto_personal(usuario.nombre),
+                        "apellido": texto_personal(usuario.apellido),
                         "estado": usuario.estado,
                         "licencia": chofer.licencia,
                         "vencimientoLicencia": str(chofer.vencimientoLicencia),
@@ -579,8 +605,8 @@ class OperadorController:
                 if usuario:
                     choferes_top.append({
                         "id_usuario": id_chofer,
-                        "nombre": usuario.nombre,
-                        "apellido": usuario.apellido,
+                        "nombre": texto_personal(usuario.nombre),
+                        "apellido": texto_personal(usuario.apellido),
                         "total_viajes": total,
                     })
 
@@ -633,8 +659,8 @@ class OperadorController:
             for mecanico, usuario in mecanicos:
                 resultado.append({
                     "id_usuario": usuario.id_usuario,
-                    "nombre": usuario.nombre,
-                    "apellido": usuario.apellido,
+                    "nombre": texto_personal(usuario.nombre),
+                    "apellido": texto_personal(usuario.apellido),
                     "estado": usuario.estado,
                     "legajo": mecanico.legajo,
                     "especialidad": mecanico.especialidad,

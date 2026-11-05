@@ -52,6 +52,7 @@ function CancelarViajeModal({ viaje, onClose, onActualizado }) {
             <textarea
               rows={4}
               value={motivo}
+                maxLength={181}
               onChange={(e) => setMotivo(e.target.value)}
               placeholder="Explicá el motivo de la cancelación..."
             />

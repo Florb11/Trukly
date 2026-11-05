@@ -998,3 +998,221 @@ class OperacionCompartidaTest(unittest.TestCase):
                     self.enviar_push.assert_not_called()
         finally:
             self.limpiar_reasignacion_mecanico(original)
+
+
+    def test_observaciones_largas_no_guardan_edicion_parcial(self):
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        client = self.fixture.app.test_client()
+        original = db.session.get(ViajeModel,50).to_dict()
+        for texto in ['A'*201, 'Entrega "confirmada" & recibida. '*6]:
+            r = client.put('/api/operador/viajes/50',headers={'Authorization':'Bearer '+token},json={'observaciones':texto,'origen':'No guardar','recorrido':99})
+            self.assertEqual(r.status_code,400,r.get_json())
+            self.assertIn('observaciones',r.get_json()['mensaje'])
+            db.session.remove()
+            viaje = db.session.get(ViajeModel,50)
+            self.assertEqual((viaje.estado,viaje.origen,viaje.recorrido,viaje.observaciones),(original['estado'],original['origen'],original['recorrido'],original['observaciones']))
+            self.assertEqual(ViajeCambioModel.query.filter_by(id_viaje=50).count(),0)
+            self.assertEqual(NotificacionModel.query.count(),0)
+            self.enviar_push.assert_not_called()
+
+    def test_observaciones_en_limite_y_vacias_permiten_editar(self):
+        from html import escape
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        for texto in ['A'*200, "'"*33, '']:
+            r = self.fixture.app.test_client().put('/api/operador/viajes/50',headers={'Authorization':'Bearer '+token},json={'observaciones':texto})
+            self.assertEqual(r.status_code,200,r.get_json())
+            db.session.remove()
+            viaje = db.session.get(ViajeModel,50)
+            self.assertEqual(viaje.observaciones,escape(texto))
+            self.assertEqual(viaje.estado,'aceptado')
+
+    def test_creacion_comparte_limite_de_observaciones(self):
+        from src.Viaje import Viaje
+        from utils.input_sanitizer import InputSanitizer
+        datos = {'fecha_salida':date.today().isoformat(),'origen':'A','destino':'B','recorrido':10}
+        for texto, esperado in [('A'*200,True),('A'*201,False),("'"*34,False),('',True),(None,True)]:
+            valido, mensaje = Viaje.validar_datos_viaje({**datos,'observaciones':InputSanitizer.texto(texto)})
+            self.assertEqual(valido,esperado,mensaje)
+
+
+    def test_ids_asignacion_invalidos_no_modifican_viaje_ni_recursos(self):
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        client = self.fixture.app.test_client()
+        original = db.session.get(ViajeModel,50).to_dict()
+        invalidos = [1.9,91.9,True,False,0,-1,None,[],{},'1.9','1e0','١','¹',2147483648,'9'*5000]
+        for campo in ['Camion_id_camion','Chofer_Usuario_idUsuario']:
+            for valor in invalidos:
+                with self.subTest(campo=campo,valor=str(valor)[:20]):
+                    r = client.put('/api/operador/viajes/50',headers={'Authorization':'Bearer '+token},json={campo:valor,'observaciones':'No guardar'})
+                    self.assertEqual(r.status_code,400,r.get_json())
+                    db.session.remove()
+                    viaje = db.session.get(ViajeModel,50)
+                    self.assertEqual((viaje.Camion_id_camion,viaje.Chofer_Usuario_idUsuario,viaje.estado,viaje.observaciones),(original['Camion_id_camion'],original['Chofer_Usuario_idUsuario'],original['estado'],original['observaciones']))
+                    self.assertEqual(db.session.get(CamionModel,90).estado,'en viaje')
+                    self.assertEqual(db.session.get(CamionModel,1).estado,'disponible')
+                    self.assertEqual(ViajeCambioModel.query.filter_by(id_viaje=50).count(),0)
+                    self.assertEqual(NotificacionModel.query.count(),0)
+                    self.enviar_push.assert_not_called()
+
+    def test_ids_enteros_en_texto_o_numero_conservan_asignacion(self):
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        for chofer, camion in [(91,90),('91','90'),(' 91 ',' 90 ')]:
+            r = self.fixture.app.test_client().put('/api/operador/viajes/50',headers={'Authorization':'Bearer '+token},json={'Chofer_Usuario_idUsuario':chofer,'Camion_id_camion':camion})
+            self.assertEqual(r.status_code,200,r.get_json())
+            db.session.remove()
+            viaje = db.session.get(ViajeModel,50)
+            self.assertEqual((viaje.Chofer_Usuario_idUsuario,viaje.Camion_id_camion,viaje.estado),(91,90,'aceptado'))
+
+    def test_camion_decimal_disponible_no_se_asigna_por_truncamiento(self):
+        db.session.get(ViajeModel,2).estado = 'finalizado'
+        db.session.commit()
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        r = self.fixture.app.test_client().put('/api/operador/viajes/50',headers={'Authorization':'Bearer '+token},json={'Camion_id_camion':1.9})
+        self.assertEqual(r.status_code,400,r.get_json())
+        db.session.remove()
+        self.assertEqual(db.session.get(ViajeModel,50).Camion_id_camion,90)
+        self.assertEqual(db.session.get(CamionModel,90).estado,'en viaje')
+        self.assertEqual(db.session.get(CamionModel,1).estado,'disponible')
+
+
+    def test_creacion_rechaza_ids_invalidos_en_ambas_rutas_y_aliases(self):
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        client = self.fixture.app.test_client()
+        db.session.get(ViajeModel,50).estado = 'cancelado'
+        db.session.get(CamionModel,90).estado = 'disponible'
+        db.session.commit()
+        original = ViajeModel.query.count()
+        base = {'origen':'A','destino':'B','fecha_salida':date.today().isoformat(),'recorrido':10,'Chofer_Usuario_idUsuario':91,'Camion_id_camion':90}
+        for ruta in ['/api/operador/viajes','/api/viaje']:
+            campos = ['Chofer_Usuario_idUsuario','Camion_id_camion']
+            if ruta == '/api/viaje':
+                campos += ['id_chofer','id_camion','id_operador','OperadorLogistico_Usuario_idUsuario']
+            for campo in campos:
+                for valor in [91.9,90.9,True,False,None,0,-1,[],{},'3.9','٣',2147483648,'9'*5000]:
+                    with self.subTest(ruta=ruta,campo=campo,valor=str(valor)[:20]):
+                        r = client.post(ruta,json={**base,campo:valor},headers={'Authorization':'Bearer '+token})
+                        self.assertEqual(r.status_code,400,r.get_json())
+                        db.session.remove()
+                        self.assertEqual(ViajeModel.query.count(),original)
+                        self.assertEqual(db.session.get(CamionModel,90).estado,'disponible')
+                        self.assertEqual(NotificacionModel.query.count(),0)
+                        self.enviar_push.assert_not_called()
+
+    def test_creacion_acepta_ids_validos_como_texto_en_ambas_rutas(self):
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        for ruta in ['/api/operador/viajes','/api/viaje']:
+            for anterior in ViajeModel.query.filter(ViajeModel.id_viaje>=50).all():
+                anterior.estado = 'cancelado'
+            db.session.get(CamionModel,90).estado = 'disponible'
+            db.session.commit()
+            datos = {'origen':'A','destino':'B','fecha_salida':date.today().isoformat(),'recorrido':10,'Chofer_Usuario_idUsuario':'91','Camion_id_camion':'90'}
+            r = self.fixture.app.test_client().post(ruta,json=datos,headers={'Authorization':'Bearer '+token})
+            self.assertEqual(r.status_code,201,r.get_json())
+            db.session.remove()
+            viaje = ViajeModel.query.order_by(ViajeModel.id_viaje.desc()).first()
+            self.assertEqual((viaje.Chofer_Usuario_idUsuario,viaje.Camion_id_camion,viaje.estado),(91,90,'pendiente'))
+            self.assertEqual(db.session.get(CamionModel,90).estado,'en viaje')
+
+
+    def test_creacion_recorrido_invalido_no_crea_ni_reserva(self):
+        from src.Viaje import Viaje
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        db.session.get(ViajeModel,50).estado = 'cancelado'
+        db.session.get(CamionModel,90).estado = 'disponible'
+        db.session.commit()
+        cantidad = ViajeModel.query.count()
+        datos = {'origen':'A','destino':'B','fecha_salida':date.today().isoformat(),'Chofer_Usuario_idUsuario':91,'Camion_id_camion':90}
+        invalidos = ['Infinity','-Infinity','NaN','1e999',True,False,None,[],{},'texto',-1,10**400]
+        for ruta in ['/api/operador/viajes','/api/viaje']:
+            for recorrido in invalidos:
+                with self.subTest(ruta=ruta,recorrido=str(recorrido)[:20]):
+                    self.assertFalse(Viaje.numero_no_negativo(recorrido))
+                    r = self.fixture.app.test_client().post(ruta,json={**datos,'recorrido':recorrido},headers={'Authorization':'Bearer '+token})
+                    self.assertEqual(r.status_code,400,r.get_json())
+                    self.assertIn('recorrido',r.get_json()['mensaje'])
+                    db.session.remove()
+                    self.assertEqual(ViajeModel.query.count(),cantidad)
+                    self.assertEqual(db.session.get(CamionModel,90).estado,'disponible')
+                    self.assertEqual(NotificacionModel.query.count(),0)
+                    self.enviar_push.assert_not_called()
+
+    def test_creacion_recorrido_cero_decimal_y_omitido(self):
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        for ruta in ['/api/operador/viajes','/api/viaje']:
+            for valor in [0,12.5,'12.5','omitido']:
+                for viaje in ViajeModel.query.filter(ViajeModel.id_viaje>=50).all():
+                    viaje.estado = 'cancelado'
+                db.session.get(CamionModel,90).estado = 'disponible'
+                db.session.commit()
+                datos = {'origen':'A','destino':'B','fecha_salida':date.today().isoformat(),'Chofer_Usuario_idUsuario':91,'Camion_id_camion':90}
+                if valor != 'omitido':
+                    datos['recorrido'] = valor
+                r = self.fixture.app.test_client().post(ruta,json=datos,headers={'Authorization':'Bearer '+token})
+                self.assertEqual(r.status_code,201,r.get_json())
+                db.session.remove()
+                viaje = ViajeModel.query.order_by(ViajeModel.id_viaje.desc()).first()
+                self.assertEqual(viaje.recorrido,0 if valor=='omitido' else float(valor))
+                self.assertEqual(db.session.get(CamionModel,90).estado,'en viaje')
+
+
+    def test_observaciones_legibles_y_estables_en_guardados_repetidos(self):
+        from html import escape
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        client = self.fixture.app.test_client()
+        for original in ['Entrega "OK" & recibida', "Aviso de D'Amico", 'Texto literal &quot; conservado', '<carga> recibida', '', None]:
+            # Incluye registros ya existentes; solo cambia la presentación.
+            almacenado = escape(original) if original is not None else None
+            db.session.get(ViajeModel,50).observaciones = almacenado
+            db.session.commit()
+            for _ in range(3):
+                for uid,rol in [('90','operador'),('91','chofer')]:
+                    headers = {'Authorization':'Bearer '+create_access_token(identity=uid,additional_claims={'rol':rol})}
+                    detalle = client.get('/api/viaje/50',headers=headers)
+                    self.assertEqual(detalle.status_code,200,detalle.get_json())
+                    self.assertEqual(detalle.get_json()['observaciones'],original)
+                    lista = client.get('/api/viaje',headers=headers)
+                    self.assertEqual(next(v for v in lista.get_json() if v['id_viaje']==50)['observaciones'],original)
+                if original is not None:
+                    r = client.put('/api/operador/viajes/50',json={'observaciones':original},headers={'Authorization':'Bearer '+token})
+                    self.assertEqual(r.status_code,200,r.get_json())
+                    self.assertEqual(r.get_json()['viaje']['observaciones'],original)
+                # Una edición parcial también debe mantener la codificación original.
+                r = client.put('/api/operador/viajes/50',json={'recorrido':11},headers={'Authorization':'Bearer '+token})
+                self.assertEqual(r.status_code,200,r.get_json())
+                db.session.remove()
+                self.assertEqual(db.session.get(ViajeModel,50).observaciones,almacenado)
+
+
+    def test_ruta_legible_no_reinicia_aceptacion_al_guardar_sin_cambios(self):
+        from html import escape
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        client = self.fixture.app.test_client()
+        for origen, destino in [('Depósito "A" & carga', "D'Amico"),('Literal &quot; conservado','<destino>'),('Origen normal','Destino normal')]:
+            viaje = db.session.get(ViajeModel,50)
+            viaje.origen, viaje.destino = escape(origen), escape(destino)
+            viaje.origen_lat, viaje.origen_lon = -34,-58
+            viaje.destino_lat, viaje.destino_lon = -33,-57
+            db.session.commit()
+            for _ in range(3):
+                for uid,rol in [('90','operador'),('91','chofer')]:
+                    headers = {'Authorization':'Bearer '+create_access_token(identity=uid,additional_claims={'rol':rol})}
+                    detalle = client.get('/api/viaje/50',headers=headers)
+                    self.assertEqual(detalle.status_code,200)
+                    self.assertEqual((detalle.get_json()['origen'],detalle.get_json()['destino']),(origen,destino))
+                r = client.put('/api/operador/viajes/50',json={'origen':origen,'destino':destino},headers={'Authorization':'Bearer '+token})
+                self.assertEqual(r.status_code,200,r.get_json())
+                self.assertEqual((r.get_json()['viaje']['origen'],r.get_json()['viaje']['destino']),(origen,destino))
+                db.session.remove()
+                viaje = db.session.get(ViajeModel,50)
+                self.assertEqual((viaje.origen,viaje.destino),(escape(origen),escape(destino)))
+                self.assertEqual(viaje.estado,'aceptado')
+                self.assertEqual((viaje.origen_lat,viaje.origen_lon,viaje.destino_lat,viaje.destino_lon),(-34,-58,-33,-57))
+                self.assertEqual(NotificacionModel.query.count(),0)
+                self.assertTrue(all(c.datos["cambios"] == {} for c in ViajeCambioModel.query.filter_by(id_viaje=50).all()))
+            r = client.put('/api/operador/viajes/50',json={'recorrido':11},headers={'Authorization':'Bearer '+token})
+            self.assertEqual(r.status_code,200)
+            db.session.remove()
+            viaje = db.session.get(ViajeModel,50)
+            self.assertEqual((viaje.origen,viaje.destino),(escape(origen),escape(destino)))
+            ViajeCambioModel.query.delete()
+            db.session.commit()

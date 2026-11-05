@@ -115,3 +115,72 @@ class CancelacionViajeNotificacionesTest(unittest.TestCase):
             with patch.object(db.session, 'commit', side_effect=RuntimeError('Prueba')), patch('controllers.operador_controller.logger'), patch('controllers.viaje_controller.logger'):
                 self.assertEqual(self.cancelar(rol).status_code, 500)
             self.comprobar_reversion()
+
+
+    def test_motivo_invalido_no_cancela_ni_genera_avisos(self):
+        for rol in ['admin','operador']:
+            for motivo in ['A'*182, 'A'*200, "'"*31, None, [], '   ']:
+                with self.subTest(rol=rol,motivo=motivo):
+                    self.preparar()
+                    r = self.cancelar(rol,motivo)
+                    self.assertEqual(r.status_code,400,r.get_json())
+                    db.session.remove()
+                    self.comprobar_reversion()
+
+    def test_motivo_al_limite_cancela_sin_exceder_columna(self):
+        for rol in ['admin','operador']:
+            for motivo in ['A'*181, "'"*30]:
+                self.preparar()
+                r = self.cancelar(rol,motivo)
+                self.assertEqual(r.status_code,200,r.get_json())
+                db.session.remove()
+                viaje = db.session.get(ViajeModel,2)
+                self.assertEqual(viaje.estado,'cancelado')
+                self.assertLessEqual(len(viaje.observaciones),200)
+                self.assertEqual(NotificacionModel.query.count(),2)
+
+    def test_dominio_no_muta_si_motivo_excede_limite(self):
+        from src.Viaje import Viaje
+        self.preparar()
+        viaje = Viaje.crear_desde_datos(db.session.get(ViajeModel,2).to_dict())
+        self.assertFalse(viaje.cancelar('A'*182))
+        self.assertEqual(viaje.estado,'aceptado')
+        self.assertEqual(viaje.observaciones,'Observación original')
+
+
+    def test_admin_y_chofer_reciben_motivo_legible_sin_doble_decodificacion(self):
+        from html import escape
+        for rol in ['admin','operador']:
+            for motivo in ['Cambio de "plan" & fecha', "Aviso de D'Amico", 'Texto literal &quot; conservado', '<carga> reprogramada']:
+                with self.subTest(rol=rol,motivo=motivo):
+                    self.preparar()
+                    r = self.cancelar(rol,motivo)
+                    self.assertEqual(r.status_code,200,r.get_json())
+                    db.session.remove()
+                    for uid in [1,100]:
+                        aviso = NotificacionModel.query.filter_by(Usuario_idUsuario=uid).one()
+                        self.assertIn('Motivo: '+motivo,aviso.mensaje)
+                    self.assertEqual(db.session.get(ViajeModel,2).observaciones,'Cancelado. Motivo: '+escape(motivo))
+                    self.assertEqual(NotificacionModel.query.count(),2)
+                    self.push.assert_called_once()
+                    self.assertEqual(self.cancelar(rol,motivo).status_code,400)
+                    self.assertEqual(NotificacionModel.query.count(),2)
+
+
+    def test_historial_devuelve_motivo_legible_sin_modificar_auditoria(self):
+        from html import escape
+        for rol in ['admin','operador']:
+            for motivo in ['Cambio de "plan" & fecha', "Aviso de D'Amico", 'Literal &quot; conservado', '<carga> reprogramada']:
+                self.preparar()
+                self.assertEqual(self.cancelar(rol,motivo).status_code,200)
+                for uid,rol_lector in [('100','admin'),('2','operador')]:
+                    token = create_access_token(identity=uid,additional_claims={'rol':rol_lector})
+                    for _ in range(2):
+                        r = self.client.get('/api/operador/viajes/2/historial',headers={'Authorization':'Bearer '+token})
+                        self.assertEqual(r.status_code,200,r.get_json())
+                        self.assertEqual(r.get_json()[0]['datos']['motivo'],motivo)
+                db.session.remove()
+                cambio = ViajeCambioModel.query.filter_by(id_viaje=2).one()
+                self.assertEqual(cambio.datos['motivo'],escape(motivo))
+                self.assertEqual(cambio.to_dict()['datos']['motivo'],motivo)
+                self.assertEqual(cambio.datos['motivo'],escape(motivo))

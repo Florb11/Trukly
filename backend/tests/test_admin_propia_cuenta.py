@@ -351,3 +351,51 @@ class AdminPropiaCuentaTest(unittest.TestCase):
                  'capacidad_carga':1000, 'nroTanque':1, 'estado':'disponible'}
         self.assertEqual(Camion.crear_desde_datos(datos).matricula, 'AA123BB')
         self.assertIsNone(Camion.crear_desde_datos({**datos, 'matricula':'-- --'}))
+
+    def test_edicion_rechaza_datos_invalidos_sin_guardar_otros_campos(self):
+        usuario = db.session.get(UsuarioModel,1)
+        original = (usuario.username, usuario.nombre, usuario.apellido, usuario.email)
+        for campo, valor in [('nombre',None),('apellido',[]),('username',{}),
+                             ('nombre',' '*5),('nombre','A'*101),('apellido','B'*101),
+                             ('username','C'*101),('apellido',"'"*17),
+                             ('email','sin-arroba'),('email','a@b'),('email',None),
+                             ('email','a'*145+'@b.com')]:
+            with self.subTest(campo=campo, valor=valor):
+                datos = {'nombre':'No guardar','apellido':'No guardar','email':'nuevo@example.invalid'}
+                datos[campo] = valor
+                r = self.cliente.put('/api/admin/usuarios/1',json=datos,headers=self.headers)
+                self.assertEqual(r.status_code,400,r.get_json())
+                db.session.remove()
+                u = db.session.get(UsuarioModel,1)
+                self.assertEqual((u.username,u.nombre,u.apellido,u.email), original)
+        for cuerpo in [[],['x'],'texto',42]:
+            r = self.cliente.put('/api/admin/usuarios/1',json=cuerpo,headers=self.headers)
+            self.assertEqual(r.status_code,400)
+
+    def test_edicion_limites_validos_y_apostrofes(self):
+        from html import escape
+        for nombre in ['A'*100,'Á'*100]:
+            datos = {'username':'u'*100,'nombre':nombre,'apellido':'B'*100,'email':'a'*140+'@x.invalid'}
+            r = self.cliente.put('/api/admin/usuarios/1',json=datos,headers=self.headers)
+            self.assertEqual(r.status_code,200,r.get_json())
+            self.assertEqual(r.get_json()['usuario']['nombre'],nombre)
+            db.session.remove()
+            self.assertEqual(db.session.get(UsuarioModel,1).nombre,escape(nombre))
+
+    def test_edicion_correo_ocupado_o_firebase_no_guarda_nombre(self):
+        usuario = db.session.get(UsuarioModel,1)
+        nombre = usuario.nombre
+        db.session.get(UsuarioModel,2).email = 'ocupado@example.invalid'
+        db.session.commit()
+        r = self.cliente.put('/api/admin/usuarios/1',json={'nombre':'No guardar','email':'OCUPADO@example.invalid'},headers=self.headers)
+        self.assertEqual(r.status_code,409,r.get_json())
+        db.session.remove()
+        self.assertEqual(db.session.get(UsuarioModel,1).nombre,nombre)
+        db.session.get(UsuarioModel,1).firebase_uid = 'admin-edit-test-uid'
+        db.session.commit()
+        r = self.cliente.put('/api/admin/usuarios/1',json={'nombre':'No guardar','email':'nuevo@example.invalid'},headers=self.headers)
+        self.assertEqual(r.status_code,409,r.get_json())
+        db.session.remove()
+        self.assertEqual(db.session.get(UsuarioModel,1).nombre,nombre)
+        db.session.get(UsuarioModel,1).firebase_uid = None
+        db.session.commit()

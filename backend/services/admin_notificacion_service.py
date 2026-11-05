@@ -1,3 +1,5 @@
+from utils.texto_personal import nombre_completo
+from html import unescape
 """Avisos operativos para administradores; se confirman con la operación original."""
 from db_instance import db
 from models.usuario_model import UsuarioModel
@@ -21,7 +23,7 @@ class AdminNotificacionService:
     @staticmethod
     def _nombre_chofer(id_usuario):
         usuario = db.session.get(UsuarioModel, id_usuario)
-        return f"{usuario.nombre} {usuario.apellido}" if usuario else "Chofer sin datos"
+        return nombre_completo(usuario) if usuario else "Chofer sin datos"
 
     @staticmethod
     def nueva_falla(reporte):
@@ -35,7 +37,7 @@ class AdminNotificacionService:
     def viaje_cancelado(viaje, motivo):
         nombre = AdminNotificacionService._nombre_chofer(viaje.Chofer_Usuario_idUsuario)
         AdminNotificacionService._crear("cancelacion", viaje.id_viaje, "Viaje cancelado",
-            f"Viaje #{viaje.id_viaje} · {nombre}. Motivo: {motivo}")
+            f"Viaje #{viaje.id_viaje} · {nombre}. Motivo: {unescape(motivo)}")
 
     @staticmethod
     def revisar_controles(viaje):

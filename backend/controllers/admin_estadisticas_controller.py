@@ -1,3 +1,4 @@
+from utils.texto_personal import texto_personal
 from services.horas_viaje_service import horas_por_chofer
 from datetime import date, datetime
 
@@ -50,8 +51,8 @@ class AdminEstadisticasController:
         return [
             {
                 "id_usuario": fila.id_usuario,
-                "nombre": fila.nombre,
-                "apellido": fila.apellido,
+                "nombre": texto_personal(fila.nombre),
+                "apellido": texto_personal(fila.apellido),
                 "total_viajes": fila.total_viajes,
                 "viajes_finalizados": int(
                     fila.viajes_finalizados or 0
@@ -68,8 +69,8 @@ class AdminEstadisticasController:
         return [
             {
                 "id_usuario": fila.id_usuario,
-                "nombre": fila.nombre,
-                "apellido": fila.apellido,
+                "nombre": texto_personal(fila.nombre),
+                "apellido": texto_personal(fila.apellido),
                 "total_reportes": fila.total_reportes,
                 "reportes_resueltos": int(
                     fila.reportes_resueltos or 0
@@ -83,8 +84,8 @@ class AdminEstadisticasController:
         return [
             {
                 "id_usuario": fila.id_usuario,
-                "nombre": fila.nombre,
-                "apellido": fila.apellido,
+                "nombre": texto_personal(fila.nombre),
+                "apellido": texto_personal(fila.apellido),
                 "total_asignados": fila.total_asignados,
                 "total_resueltos": int(
                     fila.total_resueltos or 0

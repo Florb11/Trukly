@@ -1,3 +1,5 @@
+from utils.identificadores import convertir_ids_asignacion
+from utils.texto_personal import texto_personal
 from services.viaje_asignaciones_service import obtener_asignaciones
 from services.admin_notificacion_service import AdminNotificacionService
 from flask import jsonify, request
@@ -118,8 +120,8 @@ class ViajeController:
                 "username": usuario_model.username,
                 "email": usuario_model.email,
                 "password": usuario_model.password,
-                "nombre": usuario_model.nombre,
-                "apellido": usuario_model.apellido,
+                "nombre": texto_personal(usuario_model.nombre),
+                "apellido": texto_personal(usuario_model.apellido),
                 "estado": usuario_model.estado,
                 "rol": usuario_model.rol,
                 "licencia": chofer_model.licencia,
@@ -140,8 +142,8 @@ class ViajeController:
                 "username": usuario_model.username,
                 "email": usuario_model.email,
                 "password": usuario_model.password,
-                "nombre": usuario_model.nombre,
-                "apellido": usuario_model.apellido,
+                "nombre": texto_personal(usuario_model.nombre),
+                "apellido": texto_personal(usuario_model.apellido),
                 "estado": usuario_model.estado,
                 "rol": usuario_model.rol,
                 "legajo": operador_model.legajo,
@@ -318,8 +320,18 @@ class ViajeController:
         rol = ViajeController.obtener_rol_actual()
         id_usuario = ViajeController.obtener_id_usuario_actual()
 
+        cuerpo = request.get_json(silent=True)
+        try:
+            ids_asignacion = convertir_ids_asignacion(cuerpo, (
+                "OperadorLogistico_Usuario_idUsuario", "id_operador",
+                "Chofer_Usuario_idUsuario", "id_chofer", "Camion_id_camion", "id_camion",
+            ))
+        except ValueError as error:
+            return jsonify({"mensaje": str(error)}), 400
+        if "recorrido" in cuerpo and not Viaje.numero_no_negativo(cuerpo["recorrido"]):
+            return jsonify({"mensaje": "El recorrido debe ser un número finito mayor o igual a cero."}), 400
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=[
                 "fecha_salida",
                 "fecha_llegada",
@@ -329,16 +341,10 @@ class ViajeController:
                 "estado",
                 "observaciones",
             ],
-            campos_enteros=[
-                "OperadorLogistico_Usuario_idUsuario",
-                "id_operador",
-                "Chofer_Usuario_idUsuario",
-                "id_chofer",
-                "Camion_id_camion",
-                "id_camion",
-            ],
             campos_decimales=["recorrido"],
         )
+
+        datos.update(ids_asignacion)
 
         # valores por defecto
         # Una asignación nueva siempre debe ser aceptada por el chofer.
@@ -469,7 +475,7 @@ class ViajeController:
                 "Nuevo viaje asignado",
                 (
                     f"Se te asignó el viaje #{nuevo_viaje.id_viaje}: "
-                    f"{nuevo_viaje.origen} → {nuevo_viaje.destino}, "
+                    f"{nuevo_viaje.origen_texto} → {nuevo_viaje.destino_texto}, "
                     f"con salida el {nuevo_viaje.fecha_salida}."
                 ),
                 "viaje_asignado",
@@ -509,12 +515,18 @@ class ViajeController:
     @staticmethod
     @roles_required(Usuario.ROL_ADMIN)
     def cancelar_viaje_admin(id_viaje):
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict) or not isinstance(cuerpo.get("motivo"), str):
+            return jsonify({"mensaje": "Ingresá un motivo de cancelación válido."}), 400
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=["motivo"],
         )
 
         motivo = datos.get("motivo")
+        valido, mensaje = Viaje.validar_motivo_cancelacion(motivo)
+        if not valido:
+            return jsonify({"mensaje": mensaje}), 400
 
         validador = ViajeController.crear_validador_cancelacion_viaje()
         datos_validos, mensaje_error = validador.validar(datos)

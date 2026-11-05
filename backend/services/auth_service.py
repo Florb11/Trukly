@@ -1,3 +1,4 @@
+from utils.texto_personal import texto_personal
 from flask_jwt_extended import get_jwt, get_jwt_identity
 
 from models.administrador_model import AdministradorModel
@@ -72,8 +73,8 @@ class AuthService:
                 "username": usuario.username,
                 "email": usuario.email,
                 "password": usuario.password,
-                "nombre": usuario.nombre,
-                "apellido": usuario.apellido,
+                "nombre": texto_personal(usuario.nombre),
+                "apellido": texto_personal(usuario.apellido),
                 "estado": usuario.estado,
                 "rol": usuario.rol,
                 "legajo": administrador.legajo,
@@ -104,8 +105,8 @@ class AuthService:
                 "username": usuario.username,
                 "email": usuario.email,
                 "password": usuario.password,
-                "nombre": usuario.nombre,
-                "apellido": usuario.apellido,
+                "nombre": texto_personal(usuario.nombre),
+                "apellido": texto_personal(usuario.apellido),
                 "estado": usuario.estado,
                 "rol": usuario.rol,
                 "legajo": chofer.legajo,
@@ -139,8 +140,8 @@ class AuthService:
                 "username": usuario.username,
                 "email": usuario.email,
                 "password": usuario.password,
-                "nombre": usuario.nombre,
-                "apellido": usuario.apellido,
+                "nombre": texto_personal(usuario.nombre),
+                "apellido": texto_personal(usuario.apellido),
                 "estado": usuario.estado,
                 "rol": usuario.rol,
                 "legajo": mecanico.legajo,
@@ -174,8 +175,8 @@ class AuthService:
                 "username": usuario.username,
                 "email": usuario.email,
                 "password": usuario.password,
-                "nombre": usuario.nombre,
-                "apellido": usuario.apellido,
+                "nombre": texto_personal(usuario.nombre),
+                "apellido": texto_personal(usuario.apellido),
                 "estado": usuario.estado,
                 "rol": usuario.rol,
                 "legajo": operador.legajo,

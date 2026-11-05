@@ -217,8 +217,8 @@ class Viaje:
     def numero_no_negativo(valor):
         # valida que un numero sea cero o positivo
         try:
-            return float(valor) >= 0
-        except (TypeError, ValueError):
+            return not isinstance(valor, bool) and math.isfinite(float(valor)) and float(valor) >= 0
+        except (TypeError, ValueError, OverflowError):
             return False
 
     @staticmethod
@@ -235,7 +235,20 @@ class Viaje:
         return estado_limpio
 
     @staticmethod
+    def validar_observaciones(observaciones):
+        if observaciones is None:
+            return True, None
+        if not isinstance(observaciones, str):
+            return False, "Las observaciones deben ser un texto."
+        if len(observaciones) > 200:
+            return False, "Las observaciones son demasiado largas. Acortá el texto o reducí los símbolos (máximo 200 caracteres almacenados)."
+        return True, None
+
+    @staticmethod
     def validar_edicion(viaje, datos, hoy=None):
+        valido, mensaje = Viaje.validar_observaciones(datos.get("observaciones"))
+        if not valido:
+            return False, mensaje
         fechas = {campo: Viaje.convertir_fecha(getattr(viaje, campo)) for campo in ("fecha_salida", "fecha_llegada")}
         cambios_fecha = set()
         for campo in fechas:
@@ -260,11 +273,7 @@ class Viaje:
             return False, "La fecha de llegada no puede ser anterior a la salida"
         if "recorrido" in datos:
             valor = datos["recorrido"]
-            try:
-                valido = not isinstance(valor, bool) and math.isfinite(float(valor)) and float(valor) >= 0
-            except (ValueError, TypeError, OverflowError):
-                valido = False
-            if not valido:
+            if not Viaje.numero_no_negativo(valor):
                 return False, "El recorrido debe ser un número finito mayor o igual a cero"
         for campo in ("origen", "destino"):
             if campo in datos and not texto_valido(datos[campo]):
@@ -292,6 +301,10 @@ class Viaje:
         # valida reglas propias del viaje
         if datos is None:
             return False, "Faltan datos del viaje"
+
+        valido, mensaje = Viaje.validar_observaciones(datos.get("observaciones"))
+        if not valido:
+            return False, mensaje
 
         fecha_salida = datos.get("fecha_salida")
         fecha_llegada = (
@@ -321,7 +334,7 @@ class Viaje:
             return False, "Estado invalido"
 
         if not Viaje.numero_no_negativo(recorrido):
-            return False, "El recorrido no puede ser negativo"
+            return False, "El recorrido debe ser un número finito mayor o igual a cero"
 
         return True, None
 
@@ -335,6 +348,7 @@ class Viaje:
                 "destino": self.destino,
                 "estado": self.estado,
                 "recorrido": self.recorrido,
+                "observaciones": self.observaciones,
             }
         )
 
@@ -395,9 +409,17 @@ class Viaje:
 
         return estado_actual in [self.ESTADO_PENDIENTE, self.ESTADO_ACEPTADO]
 
+    @staticmethod
+    def validar_motivo_cancelacion(motivo):
+        if not isinstance(motivo, str) or not motivo.strip():
+            return False, "El motivo de cancelación es obligatorio."
+        if len(f"Cancelado. Motivo: {motivo.strip()}") > 200:
+            return False, "El motivo es demasiado largo. Acortá el texto o reducí los símbolos (máximo 181 caracteres almacenados)."
+        return True, None
+
     def cancelar(self, motivo):
         # cancela el viaje con un motivo
-        if not motivo or motivo.strip() == "":
+        if not self.validar_motivo_cancelacion(motivo)[0]:
             return False
 
         if not self.se_puede_cancelar():

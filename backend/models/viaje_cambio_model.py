@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
+from html import unescape
 from db_instance import db
+from utils.texto_personal import texto_personal
 
 
 class ViajeCambioModel(db.Model):
@@ -14,7 +16,10 @@ class ViajeCambioModel(db.Model):
     datos = db.Column(db.JSON, nullable=False)
 
     def to_dict(self):
+        datos = dict(self.datos or {})
+        if isinstance(datos.get("motivo"), str):
+            datos["motivo"] = unescape(datos["motivo"])
         return {"id_cambio": self.id_cambio, "id_viaje": self.id_viaje,
-                "id_usuario": self.id_usuario, "actor_nombre": self.actor_nombre,
+                "id_usuario": self.id_usuario, "actor_nombre": texto_personal(self.actor_nombre),
                 "accion": self.accion, "fecha_hora": self.fecha_hora.isoformat() + "Z",
-                "datos": self.datos}
+                "datos": datos}

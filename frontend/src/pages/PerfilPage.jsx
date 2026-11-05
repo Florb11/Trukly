@@ -421,6 +421,9 @@ function PerfilPage() {
                   <input
                     type="text"
                   name="nombre"
+                  pattern="[\p{L} ]+"
+                  title="Solo letras y espacios, incluidas tildes y ñ. Sin números ni símbolos."
+                  maxLength={100}
                   value={formPerfil.nombre}
                   onChange={handlePerfilChange}
                   required
@@ -432,6 +435,9 @@ function PerfilPage() {
                   <input
                     type="text"
                   name="apellido"
+                  pattern="[\p{L} ]+"
+                  title="Solo letras y espacios, incluidas tildes y ñ. Sin números ni símbolos."
+                  maxLength={100}
                   value={formPerfil.apellido}
                   onChange={handlePerfilChange}
                   required
@@ -444,6 +450,7 @@ function PerfilPage() {
                 <input
                   type="email"
                   name="email"
+                  maxLength={150}
                   value={formPerfil.email}
                   readOnly={Boolean(perfil.firebase_uid)}
                   onChange={handlePerfilChange}
@@ -459,6 +466,7 @@ function PerfilPage() {
                       <input
                         type="text"
                         name="licencia"
+                        maxLength={50}
                         value={formPerfil.licencia}
                         onChange={handlePerfilChange}
                         pattern="[A-Za-z0-9 -]+"
@@ -484,6 +492,7 @@ function PerfilPage() {
                     <input
                       type="text"
                       name="legajo"
+                        maxLength={50}
                       value={formPerfil.legajo}
                       onChange={handlePerfilChange}
                       required

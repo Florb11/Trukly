@@ -1,3 +1,5 @@
+from utils.texto_personal import texto_personal
+from html import unescape
 """Tiempo entre controles; no representa tiempo efectivo de conducción.
 
 Los registros existentes son DATETIME sin zona: se conserva el reloj del servidor
@@ -26,14 +28,18 @@ def formato_duracion(segundos):
     return f"{minutos // 60} h {minutos % 60:02d} min"
 
 
-def tiempo_viaje(viaje, ahora=None):
-    ahora = ahora or datetime.now()
-    registros = list(viaje.registros_horarios)
+def tipos_control(registros):
     tipos = {r.tipo_registro.strip().lower() for r in registros}
     # El esquema histórico registra salida de empresa y entrada al regresar.
     # El QR actual usa ingreso al viaje y salida del viaje. No mezclar esquemas.
     historico = "entrada" in tipos and "ingreso" not in tipos
-    tipo_inicio, tipo_fin = ("salida", "entrada") if historico else ("ingreso", "salida")
+    return ("salida", "entrada") if historico else ("ingreso", "salida")
+
+
+def tiempo_viaje(viaje, ahora=None):
+    ahora = ahora or datetime.now()
+    registros = list(viaje.registros_horarios)
+    tipo_inicio, tipo_fin = tipos_control(registros)
     inicios = [r.fecha_hora for r in registros if r.tipo_registro.strip().lower() == tipo_inicio]
     finales = [r.fecha_hora for r in registros if r.tipo_registro.strip().lower() == tipo_fin]
     inicio = inicios[0] if len(inicios) == 1 else None
@@ -90,7 +96,7 @@ def resumen_horas(viajes, mes, ahora=None):
             if not inicio_mes.date() <= viaje.fecha_salida < fin_mes.date():
                 continue
         conteos[tiempo["estado"]] += 1
-        historial.append({"id_viaje": viaje.id_viaje, "origen": viaje.origen, "destino": viaje.destino,
+        historial.append({"id_viaje": viaje.id_viaje, "origen": unescape(viaje.origen), "destino": unescape(viaje.destino),
                           **tiempo, "duracion_mes": formato_duracion(segundos_mes)})
     # Un chofer no acumula dos veces el mismo tiempo si hay viajes superpuestos.
     fusionados = []
@@ -131,5 +137,5 @@ def horas_por_chofer(mes):
     filas = []
     for usuario in usuarios:
         resumen = resumen_horas(viajes[usuario.id_usuario], mes)
-        filas.append({"id_usuario": usuario.id_usuario, "nombre": usuario.nombre, "apellido": usuario.apellido, **resumen})
+        filas.append({"id_usuario": usuario.id_usuario, "nombre": texto_personal(usuario.nombre), "apellido": texto_personal(usuario.apellido), **resumen})
     return sorted(filas, key=lambda fila: (-fila["segundos_confirmados"], fila["apellido"], fila["nombre"]))

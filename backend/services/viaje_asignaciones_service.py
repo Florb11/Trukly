@@ -1,3 +1,4 @@
+from utils.texto_personal import nombre_completo
 """Datos públicos mínimos de los participantes de un viaje ya autorizado."""
 from db_instance import db
 from models.usuario_model import UsuarioModel
@@ -9,7 +10,7 @@ def obtener_asignaciones(viaje):
     operador = db.session.get(UsuarioModel, viaje.OperadorLogistico_Usuario_idUsuario)
     camion = db.session.get(CamionModel, viaje.Camion_id_camion)
     return {
-        "chofer_nombre": f"{chofer.nombre} {chofer.apellido}".strip() if chofer else None,
-        "operador_nombre": f"{operador.nombre} {operador.apellido}".strip() if operador else None,
+        "chofer_nombre": nombre_completo(chofer) if chofer else None,
+        "operador_nombre": nombre_completo(operador) if operador else None,
         "camion_nombre": f"{camion.marca} {camion.modelo} ({camion.matricula})" if camion else None,
     }

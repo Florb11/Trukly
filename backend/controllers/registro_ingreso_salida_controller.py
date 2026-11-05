@@ -1,9 +1,6 @@
-from services.admin_notificacion_service import AdminNotificacionService
-from services.notificacion_service import NotificacionService
 from datetime import datetime
 
-from flask import jsonify, request
-from db_instance import db
+from flask import g, jsonify
 
 from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
 from models.viaje_model import ViajeModel
@@ -11,16 +8,12 @@ from src.RegistroIngresoSalida import RegistroIngresoSalida
 from src.Usuario import Usuario
 from src.Viaje import Viaje
 from utils.auth_decorators import roles_required
-from utils.app_logger import get_app_logger
 from utils.input_sanitizer import InputSanitizer
 from utils.validation_composite import (
     CampoObligatorio,
     ValidacionDatos,
     ValidadorCompuesto,
 )
-
-
-logger = get_app_logger()
 
 
 class RegistroIngresoSalidaController:
@@ -108,7 +101,12 @@ class RegistroIngresoSalidaController:
         Usuario.ROL_CHOFER,
     )
     def listar_registros():
-        registros = RegistroIngresoSalidaModel.query.all()
+        consulta = RegistroIngresoSalidaModel.query
+        if g.usuario_actual.rol == Usuario.ROL_CHOFER:
+            consulta = consulta.join(
+                ViajeModel, ViajeModel.id_viaje == RegistroIngresoSalidaModel.Viaje_id_viaje
+            ).filter(ViajeModel.Chofer_Usuario_idUsuario == g.usuario_actual.id_usuario)
+        registros = consulta.all()
 
         return jsonify([registro.to_dict() for registro in registros])
 
@@ -119,7 +117,12 @@ class RegistroIngresoSalidaController:
         Usuario.ROL_CHOFER,
     )
     def obtener_registro(id_registro):
-        registro = RegistroIngresoSalidaModel.query.get(id_registro)
+        consulta = RegistroIngresoSalidaModel.query.filter_by(id_registro=id_registro)
+        if g.usuario_actual.rol == Usuario.ROL_CHOFER:
+            consulta = consulta.join(
+                ViajeModel, ViajeModel.id_viaje == RegistroIngresoSalidaModel.Viaje_id_viaje
+            ).filter(ViajeModel.Chofer_Usuario_idUsuario == g.usuario_actual.id_usuario)
+        registro = consulta.first()
 
         if registro is None:
             return jsonify({"mensaje": "Registro no encontrado"}), 404
@@ -132,63 +135,6 @@ class RegistroIngresoSalidaController:
         Usuario.ROL_OPERADOR,
     )
     def crear_registro():
-        datos = RegistroIngresoSalidaController._sanitizar_datos_registro(
-            request.get_json(silent=True) or {}
-        )
-
-        validador = (
-            RegistroIngresoSalidaController._crear_validador_registro()
-        )
-        datos_validos, mensaje_error = validador.validar(datos)
-
-        if not datos_validos:
-            return jsonify({"mensaje": mensaje_error}), 400
-
-        viaje_model = ViajeModel.query.get(datos["Viaje_id_viaje"])
-        viaje = RegistroIngresoSalidaController.crear_objeto_viaje(
-            viaje_model
-        )
-
-        if viaje is None:
-            return jsonify({"mensaje": "Viaje no encontrado"}), 404
-
-        registro = RegistroIngresoSalida(
-            id_registro=None,
-            fecha_hora=RegistroIngresoSalidaController._convertir_fecha_hora(
-                datos["fecha_hora"]
-            ),
-            tipo_registro=datos["tipo_registro"],
-            observacion=datos.get("observacion"),
-            id_viaje=None,
-        )
-
-        if not viaje.agregar_registro(registro):
-            return jsonify({"mensaje": "No se pudo asociar el registro"}), 400
-
-        if not registro.validar_datos():
-            return jsonify({"mensaje": "Faltan datos obligatorios"}), 400
-
-        nuevo_registro = RegistroIngresoSalidaModel(
-            fecha_hora=registro.fecha_hora,
-            tipo_registro=registro.tipo_registro,
-            observacion=registro.observacion,
-            Viaje_id_viaje=registro.id_viaje,
-        )
-
-        try:
-            db.session.add(nuevo_registro)
-            AdminNotificacionService.revisar_controles(viaje_model)
-            db.session.commit()
-            NotificacionService.enviar_push_pendientes()
-        except Exception:
-            db.session.rollback()
-            logger.exception("No se pudo crear el registro")
-
-            return jsonify({
-                "mensaje": "No se pudo crear el registro"
-            }), 500
-
         return jsonify({
-            "mensaje": "Registro creado correctamente",
-            "registro": nuevo_registro.to_dict(),
-        }), 201
+            "mensaje": "La creación manual de controles está deshabilitada. El chofer debe registrar la salida y el regreso mediante el QR del viaje."
+        }), 409

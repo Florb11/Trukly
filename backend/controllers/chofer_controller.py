@@ -1,6 +1,6 @@
 from services.carga_service import comprobar_capacidad, ErrorCarga
 from services.viaje_asignaciones_service import obtener_asignaciones
-from services.horas_viaje_service import horas_chofer, limites_mes
+from services.horas_viaje_service import horas_chofer, limites_mes, tipos_control
 from services.notificacion_service import NotificacionService
 from services.viaje_notificacion_service import notificar_aceptacion_operador
 import datetime
@@ -201,21 +201,23 @@ class ChoferController:
                 .all()
             )
 
+            controles_por_viaje = {}
+            for registro, viaje in resultados:
+                controles_por_viaje.setdefault(viaje.id_viaje, []).append(registro)
+            esquemas = {id_viaje: tipos_control(controles) for id_viaje, controles in controles_por_viaje.items()}
             registros = []
             for registro, viaje in resultados:
-                tipo_registro = (
-                    "ingreso"
-                    if registro.tipo_registro in {"entrada", "ingreso"}
-                    else registro.tipo_registro
-                )
+                inicio, regreso = esquemas[viaje.id_viaje]
+                tipo_original = registro.tipo_registro.strip().lower()
+                tipo_registro = "ingreso" if tipo_original == inicio else "salida" if tipo_original == regreso else tipo_original
                 registros.append({
                     "id_registro": registro.id_registro,
                     "fecha_hora": registro.fecha_hora.isoformat(),
                     "tipo_registro": tipo_registro,
-                    "observacion": registro.observacion,
+                    "observacion": registro.observacion_texto,
                     "id_viaje": viaje.id_viaje,
-                    "origen": viaje.origen,
-                    "destino": viaje.destino,
+                    "origen": viaje.origen_texto,
+                    "destino": viaje.destino_texto,
                     "id_camion": viaje.Camion_id_camion,
                 })
 
@@ -230,10 +232,17 @@ class ChoferController:
     @chofer_required
     def registrar_ingreso_salida(id_viaje):
         chofer = g.chofer_actual
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict):
+            return jsonify({"mensaje": "Los datos del control no son válidos."}), 400
+        if cuerpo.get("observacion") is not None and not isinstance(cuerpo["observacion"], str):
+            return jsonify({"mensaje": "La observación debe ser un texto."}), 400
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=["tipo_registro", "observacion"],
         )
+        if len(datos.get("observacion") or "") > 100:
+            return jsonify({"mensaje": "La observación es demasiado larga. Acortá el texto o reducí los símbolos (máximo 100 caracteres almacenados) y volvé a confirmar el QR."}), 400
         tipo_registro = (datos.get("tipo_registro") or "").strip().lower()
 
         if tipo_registro not in {"ingreso", "salida"}:

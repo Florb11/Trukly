@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from src.Usuario import Usuario
+from utils.fecha_operativa import hoy_operativo
 
 
 class Chofer(Usuario):
@@ -92,8 +93,11 @@ class Chofer(Usuario):
 
     @staticmethod
     def validar_licencia(licencia):
-        if not licencia:
+        if not isinstance(licencia, str) or not licencia.strip():
             return False, "La licencia es obligatoria"
+
+        if len(licencia) > 50:
+            return False, "La licencia no puede superar los 50 caracteres"
 
         licencia_limpia = licencia.replace("-", "").replace(" ", "")
 
@@ -103,6 +107,14 @@ class Chofer(Usuario):
         if not licencia_limpia.isalnum():
             return False, "La licencia solo puede contener letras, numeros, espacios o guiones"
 
+        return True, None
+
+    @staticmethod
+    def validar_legajo(legajo):
+        if not isinstance(legajo, str) or not legajo.strip():
+            return False, "El legajo es obligatorio"
+        if len(legajo) > 50:
+            return False, "El legajo es demasiado largo. Reducí el texto o los símbolos (máximo 50 caracteres almacenados)."
         return True, None
 
     @staticmethod
@@ -117,7 +129,7 @@ class Chofer(Usuario):
         except ValueError:
             return False, "La fecha de vencimiento debe tener formato YYYY-MM-DD"
 
-        if fecha_vencimiento < date.today():
+        if fecha_vencimiento < hoy_operativo():
             return False, "La licencia no puede estar vencida"
 
         return True, None

@@ -1,3 +1,5 @@
+from utils.texto_personal import nombre_completo
+from html import unescape
 from db_instance import db
 from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
 from services.horas_viaje_service import tiempo_viaje
@@ -59,16 +61,28 @@ class ViajeModel(db.Model):
         lazy="selectin",
     )
 
+    @property
+    def origen_texto(self):
+        return unescape(self.origen) if self.origen is not None else None
+
+    @property
+    def destino_texto(self):
+        return unescape(self.destino) if self.destino is not None else None
+
+    @property
+    def observaciones_texto(self):
+        return unescape(self.observaciones) if self.observaciones is not None else None
+
     def to_dict(self):
         tiempo = tiempo_viaje(self)
         return {
             "id_viaje": self.id_viaje,
             "chofer_nombre": (
-                f"{self.chofer_usuario.nombre} {self.chofer_usuario.apellido}".strip()
+                nombre_completo(self.chofer_usuario)
                 if self.chofer_usuario else None
             ),
             "operador_nombre": (
-                f"{self.operador_usuario.nombre} {self.operador_usuario.apellido}".strip()
+                nombre_completo(self.operador_usuario)
                 if self.operador_usuario else None
             ),
             "camion_nombre": (
@@ -83,13 +97,13 @@ class ViajeModel(db.Model):
             "Camion_id_camion": self.Camion_id_camion,
             "fecha_salida": self.fecha_salida.isoformat() if self.fecha_salida else None,
             "fecha_llegada": self.fecha_llegada.isoformat() if self.fecha_llegada else None,
-            "origen": self.origen,
-            "destino": self.destino,
+            "origen": self.origen_texto,
+            "destino": self.destino_texto,
             "origen_lat": self.origen_lat,
             "origen_lon": self.origen_lon,
             "destino_lat": self.destino_lat,
             "destino_lon": self.destino_lon,
             "estado": self.estado,
-            "observaciones": self.observaciones,
+            "observaciones": self.observaciones_texto,
             "recorrido": self.recorrido,
         }

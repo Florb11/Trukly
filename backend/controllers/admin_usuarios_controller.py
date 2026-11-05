@@ -1,3 +1,5 @@
+from utils.nombres_validacion import validar_nombres
+from utils.texto_personal import nombre_completo
 import secrets
 
 from flask import g, jsonify, request
@@ -13,6 +15,7 @@ from models.operador_model import OperadorModel
 from models.viaje_model import ViajeModel
 from models.reporte_model import ReporteModel
 from services.firebase_service import FirebaseAuthService, FirebaseConfigError
+from services.correo_service import ErrorCorreo, validar_disponibilidad
 
 from src.Chofer import Chofer
 from src.Usuario import Usuario
@@ -118,6 +121,7 @@ class AdminUsuariosController:
         return ValidadorCompuesto(
             [
                 CampoObligatorio("licencia"),
+                ValidacionFuncion("legajo", Chofer.validar_legajo),
                 CampoObligatorio("vencimientoLicencia"),
                 ValidacionFuncion(
                     "licencia",
@@ -717,8 +721,24 @@ class AdminUsuariosController:
     def modificar_usuario(id_usuario):
         admin = g.admin_actual
 
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict):
+            return jsonify({"mensaje": "Los datos del usuario no son válidos."}), 400
+        error_nombres = validar_nombres(cuerpo)
+        if error_nombres:
+            return jsonify({"mensaje": error_nombres}), 400
+        for campo, etiqueta in [("username", "El usuario"), ("nombre", "El nombre"), ("apellido", "El apellido")]:
+            if campo in cuerpo:
+                valor = cuerpo[campo]
+                if not isinstance(valor, str) or not valor.strip():
+                    return jsonify({"mensaje": f"{etiqueta} es obligatorio."}), 400
+                if len(InputSanitizer.texto(valor)) > 100:
+                    return jsonify({"mensaje": f"{etiqueta} es demasiado largo. Reducí el texto o los símbolos (máximo 100 caracteres almacenados)."}), 400
+        if "email" in cuerpo and not isinstance(cuerpo["email"], str):
+            return jsonify({"mensaje": "Ingresá un correo válido."}), 400
+
         datos = AdminUsuariosController._sanitizar_datos_usuario(
-            request.get_json(silent=True) or {}
+            cuerpo
         )
 
         if not datos:
@@ -748,6 +768,12 @@ class AdminUsuariosController:
 
         if usuario_db.firebase_uid and (nuevo_email or "").lower() != (usuario_db.email or "").lower():
             return jsonify({"mensaje": "El usuario debe cambiar su correo desde Perfil y verificar la dirección nueva."}), 409
+
+        if "email" in datos:
+            try:
+                nuevo_email = validar_disponibilidad(nuevo_email, usuario_db.id_usuario)
+            except ErrorCorreo as error:
+                return jsonify({"mensaje": str(error)}), error.codigo
 
         usuario_clase = AdminUsuariosController._crear_usuario_clase(
             admin,
@@ -836,6 +862,10 @@ class AdminUsuariosController:
     def registrar_usuario():
         admin = g.admin_actual
 
+        cuerpo = request.get_json(silent=True)
+        error_nombres = validar_nombres(cuerpo, obligatorios=True)
+        if error_nombres:
+            return jsonify({"mensaje": error_nombres}), 400
         datos = AdminUsuariosController._sanitizar_datos_usuario(
             request.get_json(silent=True) or {}
         )
@@ -881,7 +911,7 @@ class AdminUsuariosController:
                 "mensaje": "No se pudo registrar el usuario"
             }), 400
 
-        display_name = f"{usuario_clase.nombre} {usuario_clase.apellido}"
+        display_name = nombre_completo(usuario_clase)
 
         try:
             firebase_usuario = FirebaseAuthService.crear_o_obtener_usuario(
@@ -967,7 +997,7 @@ class AdminUsuariosController:
                 "mensaje": "El usuario no tiene email configurado"
             }), 400
 
-        display_name = f"{usuario_db.nombre} {usuario_db.apellido}"
+        display_name = nombre_completo(usuario_db)
 
         try:
             firebase_usuario = FirebaseAuthService.crear_o_obtener_usuario(

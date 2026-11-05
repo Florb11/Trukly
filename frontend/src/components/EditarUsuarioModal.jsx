@@ -37,6 +37,7 @@ function EditarUsuarioModal({
                         <input
                             type="text"
                             name="username"
+                            maxLength={100}
                             value={formEditar.username}
                             onChange={onChange}
                         />
@@ -47,6 +48,7 @@ function EditarUsuarioModal({
                         <input
                             type="email"
                             name="email"
+                            maxLength={150}
                             value={formEditar.email}
                             readOnly={Boolean(usuarioEditando.firebase_uid)}
                             onChange={onChange}
@@ -59,6 +61,9 @@ function EditarUsuarioModal({
                         <input
                             type="text"
                             name="nombre"
+                  pattern="[\p{L} ]+"
+                  title="Solo letras y espacios, incluidas tildes y ñ. Sin números ni símbolos."
+                            maxLength={100}
                             value={formEditar.nombre}
                             onChange={onChange}
                         />
@@ -69,6 +74,9 @@ function EditarUsuarioModal({
                         <input
                             type="text"
                             name="apellido"
+                  pattern="[\p{L} ]+"
+                  title="Solo letras y espacios, incluidas tildes y ñ. Sin números ni símbolos."
+                            maxLength={100}
                             value={formEditar.apellido}
                             onChange={onChange}
                         />
@@ -94,6 +102,7 @@ function EditarUsuarioModal({
                         <input
                             type="text"
                             name="legajo"
+                        maxLength={formEditar.rol === "chofer" ? 50 : undefined}
                             value={formEditar.legajo}
                             onChange={onChange}
                         />
@@ -106,6 +115,7 @@ function EditarUsuarioModal({
                                 <input
                                     type="text"
                                     name="licencia"
+                        maxLength={50}
                                     value={formEditar.licencia}
                                     onChange={onChange}
                                 />

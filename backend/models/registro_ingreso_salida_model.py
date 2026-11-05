@@ -1,4 +1,5 @@
 from db_instance import db
+from html import unescape
 
 
 class RegistroIngresoSalidaModel(db.Model):
@@ -16,11 +17,15 @@ class RegistroIngresoSalidaModel(db.Model):
         nullable=False
     )
 
+    @property
+    def observacion_texto(self):
+        return unescape(self.observacion) if self.observacion is not None else None
+
     def to_dict(self):
         return {
             "id_registro": self.id_registro,
             "fecha_hora": self.fecha_hora,
             "tipo_registro": self.tipo_registro,
-            "observacion": self.observacion,
+            "observacion": self.observacion_texto,
             "Viaje_id_viaje": self.Viaje_id_viaje
         }
