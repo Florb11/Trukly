@@ -373,3 +373,42 @@ class OperacionCompartidaTest(unittest.TestCase):
         self.assertEqual(respuesta.status_code, 409, respuesta.get_json())
         self.assertIn('licencia', respuesta.get_json()['mensaje'])
         self.assertEqual(ViajeModel.query.filter(ViajeModel.id_viaje > 50).count(), 0)
+
+    def test_ambas_rutas_rechazan_chofer_ocupado_sin_efectos(self):
+        from utils.fecha_operativa import hoy_operativo
+        token = create_access_token(identity='90', additional_claims={'rol':'operador'})
+        client = self.fixture.app.test_client()
+        datos = {'origen':'A', 'destino':'B', 'fecha_salida':hoy_operativo().isoformat(),
+                 'Chofer_Usuario_idUsuario':91, 'Camion_id_camion':1, 'recorrido':10}
+        for estado in ['pendiente', 'aceptado', 'en curso']:
+            db.session.get(ViajeModel, 50).estado = estado
+            db.session.commit()
+            for ruta in ['/api/operador/viajes', '/api/viaje']:
+                with self.subTest(estado=estado, ruta=ruta):
+                    respuesta = client.post(ruta, headers={'Authorization':'Bearer '+token}, json=datos)
+                    self.assertEqual(respuesta.status_code, 400, respuesta.get_json())
+                    self.assertIn('chofer ya tiene', respuesta.get_json()['mensaje'])
+                    self.assertEqual(ViajeModel.query.filter(ViajeModel.id_viaje>50).count(), 0)
+                    self.assertEqual(ViajeCambioModel.query.count(), 0)
+                    self.assertEqual(NotificacionModel.query.count(), 0)
+                    self.assertEqual(db.session.get(CamionModel, 1).estado, 'disponible')
+        self.enviar_push.assert_not_called()
+
+    def test_ruta_general_permite_chofer_con_viaje_cerrado(self):
+        from utils.fecha_operativa import hoy_operativo
+        token = create_access_token(identity='90', additional_claims={'rol':'operador'})
+        client = self.fixture.app.test_client()
+        for estado in ['finalizado', 'cancelado']:
+            with self.subTest(estado=estado):
+                db.session.get(ViajeModel, 50).estado = estado
+                db.session.commit()
+                respuesta = client.post('/api/viaje', headers={'Authorization':'Bearer '+token}, json={
+                    'origen':'A', 'destino':'B', 'fecha_salida':hoy_operativo().isoformat(),
+                    'Chofer_Usuario_idUsuario':91, 'Camion_id_camion':1, 'recorrido':10,
+                })
+                self.assertEqual(respuesta.status_code, 201, respuesta.get_json())
+                creado = db.session.get(ViajeModel, respuesta.get_json()['viaje']['id_viaje'])
+                self.assertEqual(creado.estado, 'pendiente')
+                creado.estado = 'finalizado'
+                db.session.get(CamionModel, 1).estado = 'disponible'
+                db.session.commit()

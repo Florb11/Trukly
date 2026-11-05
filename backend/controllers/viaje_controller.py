@@ -402,6 +402,17 @@ class ViajeController:
         if not licencia_vigente(db.session.get(ChoferModel, id_chofer)):
             return jsonify({"mensaje": MENSAJE_LICENCIA}), 409
 
+        viaje_chofer_activo = ViajeModel.query.filter(
+            ViajeModel.Chofer_Usuario_idUsuario == id_chofer,
+            ViajeModel.estado.in_((
+                Viaje.ESTADO_PENDIENTE,
+                Viaje.ESTADO_ACEPTADO,
+                Viaje.ESTADO_EN_CURSO,
+            )),
+        ).first()
+        if viaje_chofer_activo:
+            return jsonify({"mensaje": "El chofer ya tiene un viaje activo"}), 400
+
         if camion is None:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
 
