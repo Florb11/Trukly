@@ -120,3 +120,35 @@ class RegistrosPermisosTest(unittest.TestCase):
             db.session.get(ViajeModel,77).fecha_salida = date(2026,9,1)
             db.session.get(CamionModel,1).estado = 'disponible'
             db.session.commit()
+
+
+    def test_historial_normaliza_ambos_esquemas_por_viaje_sin_cambiar_horas(self):
+        from services.horas_viaje_service import tiempo_viaje
+        db.session.add(ViajeModel(id_viaje=78,OperadorLogistico_Usuario_idUsuario=2,Chofer_Usuario_idUsuario=1,Camion_id_camion=1,fecha_salida=date(2026,9,2),origen='E',destino='F',estado='finalizado',recorrido=10))
+        registro = db.session.get(RegistroIngresoSalidaModel,90)
+        registro.tipo_registro = ' SALIDA '
+        db.session.add_all([
+            RegistroIngresoSalidaModel(id_registro=92,Viaje_id_viaje=1,fecha_hora=datetime(2026,9,1,12),tipo_registro=' ENTRADA '),
+            RegistroIngresoSalidaModel(id_registro=93,Viaje_id_viaje=78,fecha_hora=datetime(2026,9,2,8),tipo_registro='ingreso'),
+            RegistroIngresoSalidaModel(id_registro=94,Viaje_id_viaje=78,fecha_hora=datetime(2026,9,2,10),tipo_registro='salida'),
+        ])
+        db.session.commit()
+        try:
+            token = create_access_token(identity='1',additional_claims={'rol':'chofer'})
+            r = self.client.get('/api/choferes/mis-registros',headers={'Authorization':'Bearer '+token})
+            self.assertEqual(r.status_code,200,r.get_json())
+            filas = r.get_json()
+            self.assertEqual([f['id_registro'] for f in filas],[94,93,92,90])
+            self.assertEqual({f['id_registro']:f['tipo_registro'] for f in filas},{90:'ingreso',92:'salida',93:'ingreso',94:'salida'})
+            self.assertEqual(sum(f['tipo_registro']=='ingreso' for f in filas),2)
+            self.assertEqual(sum(f['tipo_registro']=='salida' for f in filas),2)
+            self.assertEqual(tiempo_viaje(db.session.get(ViajeModel,1))['segundos_confirmados'],10800)
+            self.assertEqual(tiempo_viaje(db.session.get(ViajeModel,78))['segundos_confirmados'],7200)
+            self.assertEqual(db.session.get(RegistroIngresoSalidaModel,90).tipo_registro,' SALIDA ')
+            self.assertEqual(db.session.get(RegistroIngresoSalidaModel,92).tipo_registro,' ENTRADA ')
+        finally:
+            RegistroIngresoSalidaModel.query.filter(RegistroIngresoSalidaModel.id_registro.in_([92,93,94])).delete(synchronize_session=False)
+            db.session.get(RegistroIngresoSalidaModel,90).tipo_registro = 'ingreso'
+            ViajeModel.query.filter_by(id_viaje=78).delete()
+            db.session.commit()
+            db.session.remove()

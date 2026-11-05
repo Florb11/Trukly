@@ -1,6 +1,6 @@
 from services.carga_service import comprobar_capacidad, ErrorCarga
 from services.viaje_asignaciones_service import obtener_asignaciones
-from services.horas_viaje_service import horas_chofer, limites_mes
+from services.horas_viaje_service import horas_chofer, limites_mes, tipos_control
 from services.notificacion_service import NotificacionService
 from services.viaje_notificacion_service import notificar_aceptacion_operador
 import datetime
@@ -201,13 +201,15 @@ class ChoferController:
                 .all()
             )
 
+            controles_por_viaje = {}
+            for registro, viaje in resultados:
+                controles_por_viaje.setdefault(viaje.id_viaje, []).append(registro)
+            esquemas = {id_viaje: tipos_control(controles) for id_viaje, controles in controles_por_viaje.items()}
             registros = []
             for registro, viaje in resultados:
-                tipo_registro = (
-                    "ingreso"
-                    if registro.tipo_registro in {"entrada", "ingreso"}
-                    else registro.tipo_registro
-                )
+                inicio, regreso = esquemas[viaje.id_viaje]
+                tipo_original = registro.tipo_registro.strip().lower()
+                tipo_registro = "ingreso" if tipo_original == inicio else "salida" if tipo_original == regreso else tipo_original
                 registros.append({
                     "id_registro": registro.id_registro,
                     "fecha_hora": registro.fecha_hora.isoformat(),

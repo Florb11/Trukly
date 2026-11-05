@@ -27,14 +27,18 @@ def formato_duracion(segundos):
     return f"{minutos // 60} h {minutos % 60:02d} min"
 
 
-def tiempo_viaje(viaje, ahora=None):
-    ahora = ahora or datetime.now()
-    registros = list(viaje.registros_horarios)
+def tipos_control(registros):
     tipos = {r.tipo_registro.strip().lower() for r in registros}
     # El esquema histórico registra salida de empresa y entrada al regresar.
     # El QR actual usa ingreso al viaje y salida del viaje. No mezclar esquemas.
     historico = "entrada" in tipos and "ingreso" not in tipos
-    tipo_inicio, tipo_fin = ("salida", "entrada") if historico else ("ingreso", "salida")
+    return ("salida", "entrada") if historico else ("ingreso", "salida")
+
+
+def tiempo_viaje(viaje, ahora=None):
+    ahora = ahora or datetime.now()
+    registros = list(viaje.registros_horarios)
+    tipo_inicio, tipo_fin = tipos_control(registros)
     inicios = [r.fecha_hora for r in registros if r.tipo_registro.strip().lower() == tipo_inicio]
     finales = [r.fecha_hora for r in registros if r.tipo_registro.strip().lower() == tipo_fin]
     inicio = inicios[0] if len(inicios) == 1 else None
