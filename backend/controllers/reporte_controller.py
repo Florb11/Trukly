@@ -490,6 +490,8 @@ class ReporteController:
         reporte_db = ReporteModel.query.filter_by(id_reporte=id_reporte).populate_existing().with_for_update().first()
         if reporte_db is None:
             return jsonify({"mensaje": "Reporte no encontrado"}), 404
+        if reporte_db.estado in (ReporteFalla.ESTADO_CANCELADO, ReporteFalla.ESTADO_RESUELTO):
+            return jsonify({"mensaje": "El reporte está cerrado: no se puede cambiar un reporte cancelado o resuelto."}), 409
         cuerpo = request.get_json(silent=True)
         if not isinstance(cuerpo, dict):
             return jsonify({"mensaje": "Los datos del cambio de estado no son válidos"}), 400

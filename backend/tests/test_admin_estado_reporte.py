@@ -123,6 +123,35 @@ class AdminEstadoReporteTest(unittest.TestCase):
         self.assertEqual([m["id_usuario"] for m in respuesta.get_json()["mecanicos"]], [3])
         self.assertNotIn("password", respuesta.get_json()["mecanicos"][0])
 
+    def test_estados_cerrados_son_finales_para_admin_y_operador(self):
+        from models.camion_model import CamionModel
+        modelo = db.session.get(ReporteModel, 80)
+        for cerrado in ['cancelado', 'resuelto']:
+            for rol in ['admin', 'operador']:
+                for destino in ReporteFalla.ESTADOS_VALIDOS:
+                    with self.subTest(cerrado=cerrado, rol=rol, destino=destino):
+                        modelo.estado = cerrado
+                        modelo.Mecanico_Usuario_idUsuario = 3
+                        modelo.nota_reparacion = 'Nota original'
+                        modelo.motivo_cancelacion = 'Motivo original'
+                        db.session.commit()
+                        camion = db.session.get(CamionModel, 1)
+                        estado_camion = camion.estado
+                        dominio = ReporteController.crear_objeto_reporte(modelo)
+                        self.assertFalse(dominio.cambiar_estado(destino))
+                        with patch.object(ReporteController, 'notificar_reporte_asignado') as aviso:
+                            datos, codigo = self.cambiar({'estado':destino,
+                                'Mecanico_Usuario_idUsuario':3, 'motivo_cancelacion':'Otro motivo'}, rol)
+                        self.assertEqual(codigo, 409, datos)
+                        aviso.assert_not_called()
+                        db.session.refresh(modelo)
+                        self.assertEqual(modelo.estado, cerrado)
+                        self.assertEqual(modelo.nota_reparacion, 'Nota original')
+                        self.assertEqual(modelo.motivo_cancelacion, 'Motivo original')
+                        self.assertEqual(modelo.Mecanico_Usuario_idUsuario, 3)
+                        self.assertEqual(camion.estado, estado_camion)
+                        self.assertEqual(NotificacionModel.query.count(), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

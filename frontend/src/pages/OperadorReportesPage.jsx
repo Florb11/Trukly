@@ -142,7 +142,7 @@ function OperadorReportesPage() {
                         </button>
                         <button
                           type="button"
-                          className="op-btn-reporte op-btn-reporte--gestionar"
+                          className="op-btn-reporte op-btn-reporte--gestionar" disabled={["cancelado", "resuelto"].includes(reporte.estado)}
                           onClick={() => setReporteGestionar(reporte)}
                         >
                           Gestionar

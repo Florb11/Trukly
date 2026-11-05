@@ -211,6 +211,8 @@ class ReporteFalla:
 
     def cambiar_estado(self, nuevo_estado):
         # cambia el estado del reporte si es valido
+        if self.estado in (self.ESTADO_CANCELADO, self.ESTADO_RESUELTO):
+            return False
         nuevo_estado = self.normalizar_estado(nuevo_estado)
 
         if nuevo_estado not in self.ESTADOS_VALIDOS:
