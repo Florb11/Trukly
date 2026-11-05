@@ -235,7 +235,20 @@ class Viaje:
         return estado_limpio
 
     @staticmethod
+    def validar_observaciones(observaciones):
+        if observaciones is None:
+            return True, None
+        if not isinstance(observaciones, str):
+            return False, "Las observaciones deben ser un texto."
+        if len(observaciones) > 200:
+            return False, "Las observaciones son demasiado largas. Acortá el texto o reducí los símbolos (máximo 200 caracteres almacenados)."
+        return True, None
+
+    @staticmethod
     def validar_edicion(viaje, datos, hoy=None):
+        valido, mensaje = Viaje.validar_observaciones(datos.get("observaciones"))
+        if not valido:
+            return False, mensaje
         fechas = {campo: Viaje.convertir_fecha(getattr(viaje, campo)) for campo in ("fecha_salida", "fecha_llegada")}
         cambios_fecha = set()
         for campo in fechas:
@@ -293,6 +306,10 @@ class Viaje:
         if datos is None:
             return False, "Faltan datos del viaje"
 
+        valido, mensaje = Viaje.validar_observaciones(datos.get("observaciones"))
+        if not valido:
+            return False, mensaje
+
         fecha_salida = datos.get("fecha_salida")
         fecha_llegada = (
             datos.get("fecha_llegada")
@@ -335,6 +352,7 @@ class Viaje:
                 "destino": self.destino,
                 "estado": self.estado,
                 "recorrido": self.recorrido,
+                "observaciones": self.observaciones,
             }
         )
 

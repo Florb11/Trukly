@@ -998,3 +998,38 @@ class OperacionCompartidaTest(unittest.TestCase):
                     self.enviar_push.assert_not_called()
         finally:
             self.limpiar_reasignacion_mecanico(original)
+
+
+    def test_observaciones_largas_no_guardan_edicion_parcial(self):
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        client = self.fixture.app.test_client()
+        original = db.session.get(ViajeModel,50).to_dict()
+        for texto in ['A'*201, 'Entrega "confirmada" & recibida. '*6]:
+            r = client.put('/api/operador/viajes/50',headers={'Authorization':'Bearer '+token},json={'observaciones':texto,'origen':'No guardar','recorrido':99})
+            self.assertEqual(r.status_code,400,r.get_json())
+            self.assertIn('observaciones',r.get_json()['mensaje'])
+            db.session.remove()
+            viaje = db.session.get(ViajeModel,50)
+            self.assertEqual((viaje.estado,viaje.origen,viaje.recorrido,viaje.observaciones),(original['estado'],original['origen'],original['recorrido'],original['observaciones']))
+            self.assertEqual(ViajeCambioModel.query.filter_by(id_viaje=50).count(),0)
+            self.assertEqual(NotificacionModel.query.count(),0)
+            self.enviar_push.assert_not_called()
+
+    def test_observaciones_en_limite_y_vacias_permiten_editar(self):
+        from html import escape
+        token = create_access_token(identity='90',additional_claims={'rol':'operador'})
+        for texto in ['A'*200, "'"*33, '']:
+            r = self.fixture.app.test_client().put('/api/operador/viajes/50',headers={'Authorization':'Bearer '+token},json={'observaciones':texto})
+            self.assertEqual(r.status_code,200,r.get_json())
+            db.session.remove()
+            viaje = db.session.get(ViajeModel,50)
+            self.assertEqual(viaje.observaciones,escape(texto))
+            self.assertEqual(viaje.estado,'aceptado')
+
+    def test_creacion_comparte_limite_de_observaciones(self):
+        from src.Viaje import Viaje
+        from utils.input_sanitizer import InputSanitizer
+        datos = {'fecha_salida':date.today().isoformat(),'origen':'A','destino':'B','recorrido':10}
+        for texto, esperado in [('A'*200,True),('A'*201,False),("'"*34,False),('',True),(None,True)]:
+            valido, mensaje = Viaje.validar_datos_viaje({**datos,'observaciones':InputSanitizer.texto(texto)})
+            self.assertEqual(valido,esperado,mensaje)
