@@ -5,7 +5,7 @@ import "./HistorialViaje.css";
 const acciones = { viaje_creado: "Creó el viaje", viaje_editado: "Editó el viaje",
   viaje_cancelado: "Canceló el viaje", carga_agregada: "Agregó una carga",
   carga_editada: "Editó una carga", carga_eliminada: "Quitó una carga" };
-const campos = { origen: "Origen", destino: "Destino", fecha_salida: "Salida", fecha_llegada: "Llegada",
+const campos = { origen: "Origen", destino: "Destino", fecha_salida: "Salida", fecha_llegada: "Llegada estimada",
   estado: "Estado", recorrido: "Recorrido", observaciones: "Observaciones",
   Chofer_Usuario_idUsuario: "Chofer", Camion_id_camion: "Camión" };
 

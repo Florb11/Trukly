@@ -1,3 +1,4 @@
+import { regresoReal } from "../utils/regresoReal";
 import { useEffect, useState } from "react";
 import { FaClipboardList, FaCheckCircle, FaClock, FaRoute } from "react-icons/fa";
 import DetalleViajeModal from "../components/DetalleViajeModal";
@@ -139,7 +140,7 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
                   <th>Origen</th>
                   <th>Destino</th>
                   <th>Fecha salida</th>
-                  <th>Fecha llegada</th>
+                  <th>Llegada estimada</th><th>Regreso real (QR)</th>
                   <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
@@ -152,7 +153,7 @@ function ViajesTruckerPage({ title = "Panel del chofer" }) {
                       <td>{viaje.origen}</td>
                       <td>{viaje.destino}</td>
                       <td>{viaje.fecha_salida}</td>
-                      <td>{viaje.fecha_llegada || "-"}</td>
+                      <td>{viaje.fecha_llegada || "Sin estimación"}</td><td>{regresoReal(viaje)}</td>
                       <td>
                         <span
                           className={`chofer-badge chofer-badge--${estadoLower?.replace(" ", "-")}`}

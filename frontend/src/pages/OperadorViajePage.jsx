@@ -1,3 +1,4 @@
+import { regresoReal } from "../utils/regresoReal";
 import CargasViajeModal from "../components/CargasViajeModal";
 import { hoyOperativo } from "../utils/fechaOperativa";
 import { useState, useMemo, useEffect } from "react";
@@ -438,7 +439,7 @@ function OperadorViajesPage() {
                   <th>Destino</th>
                   <th>Creado por</th>
                   <th>Salida</th>
-                  <th>Llegada</th>
+                  <th>Llegada estimada</th><th>Regreso real (QR)</th>
                   <th>Recorrido</th>
                   <th>Estado</th>
                   <th>Acciones</th>
@@ -459,7 +460,7 @@ function OperadorViajesPage() {
                       <td data-label="Destino">{viaje.destino}</td>
                       <td data-label="Creado por">{viaje.operador_nombre || "Sin datos del creador"}</td>
                       <td data-label="Salida">{formatearFecha(viaje.fecha_salida)}</td>
-                      <td data-label="Llegada">{formatearFecha(viaje.fecha_llegada)}</td>
+                      <td data-label="Llegada estimada">{formatearFecha(viaje.fecha_llegada)}</td><td data-label="Regreso real (QR)">{regresoReal(viaje)}</td>
                       <td data-label="Recorrido">{viaje.recorrido} km</td>
                       <td data-label="Estado">
                         <span

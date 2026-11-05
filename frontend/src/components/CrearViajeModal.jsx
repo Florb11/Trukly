@@ -96,7 +96,7 @@ function CrearViajeModal({
             </div>
 
             <div className="viaje-modal__field">
-              <label htmlFor="fecha_llegada">Fecha de llegada</label>
+              <label htmlFor="fecha_llegada">Llegada estimada</label>
               <input
                 type="date"
                 id="fecha_llegada"

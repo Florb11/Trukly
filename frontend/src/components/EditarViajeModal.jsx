@@ -81,7 +81,7 @@ function EditarViajeModal({ viaje, onClose, onActualizado }) {
               <input type="date" name="fecha_salida" value={form.fecha_salida} onChange={handleChange} disabled={viaje.estado === "en curso"} />
             </div>
             <div className="editar-modal__field">
-              <label>Fecha de llegada</label>
+              <label>Llegada estimada</label>
               <input type="date" name="fecha_llegada" value={form.fecha_llegada} onChange={handleChange} min={form.fecha_salida} />
             </div>
           </div>

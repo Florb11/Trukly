@@ -277,8 +277,6 @@ class ChoferController:
         if tipo_registro == "ingreso":
             camion_carga.estado = Camion.ESTADO_EN_VIAJE
         if tipo_registro == "salida":
-            viaje_model.fecha_llegada = viaje_model.fecha_llegada or ahora.date()
-
             camion_model = CamionModel.query.get(viaje_model.Camion_id_camion)
             if camion_model and camion_model.estado == Camion.ESTADO_EN_VIAJE:
                 tiene_reportes_activos = ReporteModel.query.filter(

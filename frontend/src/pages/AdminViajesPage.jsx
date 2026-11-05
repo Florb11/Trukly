@@ -1,3 +1,4 @@
+import { regresoReal } from "../utils/regresoReal";
 import TiempoViajeDetalle from "../components/TiempoViajeDetalle";
 import ConfirmarAccionModal from "../components/ConfirmarAccionModal";
 import CargasViajeDetalle from "../components/CargasViajeDetalle";
@@ -280,7 +281,7 @@ function AdminViajesPage() {
                   <th>Origen</th>
                   <th>Destino</th>
                   <th>Salida</th>
-                  <th>Llegada</th>
+                  <th>Llegada estimada</th><th>Regreso real (QR)</th>
                   <th>Recorrido</th>
                   <th>Estado</th>
                   <th>Acciones</th>
@@ -296,9 +297,9 @@ function AdminViajesPage() {
                     <td data-label="Salida">
                       {formatearFecha(viaje.fecha_salida)}
                     </td>
-                    <td data-label="Llegada">
+                    <td data-label="Llegada estimada">
                       {formatearFecha(viaje.fecha_llegada)}
-                    </td>
+                    </td><td data-label="Regreso real (QR)">{regresoReal(viaje)}</td>
                     <td data-label="Recorrido">{viaje.recorrido} km</td>
                     <td data-label="Estado">
                       <span
@@ -369,9 +370,9 @@ function AdminViajesPage() {
               </div>
 
               <div>
-                <span>Fecha llegada</span>
+                <span>Llegada estimada</span>
                 <strong>{formatearFecha(viajeDetalle.fecha_llegada)}</strong>
-              </div>
+              </div><div><span>Regreso real (QR)</span><strong>{regresoReal(viajeDetalle)}</strong></div>
 
               <div>
                 <span>

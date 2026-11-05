@@ -1,3 +1,4 @@
+import { regresoReal } from "../utils/regresoReal";
 import TiempoViajeDetalle from "./TiempoViajeDetalle";
 import CargasViajeDetalle from "./CargasViajeDetalle";
 import { useEffect, useState } from "react";
@@ -85,16 +86,17 @@ function DetalleViajeModal({ viaje: viajeInicial, onClose }) {
               </div>
 
               <div>
-                <span>Fecha de Llegada</span>
+                <span>Llegada estimada</span>
                 <p>
                   {viaje.fecha_llegada
                     ? formatearFecha(viaje.fecha_llegada)
-                    : "Pendiente"}
+                    : "Sin estimación"}
                 </p>
               </div>
             </div>
           </div>
 
+          <div className="detalle-section"><h3>Regreso real (QR)</h3><p>{regresoReal(viaje)}</p></div>
           <div className="detalle-section">
             <h3>Asignaciones Logísticas</h3>
             {errorAsignaciones && <p role="alert" className="detalle-empty">{errorAsignaciones}</p>}

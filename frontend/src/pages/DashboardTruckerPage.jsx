@@ -1,3 +1,4 @@
+import { regresoReal } from "../utils/regresoReal";
 import { useEffect, useState } from "react";
 import {
   FaClipboardList,
@@ -203,7 +204,7 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
                       <th>Origen</th>
                       <th>Destino</th>
                       <th>Fecha salida</th>
-                      <th>Fecha llegada</th>
+                      <th>Llegada estimada</th><th>Regreso real (QR)</th>
                       <th>Estado</th>
                     </tr>
                   </thead>
@@ -213,7 +214,7 @@ function DashboardTruckerPage({ title = "Panel del chofer" }) {
                         <td>{viaje.origen}</td>
                         <td>{viaje.destino}</td>
                         <td>{viaje.fecha_salida}</td>
-                        <td>{viaje.fecha_llegada || "-"}</td>
+                        <td>{viaje.fecha_llegada || "Sin estimación"}</td><td>{regresoReal(viaje)}</td>
                         <td>
                           <span
                             className={`admin-badge admin-badge--${
