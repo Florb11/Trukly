@@ -7,6 +7,7 @@ from db_instance import db
 from models.usuario_model import UsuarioModel
 from models.administrador_model import AdministradorModel
 from models.chofer_model import ChoferModel
+from models.viaje_model import ViajeModel
 from src.Administrador import Administrador
 from src.Usuario import Usuario
 
@@ -26,6 +27,7 @@ class AdminPropiaCuentaTest(unittest.TestCase):
         cls.fixture.tearDownClass()
 
     def setUp(self):
+        db.session.get(ViajeModel, 2).estado = "en curso"
         db.session.add(UsuarioModel(id_usuario=100, username='admin_qa', email='admin@example.invalid',
             password='x', nombre='QA', apellido='Admin', estado='activo', rol='admin'))
         db.session.add(AdministradorModel(Usuario_idUsuario=100, legajo='A100'))
@@ -67,6 +69,8 @@ class AdminPropiaCuentaTest(unittest.TestCase):
         self.assertEqual(db.session.get(UsuarioModel, 100).estado, 'activo')
 
     def test_permite_desactivar_y_reactivar_otro_usuario(self):
+        db.session.get(ViajeModel, 2).estado = "finalizado"
+        db.session.commit()
         for estado in ['inactivo', 'activo']:
             r = self.cliente.put('/api/admin/usuarios/1', json={'estado':estado}, headers=self.headers)
             self.assertEqual(r.status_code, 200, r.get_json())
@@ -79,3 +83,35 @@ class AdminPropiaCuentaTest(unittest.TestCase):
         self.assertFalse(admin.modificar_usuario(usuario, 'qa', 'qa@example.invalid', 'Otro', 'Nombre', 'inactivo'))
         self.assertEqual(usuario.estado, 'activo')
         self.assertEqual(usuario.nombre, 'QA')
+
+    def test_viajes_activos_bloquean_desactivar_y_dejar_pendiente(self):
+        for viaje_estado in ['pendiente', 'aceptado', 'en curso']:
+            db.session.get(ViajeModel, 2).estado = viaje_estado
+            db.session.commit()
+            for ruta, datos in [('/api/admin/usuarios/1/desactivar', None),
+                                ('/api/admin/usuarios/1', {'estado':'inactivo', 'nombre':'No guardar'}),
+                                ('/api/admin/usuarios/1', {'estado':'pendiente', 'nombre':'No guardar'})]:
+                with self.subTest(viaje=viaje_estado, ruta=ruta, datos=datos):
+                    nombre = db.session.get(UsuarioModel, 1).nombre
+                    r = self.cliente.put(ruta, json=datos, headers=self.headers)
+                    self.assertEqual(r.status_code, 409, r.get_json())
+                    self.assertEqual(db.session.get(UsuarioModel, 1).estado, 'activo')
+                    self.assertEqual(db.session.get(UsuarioModel, 1).nombre, nombre)
+                    self.assertEqual(db.session.get(ViajeModel, 2).estado, viaje_estado)
+                    self.assertIn('regreso por QR' if viaje_estado=='en curso' else 'reasignalos', r.get_json()['mensaje'])
+
+    def test_boton_desactiva_con_viajes_cerrados(self):
+        for estado in ['finalizado', 'cancelado']:
+            db.session.get(ViajeModel, 2).estado = estado
+            db.session.get(UsuarioModel, 1).estado = 'activo'
+            db.session.commit()
+            r = self.cliente.put('/api/admin/usuarios/1/desactivar', headers=self.headers)
+            self.assertEqual(r.status_code, 200, r.get_json())
+            self.assertEqual(db.session.get(UsuarioModel, 1).estado, 'inactivo')
+
+    def test_editar_datos_personales_de_chofer_en_viaje_sigue_permitido(self):
+        r = self.cliente.put('/api/admin/usuarios/1', headers=self.headers,
+                             json={'nombre':'Actualizado', 'estado':'activo'})
+        self.assertEqual(r.status_code, 200, r.get_json())
+        self.assertEqual(db.session.get(UsuarioModel, 1).estado, 'activo')
+        self.assertEqual(db.session.get(ViajeModel, 2).estado, 'en curso')
