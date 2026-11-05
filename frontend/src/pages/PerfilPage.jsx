@@ -421,6 +421,7 @@ function PerfilPage() {
                   <input
                     type="text"
                   name="nombre"
+                  maxLength={100}
                   value={formPerfil.nombre}
                   onChange={handlePerfilChange}
                   required
@@ -432,6 +433,7 @@ function PerfilPage() {
                   <input
                     type="text"
                   name="apellido"
+                  maxLength={100}
                   value={formPerfil.apellido}
                   onChange={handlePerfilChange}
                   required
@@ -444,6 +446,7 @@ function PerfilPage() {
                 <input
                   type="email"
                   name="email"
+                  maxLength={150}
                   value={formPerfil.email}
                   readOnly={Boolean(perfil.firebase_uid)}
                   onChange={handlePerfilChange}

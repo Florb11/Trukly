@@ -221,8 +221,21 @@ class PerfilController:
         # modifica nombre, apellido y email del usuario logueado
         usuario_db = PerfilController._obtener_usuario_actual()
 
+        cuerpo = request.get_json(silent=True)
+        if not isinstance(cuerpo, dict):
+            return jsonify({"mensaje": "Los datos del perfil no son válidos."}), 400
+        for campo, etiqueta in [("nombre", "El nombre"), ("apellido", "El apellido")]:
+            if campo in cuerpo:
+                valor = cuerpo[campo]
+                if not isinstance(valor, str) or not valor.strip():
+                    return jsonify({"mensaje": f"{etiqueta} es obligatorio."}), 400
+                if len(InputSanitizer.texto(valor)) > 100:
+                    return jsonify({"mensaje": f"{etiqueta} es demasiado largo. Reducí el texto o los símbolos (máximo 100 caracteres almacenados)."}), 400
+        if "email" in cuerpo and not isinstance(cuerpo["email"], str):
+            return jsonify({"mensaje": "Ingresá un correo válido."}), 400
+
         datos = InputSanitizer.sanitizar_campos(
-            request.get_json(silent=True) or {},
+            cuerpo,
             campos_texto=[
                 "nombre",
                 "apellido",
@@ -255,6 +268,12 @@ class PerfilController:
 
         if usuario_db.firebase_uid and (nuevo_email or "").lower() != (usuario_db.email or "").lower():
             return jsonify({"mensaje": "Usá Cambiar correo y verificá la dirección nueva antes de actualizarla."}), 409
+
+        if "email" in datos:
+            try:
+                nuevo_email = validar_disponibilidad(nuevo_email, usuario_db.id_usuario)
+            except ErrorCorreo as error:
+                return jsonify({"mensaje": str(error)}), error.codigo
 
         email_existente = UsuarioModel.query.filter_by(
             email=nuevo_email
