@@ -1,6 +1,8 @@
 from services.carga_service import comprobar_capacidad, ErrorCarga
 from services.viaje_asignaciones_service import obtener_asignaciones
 from services.horas_viaje_service import horas_chofer, limites_mes
+from services.notificacion_service import NotificacionService
+from services.viaje_notificacion_service import notificar_aceptacion_operador
 import datetime
 
 from flask import g, jsonify, request
@@ -380,7 +382,7 @@ class ChoferController:
     def iniciar_viaje(id_viaje):
         chofer = g.chofer_actual
 
-        viaje_model = ViajeModel.query.filter_by(id_viaje=id_viaje, Chofer_Usuario_idUsuario=chofer.id_usuario).with_for_update().first()
+        viaje_model = ViajeModel.query.filter_by(id_viaje=id_viaje, Chofer_Usuario_idUsuario=chofer.id_usuario).populate_existing().with_for_update().first()
         if viaje_model is None:
             return jsonify({"mensaje": "Viaje no encontrado"}), 404
 
@@ -398,7 +400,9 @@ class ChoferController:
         viaje_model.estado = viaje.estado
 
         try:
+            notificar_aceptacion_operador(viaje_model)
             db.session.commit()
+            NotificacionService.enviar_push_pendientes()
             return jsonify({"mensaje": "Viaje aceptado correctamente", "viaje": viaje_model.to_dict()}), 200
         except Exception:
             db.session.rollback()

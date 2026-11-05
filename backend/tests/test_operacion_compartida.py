@@ -833,3 +833,70 @@ class OperacionCompartidaTest(unittest.TestCase):
         self.assertEqual(r.status_code, 200, r.get_json())
         self.assertEqual(r.get_json()['resumen']['viajes_aceptados'], 0)
         self.assertEqual(r.get_json()['resumen']['total_viajes'], 0)
+
+    def aceptar_como_chofer(self, identidad='91', accion='aceptar'):
+        token = create_access_token(identity=identidad, additional_claims={'rol':'chofer'})
+        return self.fixture.app.test_client().put('/api/choferes/viajes/50/'+accion,
+            headers={'Authorization':'Bearer '+token})
+
+    def test_aceptacion_avisa_solo_al_operador_creador_sin_iniciar_horas(self):
+        from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
+        for accion in ['aceptar', 'iniciar']:
+            NotificacionModel.query.delete()
+            viaje = db.session.get(ViajeModel, 50)
+            viaje.estado = 'pendiente'
+            db.session.commit()
+            eventos = []
+            commit = db.session.commit
+            def guardar():
+                commit()
+                eventos.append('commit')
+            self.enviar_push.reset_mock()
+            self.enviar_push.side_effect = lambda: eventos.append('push')
+            with patch.object(db.session, 'commit', side_effect=guardar):
+                r = self.aceptar_como_chofer(accion=accion)
+            self.assertEqual(r.status_code, 200, r.get_json())
+            self.assertEqual(eventos, ['commit', 'push'])
+            self.assertEqual(viaje.estado, 'aceptado')
+            aviso = NotificacionModel.query.one()
+            self.assertEqual(aviso.Usuario_idUsuario, 2)
+            self.assertEqual(aviso.tipo, 'viaje_aceptado')
+            self.assertIn('Segundo Chofer', aviso.mensaje)
+            self.assertIn('#50', aviso.mensaje)
+            self.assertIn('pendiente de salida', aviso.mensaje)
+            self.assertFalse(aviso.leida)
+            self.assertEqual(RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=50).count(), 0)
+            self.assertIsNone(r.get_json()['viaje']['tiempo_viaje']['segundos_confirmados'])
+            self.assertEqual(self.aceptar_como_chofer(accion=accion).status_code, 400)
+            self.assertEqual(NotificacionModel.query.count(), 1)
+            self.enviar_push.assert_called_once()
+
+    def test_aceptacion_fallida_no_guarda_estado_ni_aviso(self):
+        viaje = db.session.get(ViajeModel, 50)
+        viaje.estado = 'pendiente'
+        db.session.commit()
+        with patch.object(db.session, 'commit', side_effect=RuntimeError('Prueba')), patch('controllers.chofer_controller.logger'):
+            r = self.aceptar_como_chofer()
+        self.assertEqual(r.status_code, 500, r.get_json())
+        self.assertEqual(viaje.estado, 'pendiente')
+        self.assertEqual(NotificacionModel.query.count(), 0)
+        self.enviar_push.assert_not_called()
+
+    def test_otro_chofer_no_acepta_ni_genera_aviso(self):
+        db.session.get(UsuarioModel, 1).estado = 'activo'
+        db.session.get(ViajeModel, 50).estado = 'pendiente'
+        db.session.commit()
+        r = self.aceptar_como_chofer('1')
+        self.assertEqual(r.status_code, 404, r.get_json())
+        self.assertEqual(db.session.get(ViajeModel, 50).estado, 'pendiente')
+        self.assertEqual(NotificacionModel.query.count(), 0)
+        self.enviar_push.assert_not_called()
+
+    def test_nueva_aceptacion_por_cambio_importante_genera_otro_aviso(self):
+        db.session.get(ViajeModel, 50).estado = 'pendiente'
+        db.session.commit()
+        self.assertEqual(self.aceptar_como_chofer().status_code, 200)
+        self.assertEqual(self.editar({'destino':'Nuevo destino'})[1], 200)
+        self.assertEqual(self.aceptar_como_chofer().status_code, 200)
+        self.assertEqual(NotificacionModel.query.filter_by(Usuario_idUsuario=2, tipo='viaje_aceptado').count(), 2)
+        self.assertEqual(NotificacionModel.query.filter_by(Usuario_idUsuario=90).count(), 0)
