@@ -168,3 +168,6 @@
     grid-template-columns: 1fr;
   }
 }
+
+.editar-modal__nota { color: var(--ui-muted, #657186); font-size: 13px; line-height: 1.6; }
+.editar-modal__field input:disabled { opacity: .7; cursor: not-allowed; }
