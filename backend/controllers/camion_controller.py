@@ -47,9 +47,14 @@ class CamionController:
                 "modelo",
                 "estado",
             ],
-            campos_enteros=["nroTanque"],
-            campos_decimales=["capacidad_carga"],
         )
+
+        for campo, convertir in [("nroTanque", Camion.convertir_numero_tanque),
+                                  ("capacidad_carga", Camion.convertir_capacidad)]:
+            if campo in datos_limpios:
+                numero = convertir(datos_limpios[campo])
+                if numero is not None:
+                    datos_limpios[campo] = numero
 
         if datos_limpios.get("estado") is not None:
             datos_limpios["estado"] = str(

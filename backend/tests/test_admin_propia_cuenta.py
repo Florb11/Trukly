@@ -203,3 +203,60 @@ class AdminPropiaCuentaTest(unittest.TestCase):
         self.assertEqual(r.status_code, 200, r.get_json())
         self.assertEqual(db.session.get(UsuarioModel, 3).estado, 'activo')
         self.assertEqual(db.session.get(ReporteModel, 2).estado, 'en revision')
+
+    def test_camion_rechaza_capacidad_invalida_al_crear_y_editar_sin_cambios(self):
+        camion = db.session.get(CamionModel, 1)
+        original = (camion.capacidad_carga, camion.marca)
+        for valor in ['Infinity', '-Infinity', 'NaN', True, False, 0, -1, 'abc', [], {}, 10**400]:
+            for metodo, ruta in [('POST','/api/admin/camiones'), ('PUT','/api/admin/camiones/1')]:
+                with self.subTest(valor=str(valor)[:30], metodo=metodo):
+                    datos = {'matricula':'QA-CAP', 'marca':'No guardar', 'modelo':'QA',
+                             'estado':'disponible', 'nroTanque':2, 'capacidad_carga':valor}
+                    if metodo=='PUT':
+                        datos = {'marca':'No guardar', 'capacidad_carga':valor}
+                    r = self.cliente.open(ruta, method=metodo, headers=self.headers, json=datos)
+                    self.assertEqual(r.status_code, 400, r.get_json())
+                    db.session.refresh(camion)
+                    self.assertEqual((camion.capacidad_carga, camion.marca), original)
+                    self.assertIsNone(CamionModel.query.filter_by(matricula='QA-CAP').first())
+
+    def test_camion_rechaza_tanque_decimal_booleano_o_fuera_de_rango(self):
+        camion = db.session.get(CamionModel, 1)
+        original = (camion.nroTanque, camion.marca)
+        for valor in [1.9, '1.9', True, False, 0, -1, 'Infinity', 'NaN', '9'*5000, 2147483648, [], {}]:
+            for metodo, ruta in [('POST','/api/admin/camiones'), ('PUT','/api/admin/camiones/1')]:
+                with self.subTest(valor=str(valor)[:30], metodo=metodo):
+                    datos = {'matricula':'QA-TAN', 'marca':'No guardar', 'modelo':'QA',
+                             'estado':'disponible', 'nroTanque':valor, 'capacidad_carga':1000}
+                    if metodo=='PUT':
+                        datos = {'marca':'No guardar', 'nroTanque':valor}
+                    r = self.cliente.open(ruta, method=metodo, headers=self.headers, json=datos)
+                    self.assertEqual(r.status_code, 400, r.get_json())
+                    db.session.refresh(camion)
+                    self.assertEqual((camion.nroTanque, camion.marca), original)
+                    self.assertIsNone(CamionModel.query.filter_by(matricula='QA-TAN').first())
+
+    def test_camion_acepta_capacidad_decimal_y_tanque_entero_valido(self):
+        for tanque in [1, ' 2 ', 3.0, 2147483647]:
+            r = self.cliente.post('/api/admin/camiones', headers=self.headers, json={
+                'matricula':'QA-VALIDO', 'marca':'Marca', 'modelo':'QA',
+                'estado':'disponible', 'nroTanque':tanque, 'capacidad_carga':'2500.125'})
+            self.assertEqual(r.status_code, 201, r.get_json())
+            camion = CamionModel.query.filter_by(matricula='QA-VALIDO').one()
+            self.assertEqual(camion.nroTanque, int(tanque))
+            self.assertEqual(camion.capacidad_carga, 2500.125)
+            r = self.cliente.put('/api/admin/camiones/'+str(camion.id_camion), headers=self.headers,
+                                  json={'capacidad_carga':'3000.5', 'nroTanque':'4'})
+            self.assertEqual(r.status_code, 200, r.get_json())
+            self.assertEqual(camion.capacidad_carga, 3000.5)
+            self.assertEqual(camion.nroTanque, 4)
+            db.session.delete(camion)
+            db.session.commit()
+
+    def test_dominio_camion_rechaza_numeros_invalidos_sin_sanitizador(self):
+        from src.Camion import Camion
+        datos = {'matricula':'QA', 'marca':'Marca', 'modelo':'Modelo', 'estado':'disponible',
+                 'capacidad_carga':1000, 'nroTanque':1}
+        for campo, valor in [('capacidad_carga', float('nan')), ('capacidad_carga', float('inf')),
+                             ('capacidad_carga', True), ('nroTanque', 1.9), ('nroTanque', True)]:
+            self.assertFalse(Camion.validar_datos_camion({**datos, campo:valor})[0])

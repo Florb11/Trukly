@@ -1,3 +1,6 @@
+import math
+
+
 class Camion:
     ESTADO_DISPONIBLE = "disponible"
     ESTADO_EN_VIAJE = "en viaje"
@@ -58,6 +61,33 @@ class Camion:
         return camion
 
     @staticmethod
+    def convertir_capacidad(valor):
+        if valor is None or isinstance(valor, bool):
+            return None
+        try:
+            capacidad = float(valor)
+        except (TypeError, ValueError, OverflowError):
+            return None
+        return capacidad if math.isfinite(capacidad) and capacidad > 0 else None
+
+    @staticmethod
+    def convertir_numero_tanque(valor):
+        if isinstance(valor, bool):
+            return None
+        if isinstance(valor, str):
+            texto = valor.strip()
+            if not texto.isascii() or not texto.isdigit() or len(texto) > 10:
+                return None
+            valor = int(texto)
+        elif isinstance(valor, float):
+            if not math.isfinite(valor) or not valor.is_integer():
+                return None
+            valor = int(valor)
+        if not isinstance(valor, int) or not 1 <= valor <= 2147483647:
+            return None
+        return valor
+
+    @staticmethod
     def validar_datos_camion(datos):
         # valida datos antes de crear o modificar
         if datos is None:
@@ -82,8 +112,8 @@ class Camion:
         if capacidad_carga is None:
             return False, "La capacidad de carga es obligatoria"
 
-        if capacidad_carga <= 0:
-            return False, "La capacidad de carga debe ser mayor a 0"
+        if Camion.convertir_capacidad(capacidad_carga) is None:
+            return False, "La capacidad de carga debe ser un número finito mayor a 0"
 
         if not Camion._texto_valido(estado):
             return False, "El estado es obligatorio"
@@ -94,8 +124,8 @@ class Camion:
         if nro_tanque is None:
             return False, "El numero de tanque es obligatorio"
 
-        if nro_tanque <= 0:
-            return False, "El numero de tanque debe ser mayor a 0"
+        if Camion.convertir_numero_tanque(nro_tanque) is None:
+            return False, "El número de tanque debe ser un entero entre 1 y 2147483647"
 
         return True, None
 
