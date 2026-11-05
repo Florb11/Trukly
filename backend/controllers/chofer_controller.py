@@ -15,6 +15,7 @@ from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
 from models.camion_model import CamionModel
 from models.chofer_model import ChoferModel
 from services.licencia_service import licencia_vigente, MENSAJE_LICENCIA
+from utils.fecha_operativa import hoy_operativo
 from utils.input_sanitizer import InputSanitizer
 from utils.auth_decorators import chofer_required
 from models.viaje_model import ViajeModel
@@ -222,6 +223,13 @@ class ChoferController:
             }), 400
 
         if tipo_registro == "ingreso":
+            if viaje_model.fecha_salida is None:
+                return jsonify({"mensaje": "El viaje no tiene fecha de salida. Contactá al operador."}), 409
+            if viaje_model.fecha_salida > hoy_operativo():
+                return jsonify({
+                    "mensaje": "La salida por QR se habilita el "
+                    f"{viaje_model.fecha_salida.strftime('%d/%m/%Y')} a las 00:00 (hora de Argentina)."
+                }), 409
             if not licencia_vigente(chofer_model):
                 return jsonify({"mensaje": MENSAJE_LICENCIA}), 409
             otro_en_curso = ViajeModel.query.filter(
