@@ -1,4 +1,5 @@
 import "./EditarUsuarioModal.css"
+import { useAuth } from "../context/AuthContext";
 
 function EditarUsuarioModal({
     usuarioEditando,
@@ -8,6 +9,8 @@ function EditarUsuarioModal({
     onSubmit,
     onClose,
 }) {
+    const { usuario } = useAuth();
+    const propiaCuenta = String(usuario?.id_usuario) === String(usuarioEditando.id_usuario);
     return (
         <div className="usuarios-modal-backdrop">
             <div className="usuarios-modal">
@@ -74,12 +77,14 @@ function EditarUsuarioModal({
                         <select
                             name="estado"
                             value={formEditar.estado}
+                            disabled={propiaCuenta}
                             onChange={onChange}
                         >
                             <option value="pendiente">Pendiente</option>
                             <option value="activo">Activo</option>
                             <option value="inactivo">Inactivo</option>
                         </select>
+                        {propiaCuenta && <small>Tu propia cuenta debe permanecer activa.</small>}
                     </label>
 
                     <label>
