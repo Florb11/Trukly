@@ -146,3 +146,22 @@ class CancelacionViajeNotificacionesTest(unittest.TestCase):
         self.assertFalse(viaje.cancelar('A'*182))
         self.assertEqual(viaje.estado,'aceptado')
         self.assertEqual(viaje.observaciones,'Observación original')
+
+
+    def test_admin_y_chofer_reciben_motivo_legible_sin_doble_decodificacion(self):
+        from html import escape
+        for rol in ['admin','operador']:
+            for motivo in ['Cambio de "plan" & fecha', "Aviso de D'Amico", 'Texto literal &quot; conservado', '<carga> reprogramada']:
+                with self.subTest(rol=rol,motivo=motivo):
+                    self.preparar()
+                    r = self.cancelar(rol,motivo)
+                    self.assertEqual(r.status_code,200,r.get_json())
+                    db.session.remove()
+                    for uid in [1,100]:
+                        aviso = NotificacionModel.query.filter_by(Usuario_idUsuario=uid).one()
+                        self.assertIn('Motivo: '+motivo,aviso.mensaje)
+                    self.assertEqual(db.session.get(ViajeModel,2).observaciones,'Cancelado. Motivo: '+escape(motivo))
+                    self.assertEqual(NotificacionModel.query.count(),2)
+                    self.push.assert_called_once()
+                    self.assertEqual(self.cancelar(rol,motivo).status_code,400)
+                    self.assertEqual(NotificacionModel.query.count(),2)
