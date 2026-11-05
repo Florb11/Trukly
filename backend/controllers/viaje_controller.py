@@ -9,6 +9,7 @@ from models.operador_model import OperadorModel
 from models.usuario_model import UsuarioModel
 from models.viaje_model import ViajeModel
 from services.notificacion_service import NotificacionService
+from services.viaje_cambios_service import snapshot, registrar
 
 from src.Camion import Camion
 from src.Chofer import Chofer
@@ -255,9 +256,7 @@ class ViajeController:
             ).all()
 
         if rol == Usuario.ROL_OPERADOR:
-            return ViajeModel.query.filter_by(
-                OperadorLogistico_Usuario_idUsuario=id_usuario
-            ).all()
+            return ViajeModel.query.all()
 
         return None
 
@@ -426,6 +425,7 @@ class ViajeController:
         try:
             db.session.add(nuevo_viaje)
             db.session.flush()
+            registrar(nuevo_viaje, id_usuario, "viaje_creado")
             NotificacionService.crear(
                 id_chofer,
                 "Nuevo viaje asignado",
@@ -490,6 +490,7 @@ class ViajeController:
             return jsonify({"mensaje": "Viaje no encontrado"}), 404
 
         viaje = ViajeController.crear_objeto_viaje(viaje_model)
+        antes = snapshot(viaje_model)
 
         if not viaje.cancelar(motivo):
             return jsonify({
@@ -499,6 +500,7 @@ class ViajeController:
         ViajeController.actualizar_modelo_viaje(viaje_model, viaje)
 
         try:
+            registrar(viaje_model, ViajeController.obtener_id_usuario_actual(), "viaje_cancelado", antes, {"motivo": motivo})
             actualizar_camion_tras_cancelacion(viaje_model)
             AdminNotificacionService.viaje_cancelado(viaje_model, motivo)
             db.session.commit()

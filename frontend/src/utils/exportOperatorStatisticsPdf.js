@@ -27,6 +27,7 @@ export const exportarEstadisticasOperadorPdf = async (estadisticas, mes) => {
   const nombreMes = new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric" }).format(new Date(anio, numeroMes - 1, 1));
   const resumen = estadisticas.resumen || {};
   const contenido = [
+    { text: estadisticas.alcance === "todos" ? "Toda la operación" : "Viajes creados por el operador", style: "vacio" },
     { text: "Trukly", style: "marca" },
     { text: `Informe del operador · ${nombreMes}`, style: "titulo" },
     { text: `Generado el ${new Date().toLocaleString("es-AR")}`, style: "fecha" },

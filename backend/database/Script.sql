@@ -194,6 +194,20 @@ CREATE TABLE `notificacion` (
     FOREIGN KEY (`Usuario_idUsuario`) REFERENCES `usuario` (`id_usuario`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE `viajecambio` (
+  `id_cambio` INT NOT NULL AUTO_INCREMENT,
+  `id_viaje` INT NOT NULL,
+  `id_usuario` INT NOT NULL,
+  `actor_nombre` VARCHAR(201) NOT NULL,
+  `accion` VARCHAR(45) NOT NULL,
+  `fecha_hora` DATETIME NOT NULL,
+  `datos` JSON NOT NULL,
+  PRIMARY KEY (`id_cambio`),
+  KEY `ix_viajecambio_id_viaje` (`id_viaje`),
+  FOREIGN KEY (`id_viaje`) REFERENCES `viaje` (`id_viaje`),
+  FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 INSERT INTO `usuario` (`id_usuario`, `username`, `email`, `password`, `nombre`, `apellido`, `estado`, `rol`) VALUES
 (1,  'admin1',    'admin1@trukly.com',    '$2b$12$cxSgvwGZo8hq4taHO7vakOZDz3OsvCczKXmb65kjxwUD/qA1BWn5.', 'Admin',    'Admin',  'activo', 'admin'),
 (17, 'chofer1',   'chofer1@trukly.com',   '$2b$12$ZsRkAnC7woC545bO83W81uOCoBBeibc3152U2EJbFNbZc8QeYFaE6', 'Matias',   'Perez',  'activo', 'chofer'),

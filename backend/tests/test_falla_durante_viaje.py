@@ -7,6 +7,8 @@ from flask import g
 
 from controllers.chofer_controller import ChoferController
 from controllers.reporte_controller import ReporteController
+from controllers.mecanico_controller import MecanicoController
+from src.Mecanico import Mecanico
 from db_instance import db
 from models.camion_model import CamionModel
 from models.reporte_model import ReporteModel
@@ -74,6 +76,55 @@ class FallaDuranteViajeTest(unittest.TestCase):
             g.chofer_actual = SimpleNamespace(id_usuario=1)
             respuesta, codigo = ChoferController.registrar_ingreso_salida.__wrapped__(2)
             self.assertEqual(codigo, 201, respuesta.get_json())
+
+    def asignar_desde_operador(self, id_reporte):
+        with self.fixture.app.test_request_context('/', method='PUT', json={'Mecanico_Usuario_idUsuario': 3}), patch.object(
+            ReporteController, 'notificar_reporte_asignado'
+        ), patch('controllers.reporte_controller.NotificacionService.enviar_push_pendientes'):
+            respuesta, codigo = ReporteController.asignar_mecanico.__wrapped__(id_reporte)
+            self.assertEqual(codigo, 200, respuesta.get_json())
+
+    def resolver_desde_mecanico(self, id_reporte):
+        mecanico = Mecanico.crear_desde_datos({'id_usuario': 3, 'username': 'qa',
+            'email': 'qa@example.invalid', 'password': 'x', 'nombre': 'QA', 'apellido': 'Temporal',
+            'estado': 'activo', 'rol': 'mecanico', 'legajo': 'M1', 'especialidad': 'Motor'})
+        with self.fixture.app.test_request_context('/', method='PUT', json={'nota_reparacion': 'Trabajo realizado'}), patch.object(
+            MecanicoController, 'notificar_reporte_resuelto'
+        ), patch('controllers.mecanico_controller.NotificacionService.enviar_push_pendientes'):
+            g.mecanico_actual = mecanico
+            respuesta, codigo = MecanicoController.resolver_reporte.__wrapped__(id_reporte)
+            self.assertEqual(codigo, 200, respuesta.get_json())
+
+    def test_operador_asigna_y_mecanico_resuelve_antes_del_regreso(self):
+        id_reporte = self.crear_reporte()
+        self.asignar_desde_operador(id_reporte)
+        self.assertEqual(db.session.get(CamionModel, 1).estado, 'en viaje')
+        self.resolver_desde_mecanico(id_reporte)
+        self.assertEqual(db.session.get(CamionModel, 1).estado, 'en viaje')
+        self.assertEqual(db.session.get(ViajeModel, 2).estado, 'en curso')
+        self.regreso()
+        self.assertEqual(db.session.get(CamionModel, 1).estado, 'disponible')
+
+    def test_regreso_en_revision_y_reparacion_posterior(self):
+        id_reporte = self.crear_reporte()
+        self.asignar_desde_operador(id_reporte)
+        self.regreso()
+        self.assertEqual(db.session.get(CamionModel, 1).estado, 'en mantenimiento')
+        self.resolver_desde_mecanico(id_reporte)
+        self.assertEqual(db.session.get(CamionModel, 1).estado, 'disponible')
+        self.assertEqual(db.session.get(ViajeModel, 2).estado, 'finalizado')
+
+    def test_dos_fallas_requieren_cerrar_ambas_para_liberar_camion(self):
+        primera = self.crear_reporte()
+        segunda = self.crear_reporte()
+        self.asignar_desde_operador(primera)
+        self.asignar_desde_operador(segunda)
+        self.resolver_desde_mecanico(primera)
+        self.assertEqual(db.session.get(CamionModel, 1).estado, 'en viaje')
+        self.regreso()
+        self.assertEqual(db.session.get(CamionModel, 1).estado, 'en mantenimiento')
+        self.resolver_desde_mecanico(segunda)
+        self.assertEqual(db.session.get(CamionModel, 1).estado, 'disponible')
 
     def test_reportar_y_asignar_mecanico_conserva_en_viaje(self):
         id_reporte = self.crear_reporte()

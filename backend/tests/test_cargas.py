@@ -122,8 +122,8 @@ class CargasApiTest(unittest.TestCase):
                 self.assertEqual(r["cargas"][0]["remito"], "R-1")
 
     def test_detalle_no_expone_cargas_de_viajes_ajenos(self):
-        for rol in ["operador", "chofer"]:
-            self.assertEqual(self.consultar(rol, 999)[1], 404)
+        self.assertEqual(self.consultar("chofer", 999)[1], 404)
+        self.assertEqual(self.consultar("operador", 999)[1], 200)
         self.assertEqual(self.consultar("mecanico", 3)[1], 403)
 
     def test_detalle_vacio_y_finalizado(self):
@@ -174,9 +174,8 @@ class CargasApiTest(unittest.TestCase):
         self.assertEqual(self.pedir("PUT", datos("1000.001"), id_carga)[1], 409)
         self.assertEqual(self.pedir()[0]["peso_total_kg"], 500)
 
-    def test_aislamiento_entre_operadores_y_viajes(self):
-        self.assertEqual(self.pedir("POST", datos(), operador=999)[1], 404)
-        self.assertEqual(self.pedir(operador=999)[1], 404)
+    def test_consulta_compartida_y_cargas_inexistentes(self):
+        self.assertEqual(self.pedir(operador=999)[1], 200)
         self.assertEqual(self.pedir("PUT", datos(), carga=999)[1], 404)
         self.assertEqual(self.pedir("DELETE", carga=999)[1], 404)
 

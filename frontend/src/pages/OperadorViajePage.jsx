@@ -17,6 +17,7 @@ import { fetchConToken } from "../utils/fetchConToken";
 import EditarViajeModal from "../components/EditarViajeModal";
 import CancelarViajeModal from "../components/CancelarViajeModal";
 import { getTruckRoute, hasGeoapifyKey, reversePlace } from "../utils/geoapify";
+import { useAuth } from "../context/AuthContext";
 
 const camposVaciosCrear = {
   origen: "",
@@ -45,6 +46,8 @@ function formatearFecha(fecha) {
 }
 
 function OperadorViajesPage() {
+  const { usuario } = useAuth();
+  const [alcance, setAlcance] = useState("todos");
   const [viajes, setViajes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todos");
@@ -70,7 +73,8 @@ function OperadorViajesPage() {
   const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
-    cargarViajes();
+    const id = setTimeout(cargarViajes, 0);
+    return () => clearTimeout(id);
   }, []);
 
   useEffect(() => {
@@ -167,14 +171,16 @@ function OperadorViajesPage() {
       const coincideTexto =
         v.origen?.toLowerCase().includes(texto) ||
         v.destino?.toLowerCase().includes(texto) ||
+        v.operador_nombre?.toLowerCase().includes(texto) ||
         v.id_viaje?.toString().includes(texto);
 
       const coincideEstado =
         filtroEstado === "todos" || v.estado?.toLowerCase() === filtroEstado;
 
-      return coincideTexto && coincideEstado;
+      const coincideCreador = alcance === "todos" || String(v.OperadorLogistico_Usuario_idUsuario) === String(usuario?.id_usuario);
+      return coincideTexto && coincideEstado && coincideCreador;
     });
-  }, [viajes, busqueda, filtroEstado]);
+  }, [viajes, busqueda, filtroEstado, alcance, usuario?.id_usuario]);
 
   const stats = useMemo(
     () => ({
@@ -387,11 +393,18 @@ function OperadorViajesPage() {
         </div>
 
         <div className="op-viajes-filtros">
+          <div className="op-viajes-estado-tabs" aria-label="Creador del viaje">
+            {[["todos", "Todos los viajes"], ["mios", "Mis viajes"]].map(([valor, texto]) => (
+              <button key={valor} type="button" aria-pressed={alcance === valor}
+                className={`op-viajes-tab ${alcance === valor ? "op-viajes-tab--active" : ""}`}
+                onClick={() => setAlcance(valor)}>{texto}</button>
+            ))}
+          </div>
           <div className="op-viajes-search">
             <FaSearch className="op-viajes-search__icon" />
             <input
               type="text"
-              placeholder="Buscar por origen, destino o ID..."
+              placeholder="Buscar por origen, destino, creador o ID..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
@@ -423,6 +436,7 @@ function OperadorViajesPage() {
                   <th>#</th>
                   <th>Origen</th>
                   <th>Destino</th>
+                  <th>Creado por</th>
                   <th>Salida</th>
                   <th>Llegada</th>
                   <th>Recorrido</th>
@@ -443,6 +457,7 @@ function OperadorViajesPage() {
                       <td data-label="#" className="operator-table__id">{viaje.id_viaje}</td>
                       <td data-label="Origen">{viaje.origen}</td>
                       <td data-label="Destino">{viaje.destino}</td>
+                      <td data-label="Creado por">{viaje.operador_nombre || "Sin datos del creador"}</td>
                       <td data-label="Salida">{formatearFecha(viaje.fecha_salida)}</td>
                       <td data-label="Llegada">{formatearFecha(viaje.fecha_llegada)}</td>
                       <td data-label="Recorrido">{viaje.recorrido} km</td>

@@ -43,6 +43,7 @@ function Paginacion({ pagina, total, onChange, nombre }) {
 
 function OperadorEstadisticasPage() {
   const [mes, setMes] = useState(mesActual);
+  const [alcance, setAlcance] = useState("todos");
   const [estadisticas, setEstadisticas] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
@@ -53,7 +54,7 @@ function OperadorEstadisticasPage() {
   useEffect(() => {
     const controlador = new AbortController();
     fetchConToken(
-      `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/estadisticas?mes=${mes}`,
+      `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/operador/estadisticas?mes=${mes}&alcance=${alcance}`,
       { method: "GET", signal: controlador.signal }
     ).then((resultado) => {
       if (!resultado || controlador.signal.aborted) return;
@@ -68,7 +69,7 @@ function OperadorEstadisticasPage() {
       setCargando(false);
     });
     return () => controlador.abort();
-  }, [mes]);
+  }, [mes, alcance]);
 
   const seleccionarMes = (nuevoMes) => {
     if (!nuevoMes || nuevoMes === mes || nuevoMes > mesActual()) return;
@@ -145,6 +146,13 @@ function OperadorEstadisticasPage() {
       </div>
 
       <div className="op-stats-periodo">
+        <div className="op-viajes-estado-tabs" aria-label="Alcance de estadísticas">
+          {[["todos", "Toda la operación"], ["mios", "Creados por mí"]].map(([valor, texto]) => (
+            <button key={valor} type="button" aria-pressed={alcance === valor}
+              className={`op-viajes-tab ${alcance === valor ? "op-viajes-tab--active" : ""}`}
+              onClick={() => { if (alcance !== valor) { setAlcance(valor); setCargando(true); setError(""); setPaginaViajes(1); setPaginaReportes(1); } }}>{texto}</button>
+          ))}
+        </div>
         <div className="op-stats-periodo__selector">
           <button type="button" onClick={() => seleccionarMes(cambiarMes(mes, -1))} aria-label="Mes anterior" title="Mes anterior"><FaChevronLeft /></button>
           <label htmlFor="op-stats-mes">Mes</label>
@@ -156,7 +164,7 @@ function OperadorEstadisticasPage() {
           <FaFilePdf aria-hidden="true" /> {exportando ? "Preparando PDF..." : "Descargar PDF"}
         </button>
       </div>
-      <p className="op-stats-periodo__nota">Los estados reflejan la situación actual de los registros del mes, no una foto del cierre mensual. Los reportes corresponden a camiones vinculados a tus viajes.</p>
+      <p className="op-stats-periodo__nota">Los estados reflejan la situación actual de los registros del mes, no una foto del cierre mensual. {alcance === "todos" ? "Incluye los viajes de todos los operadores." : "Incluye los viajes que creaste y los reportes de sus camiones."}</p>
 
       {cargando && <p className="admin-message">Cargando estadísticas...</p>}
       {error && <p className="admin-message admin-message--error">{error}</p>}

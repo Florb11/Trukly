@@ -3,8 +3,11 @@ import CargasViajeDetalle from "./CargasViajeDetalle";
 import { useEffect, useState } from "react";
 import { fetchConToken } from "../utils/fetchConToken";
 import "./DetalleViajeModal.css";
+import HistorialViaje from "./HistorialViaje";
+import { useAuth } from "../context/AuthContext";
 
 function DetalleViajeModal({ viaje: viajeInicial, onClose }) {
+  const { usuario } = useAuth();
   const [detalle, setDetalle] = useState(null);
   const [errorAsignaciones, setErrorAsignaciones] = useState("");
   const idViaje = viajeInicial?.id_viaje;
@@ -108,7 +111,7 @@ function DetalleViajeModal({ viaje: viajeInicial, onClose }) {
               </div>
 
               <div>
-                <span>Operador responsable</span>
+                <span>Creado por</span>
                 <p>{viaje.operador_nombre || (cargandoAsignaciones ? "Cargando nombre..." : "Sin datos del operador")}</p>
               </div>
             </div>
@@ -117,6 +120,7 @@ function DetalleViajeModal({ viaje: viajeInicial, onClose }) {
           {viaje.tiempo_viaje && <div className="detalle-section"><TiempoViajeDetalle tiempo={viaje.tiempo_viaje} /></div>}
 
           <div className="detalle-section"><CargasViajeDetalle idViaje={viaje.id_viaje} /></div>
+          {["operador", "admin"].includes(usuario?.rol) && <div className="detalle-section"><HistorialViaje idViaje={viaje.id_viaje} /></div>}
 
           <div className="detalle-section">
             <h3>Observaciones</h3>

@@ -1,0 +1,6 @@
+.historial-viaje { color: var(--ui-text, #192338); }
+.historial-viaje ol { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 10px; }
+.historial-viaje li { display: grid; gap: 5px; padding: 14px; background: var(--ui-soft, #f7f9fc); border: 1px solid var(--ui-border, #e3e9f2); border-radius: 8px; }
+.historial-viaje time { color: var(--ui-muted, #657186); font-size: 12px; }
+.historial-viaje li p { margin: 4px 0 0; overflow-wrap: anywhere; }
+.historial-viaje button { color: var(--ui-accent, #5b61dc); background: var(--ui-accent-soft, #eef0ff); border: 1px solid var(--ui-border, #e3e9f2); border-radius: 6px; padding: 6px 10px; }

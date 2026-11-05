@@ -82,7 +82,7 @@ class OperadorLogistico(Usuario):
         if viaje is None:
             return False
 
-        return viaje.pertenece_a_operador(self)
+        return True
 
     def to_dict(self):
         datos_usuario = super().to_dict()
@@ -129,9 +129,6 @@ class OperadorLogistico(Usuario):
     def editar_viaje(self, viaje, datos):
         if viaje is None:
             return False, "Viaje no encontrado"
-
-        if not viaje.pertenece_a_operador(self):
-            return False, "No tenés permiso para editar este viaje"
 
         if not viaje.puede_editarse():
             return False, "No se puede editar un viaje cancelado o finalizado"

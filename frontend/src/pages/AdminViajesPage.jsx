@@ -1,6 +1,7 @@
 import TiempoViajeDetalle from "../components/TiempoViajeDetalle";
 import ConfirmarAccionModal from "../components/ConfirmarAccionModal";
 import CargasViajeDetalle from "../components/CargasViajeDetalle";
+import HistorialViaje from "../components/HistorialViaje";
 import { useSearchParams } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -402,6 +403,7 @@ function AdminViajesPage() {
             <div className="admin-viajes-tiempo"><TiempoViajeDetalle tiempo={viajeDetalle.tiempo_viaje} /></div>
 
             <div className="admin-viajes-cargas"><CargasViajeDetalle idViaje={viajeDetalle.id_viaje} /></div>
+            <div className="admin-viajes-cargas"><HistorialViaje idViaje={viajeDetalle.id_viaje} /></div>
 
             <div className="admin-viajes-observaciones">
               <span>Observaciones</span>
