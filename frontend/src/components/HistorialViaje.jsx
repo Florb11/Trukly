@@ -3,6 +3,8 @@ import { fetchConToken } from "../utils/fetchConToken";
 import "./HistorialViaje.css";
 
 const acciones = { viaje_creado: "Creó el viaje", viaje_editado: "Editó el viaje",
+  viaje_aceptado: "Aceptó el viaje", viaje_iniciado: "Registró la salida por QR",
+  viaje_finalizado: "Registró el regreso por QR",
   viaje_cancelado: "Canceló el viaje", carga_agregada: "Agregó una carga",
   carga_editada: "Editó una carga", carga_eliminada: "Quitó una carga" };
 const campos = { origen: "Origen", destino: "Destino", fecha_salida: "Salida", fecha_llegada: "Llegada estimada",

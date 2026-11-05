@@ -3,6 +3,7 @@ from services.viaje_asignaciones_service import obtener_asignaciones
 from services.horas_viaje_service import horas_chofer, limites_mes, tipos_control
 from services.notificacion_service import NotificacionService
 from services.viaje_notificacion_service import notificar_aceptacion_operador
+from services.viaje_cambios_service import registrar, snapshot
 import datetime
 
 from flask import g, jsonify, request
@@ -320,6 +321,7 @@ class ChoferController:
             Viaje_id_viaje=viaje_model.id_viaje,
         )
 
+        antes = snapshot(viaje_model)
         viaje_model.estado = nuevo_estado
         if tipo_registro == "ingreso":
             camion_carga.estado = Camion.ESTADO_EN_VIAJE
@@ -338,6 +340,9 @@ class ChoferController:
 
         try:
             db.session.add(nuevo_registro)
+            registrar(viaje_model, chofer.id_usuario,
+                "viaje_iniciado" if tipo_registro == "ingreso" else "viaje_finalizado", antes,
+                {"tipo_registro": tipo_registro, "fecha_control": ahora.isoformat()})
             db.session.commit()
             return jsonify({
                 "mensaje": (
@@ -442,10 +447,12 @@ class ChoferController:
         if not iniciado:
             return jsonify({"mensaje": mensaje_error}), 400
 
+        antes = snapshot(viaje_model)
         viaje_model.estado = viaje.estado
 
         try:
             notificar_aceptacion_operador(viaje_model)
+            registrar(viaje_model, chofer.id_usuario, "viaje_aceptado", antes)
             db.session.commit()
             NotificacionService.enviar_push_pendientes()
             return jsonify({"mensaje": "Viaje aceptado correctamente", "viaje": viaje_model.to_dict()}), 200

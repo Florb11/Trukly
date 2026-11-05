@@ -12,6 +12,7 @@ from utils.fecha_operativa import hoy_operativo
 from models.camion_model import CamionModel
 from models.viaje_model import ViajeModel
 from models.registro_ingreso_salida_model import RegistroIngresoSalidaModel
+from models.viaje_cambio_model import ViajeCambioModel
 
 
 class QrEstadoCamionTest(unittest.TestCase):
@@ -40,6 +41,7 @@ class QrEstadoCamionTest(unittest.TestCase):
     def tearDown(self):
         db.session.rollback()
         RegistroIngresoSalidaModel.query.filter_by(Viaje_id_viaje=90).delete()
+        ViajeCambioModel.query.filter_by(id_viaje=90).delete()
         ViajeModel.query.filter_by(id_viaje=90).delete()
         db.session.get(CamionModel, 90).estado = 'disponible'
         db.session.commit()
