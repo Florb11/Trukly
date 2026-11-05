@@ -15,6 +15,7 @@ from models.camion_model import CamionModel
 from models.viaje_model import ViajeModel
 from models.viaje_cambio_model import ViajeCambioModel
 from models.carga_model import CargaModel
+from models.reporte_model import ReporteModel
 from models.notificacion_model import NotificacionModel
 from src.OperadorLogistico import OperadorLogistico
 from services.notificacion_service import NotificacionService
@@ -32,6 +33,8 @@ class OperacionCompartidaTest(unittest.TestCase):
         from routes.viaje_routes import viaje_routes
         cls.fixture.app.register_blueprint(operador_routes)
         cls.fixture.app.register_blueprint(viaje_routes)
+        from routes.reporte_routes import reporte_routes
+        cls.fixture.app.register_blueprint(reporte_routes)
 
     @classmethod
     def tearDownClass(cls):
@@ -62,6 +65,7 @@ class OperacionCompartidaTest(unittest.TestCase):
         NotificacionModel.query.delete()
         ViajeCambioModel.query.delete()
         CargaModel.query.filter_by(Viaje_id_viaje=50).delete()
+        ReporteModel.query.filter_by(Chofer_Usuario_idUsuario=91).delete()
         ViajeModel.query.filter(ViajeModel.id_viaje >= 50).delete()
         ChoferModel.query.filter_by(Usuario_idUsuario=91).delete()
         OperadorModel.query.filter_by(Usuario_idUsuario=90).delete()
@@ -508,3 +512,42 @@ class OperacionCompartidaTest(unittest.TestCase):
             ViajeCambioModel.query.delete()
             UsuarioModel.query.filter_by(id_usuario=99).delete()
             db.session.commit()
+
+    def test_descripcion_reporte_conserva_simbolos_en_creacion_y_consulta(self):
+        from models.reporte_model import ReporteModel
+        from controllers.mecanico_controller import MecanicoController
+        from services.admin_notificacion_service import AdminNotificacionService
+        db.session.get(ViajeModel, 50).estado = 'en curso'
+        db.session.commit()
+        token = create_access_token(identity='91', additional_claims={'rol':'chofer'})
+        headers = {'Authorization':'Bearer '+token}
+        client = self.fixture.app.test_client()
+        for texto in ['El motor hace "tac tac" & vibra', "Pérdida en caño <motor> y 'válvula'", 'Escribí &quot; literalmente', '<script>alert(1)</script>']:
+            r = client.post('/api/reportes', headers=headers,
+                json={'Camion_id_camion':90, 'descripcion':texto})
+            self.assertEqual(r.status_code, 201, r.get_json())
+            datos = r.get_json()['reporte']
+            self.assertEqual(datos['descripcion'], texto)
+            reporte = db.session.get(ReporteModel, datos['id_reporte'])
+            self.assertEqual(reporte.to_dict()['descripcion'], texto)
+            self.assertEqual(MecanicoController.preparar_respuesta_reporte(reporte)['descripcion'], texto)
+            r = client.get('/api/reportes/'+str(reporte.id_reporte), headers=headers)
+            self.assertEqual(r.get_json()['reporte']['descripcion'], texto)
+            with patch.object(AdminNotificacionService, '_crear') as aviso:
+                AdminNotificacionService.nueva_falla(reporte)
+                # El aviso administrativo tampoco debe mostrar entidades HTML.
+                self.assertIn(texto, aviso.call_args.args[3])
+
+    def test_descripcion_historica_se_decodifica_una_sola_vez(self):
+        from models.reporte_model import ReporteModel
+        from controllers.reporte_controller import ReporteController
+        reporte = db.session.get(ReporteModel, 1)
+        original = reporte.descripcion
+        try:
+            reporte.descripcion = 'Motor &quot;tac&quot; &amp; válvula &lt;A&gt;'
+            esperado = 'Motor "tac" & válvula <A>'
+            self.assertEqual(reporte.to_dict()['descripcion'], esperado)
+            self.assertEqual(ReporteController.preparar_respuesta_reporte(reporte)['descripcion'], esperado)
+            self.assertEqual(reporte.descripcion, 'Motor &quot;tac&quot; &amp; válvula &lt;A&gt;')
+        finally:
+            reporte.descripcion = original

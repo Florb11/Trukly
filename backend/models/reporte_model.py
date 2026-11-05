@@ -1,3 +1,5 @@
+from html import unescape
+
 from db_instance import db
 
 
@@ -46,11 +48,17 @@ class ReporteModel(db.Model):
         lazy="selectin",
     )
 
+    @property
+    def descripcion_texto(self):
+        # Los textos se guardaron escapados: decodificar una sola vez conserva
+        # también entidades que el usuario haya escrito literalmente.
+        return unescape(self.descripcion) if self.descripcion is not None else None
+
     def to_dict(self):
         return {
             "id_reporte": self.id_reporte,
             "fecha_hora": self.fecha_hora.strftime("%Y-%m-%d %H:%M:%S"),
-            "descripcion": self.descripcion,
+            "descripcion": self.descripcion_texto,
             "estado": self.estado,
             "Camion_id_camion": self.Camion_id_camion,
             "Mecanico_Usuario_idUsuario": self.Mecanico_Usuario_idUsuario,

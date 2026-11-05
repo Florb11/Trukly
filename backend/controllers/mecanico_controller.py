@@ -47,7 +47,7 @@ class MecanicoController:
             {
                 "id_reporte": reporte_model.id_reporte,
                 "fecha_hora": reporte_model.fecha_hora,
-                "descripcion": reporte_model.descripcion,
+                "descripcion": reporte_model.descripcion_texto,
                 "estado": reporte_model.estado,
                 "id_camion": reporte_model.Camion_id_camion,
                 "id_mecanico": (

@@ -29,7 +29,7 @@ class AdminNotificacionService:
         matricula = camion.matricula if camion else "sin matrícula"
         nombre = AdminNotificacionService._nombre_chofer(reporte.Chofer_Usuario_idUsuario)
         AdminNotificacionService._crear("falla", reporte.id_reporte, "Nuevo reporte de falla",
-            f"Reporte #{reporte.id_reporte} · {nombre} · Camión {matricula}. {reporte.descripcion}")
+            f"Reporte #{reporte.id_reporte} · {nombre} · Camión {matricula}. {reporte.descripcion_texto}")
 
     @staticmethod
     def viaje_cancelado(viaje, motivo):
