@@ -225,6 +225,8 @@ class ReporteFalla:
             return False
 
         self.estado = nuevo_estado
+        if nuevo_estado == self.ESTADO_RESUELTO:
+            self.fecha_resolucion = datetime.now()
         return True
 
     def sincronizar_estado_por_asignacion(self):

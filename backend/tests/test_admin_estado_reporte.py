@@ -195,8 +195,38 @@ class AdminEstadoReporteTest(unittest.TestCase):
             db.session.refresh(modelo)
             self.assertEqual(modelo.estado, 'pendiente')
             self.assertIsNone(modelo.motivo_cancelacion)
+            self.assertIsNone(modelo.fecha_resolucion)
             self.assertEqual(camion.estado, original)
             self.assertEqual(NotificacionModel.query.count(), 0)
+
+    def test_resolucion_registra_fecha_para_admin_y_operador_y_no_la_reescribe(self):
+        momento = datetime(2026, 11, 5, 14, 25, 30)
+        modelo = db.session.get(ReporteModel, 80)
+        for rol in ['admin', 'operador']:
+            for estado in ['pendiente', 'en revision']:
+                with self.subTest(rol=rol, estado=estado):
+                    modelo.estado = estado
+                    modelo.Mecanico_Usuario_idUsuario = 3 if estado == 'en revision' else None
+                    modelo.fecha_resolucion = None
+                    db.session.commit()
+                    with patch('src.ReporteFalla.datetime') as reloj:
+                        reloj.now.return_value = momento
+                        datos, codigo = self.cambiar({'estado':'resuelto'}, rol)
+                    self.assertEqual(codigo, 200, datos)
+                    db.session.refresh(modelo)
+                    self.assertEqual(modelo.fecha_resolucion, momento)
+                    self.assertEqual(datos['reporte']['fecha_resolucion'], '2026-11-05 14:25:30')
+                    self.assertEqual(self.cambiar({'estado':'resuelto'}, rol)[1], 409)
+                    db.session.refresh(modelo)
+                    self.assertEqual(modelo.fecha_resolucion, momento)
+
+    def test_cancelar_o_poner_en_revision_no_crea_fecha_de_resolucion(self):
+        datos, codigo = self.cambiar({'estado':'en revision', 'Mecanico_Usuario_idUsuario':3})
+        self.assertEqual(codigo, 200, datos)
+        self.assertIsNone(db.session.get(ReporteModel, 80).fecha_resolucion)
+        datos, codigo = self.cambiar({'estado':'cancelado', 'motivo_cancelacion':'Duplicado'})
+        self.assertEqual(codigo, 200, datos)
+        self.assertIsNone(db.session.get(ReporteModel, 80).fecha_resolucion)
 
 
 if __name__ == "__main__":
