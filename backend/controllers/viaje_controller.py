@@ -391,7 +391,6 @@ class ViajeController:
 
         operador = ViajeController.obtener_operador_clase(id_operador)
         chofer = ViajeController.obtener_chofer_clase(id_chofer)
-        camion = ViajeController.obtener_camion_clase(id_camion)
 
         if operador is None:
             return jsonify({"mensaje": "Operador no encontrado"}), 404
@@ -399,7 +398,14 @@ class ViajeController:
         if chofer is None:
             return jsonify({"mensaje": "Chofer no encontrado"}), 404
 
-        if not licencia_vigente(db.session.get(ChoferModel, id_chofer)):
+        chofer_model = ChoferModel.query.filter_by(
+            Usuario_idUsuario=id_chofer
+        ).populate_existing().with_for_update().first()
+        usuario_chofer = db.session.get(UsuarioModel, id_chofer)
+        if not usuario_chofer or usuario_chofer.estado != Usuario.ESTADO_ACTIVO:
+            return jsonify({"mensaje": "El chofer no está disponible"}), 400
+
+        if not licencia_vigente(chofer_model):
             return jsonify({"mensaje": MENSAJE_LICENCIA}), 409
 
         viaje_chofer_activo = ViajeModel.query.filter(
@@ -413,13 +419,28 @@ class ViajeController:
         if viaje_chofer_activo:
             return jsonify({"mensaje": "El chofer ya tiene un viaje activo"}), 400
 
-        if camion is None:
+        camion_model = CamionModel.query.filter_by(
+            id_camion=id_camion
+        ).populate_existing().with_for_update().first()
+        if camion_model is None:
             return jsonify({"mensaje": "Camion no encontrado"}), 404
 
+        camion = ViajeController.crear_objeto_camion(camion_model)
         if not camion.esta_disponible():
             return jsonify({
                 "mensaje": "El camion no esta disponible para asignar un viaje"
             }), 400
+
+        viaje_camion_activo = ViajeModel.query.filter(
+            ViajeModel.Camion_id_camion == id_camion,
+            ViajeModel.estado.in_((
+                Viaje.ESTADO_PENDIENTE,
+                Viaje.ESTADO_ACEPTADO,
+                Viaje.ESTADO_EN_CURSO,
+            )),
+        ).first()
+        if viaje_camion_activo:
+            return jsonify({"mensaje": "El camión ya tiene un viaje activo"}), 400
 
         datos_viaje = ViajeController.preparar_datos_viaje(datos)
 
@@ -438,6 +459,7 @@ class ViajeController:
         nuevo_viaje = ViajeController.crear_modelo_viaje(viaje)
 
         try:
+            camion_model.estado = camion.estado
             db.session.add(nuevo_viaje)
             db.session.flush()
             registrar(nuevo_viaje, id_usuario, "viaje_creado")

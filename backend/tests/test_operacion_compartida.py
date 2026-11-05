@@ -395,6 +395,7 @@ class OperacionCompartidaTest(unittest.TestCase):
         self.enviar_push.assert_not_called()
 
     def test_ruta_general_permite_chofer_con_viaje_cerrado(self):
+        db.session.get(ViajeModel, 2).estado = "finalizado"
         from utils.fecha_operativa import hoy_operativo
         token = create_access_token(identity='90', additional_claims={'rol':'operador'})
         client = self.fixture.app.test_client()
@@ -412,3 +413,63 @@ class OperacionCompartidaTest(unittest.TestCase):
                 creado.estado = 'finalizado'
                 db.session.get(CamionModel, 1).estado = 'disponible'
                 db.session.commit()
+
+    def crear_general(self, chofer=91, camion=90):
+        from utils.fecha_operativa import hoy_operativo
+        token = create_access_token(identity='90', additional_claims={'rol':'operador'})
+        return self.fixture.app.test_client().post('/api/viaje',
+            headers={'Authorization':'Bearer '+token}, json={
+                'origen':'A', 'destino':'B', 'fecha_salida':hoy_operativo().isoformat(),
+                'Chofer_Usuario_idUsuario':chofer, 'Camion_id_camion':camion, 'recorrido':10})
+
+    def test_general_rechaza_chofer_inactivo_o_pendiente(self):
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        db.session.get(CamionModel, 90).estado = 'disponible'
+        for estado in ['inactivo', 'pendiente']:
+            db.session.get(UsuarioModel, 91).estado = estado
+            db.session.commit()
+            r = self.crear_general()
+            self.assertEqual(r.status_code, 400, r.get_json())
+            self.assertIn('chofer', r.get_json()['mensaje'])
+            self.assertEqual(db.session.get(CamionModel, 90).estado, 'disponible')
+            self.assertEqual(ViajeModel.query.filter(ViajeModel.id_viaje>50).count(), 0)
+            self.assertEqual(NotificacionModel.query.count(), 0)
+            self.assertEqual(ViajeCambioModel.query.count(), 0)
+        self.enviar_push.assert_not_called()
+
+    def test_general_reserva_camion_e_impide_segunda_asignacion(self):
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        db.session.get(ViajeModel, 2).estado = 'finalizado'
+        db.session.get(CamionModel, 90).estado = 'disponible'
+        db.session.get(UsuarioModel, 1).estado = 'activo'
+        db.session.commit()
+        r = self.crear_general()
+        self.assertEqual(r.status_code, 201, r.get_json())
+        self.assertEqual(db.session.get(CamionModel, 90).estado, 'en viaje')
+        r = self.crear_general(chofer=1)
+        self.assertEqual(r.status_code, 400, r.get_json())
+        self.assertEqual(ViajeModel.query.filter(ViajeModel.id_viaje>50).count(), 1)
+        self.assertEqual(NotificacionModel.query.count(), 1)
+        self.assertEqual(ViajeCambioModel.query.count(), 1)
+
+    def test_general_rechaza_camion_con_viaje_aunque_diga_disponible(self):
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        db.session.commit()
+        # El camión 1 figura disponible pero conserva el viaje 2 en curso.
+        r = self.crear_general(camion=1)
+        self.assertEqual(r.status_code, 400, r.get_json())
+        self.assertIn('camión ya tiene', r.get_json()['mensaje'])
+        self.assertEqual(ViajeModel.query.filter(ViajeModel.id_viaje>50).count(), 0)
+
+    def test_general_revierte_reserva_si_falla_guardado(self):
+        db.session.get(ViajeModel, 50).estado = 'cancelado'
+        db.session.get(CamionModel, 90).estado = 'disponible'
+        db.session.commit()
+        with patch.object(db.session, 'commit', side_effect=RuntimeError('Fallo de prueba')), patch('controllers.viaje_controller.logger'):
+            r = self.crear_general()
+        self.assertEqual(r.status_code, 500, r.get_json())
+        self.assertEqual(db.session.get(CamionModel, 90).estado, 'disponible')
+        self.assertEqual(ViajeModel.query.filter(ViajeModel.id_viaje>50).count(), 0)
+        self.assertEqual(NotificacionModel.query.count(), 0)
+        self.assertEqual(ViajeCambioModel.query.count(), 0)
+        self.enviar_push.assert_not_called()
