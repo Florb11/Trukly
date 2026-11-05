@@ -6,6 +6,20 @@ from src.ReporteFalla import ReporteFalla
 from src.Viaje import Viaje
 
 
+def marcar_camion_tras_reporte(id_camion):
+    camion = CamionModel.query.filter_by(id_camion=id_camion).populate_existing().with_for_update().first()
+    if camion is None or camion.estado == Camion.ESTADO_INACTIVO:
+        return False
+    # Reportar o asignar una reparación no equivale a registrar el regreso.
+    en_curso = ViajeModel.query.filter_by(
+        Camion_id_camion=id_camion, estado=Viaje.ESTADO_EN_CURSO
+    ).first()
+    if en_curso is not None:
+        return False
+    camion.estado = Camion.ESTADO_EN_MANTENIMIENTO
+    return True
+
+
 def actualizar_camion_tras_cierre_reporte(id_camion, id_reporte):
     camion = CamionModel.query.filter_by(id_camion=id_camion).populate_existing().with_for_update().first()
     if camion is None or camion.estado != Camion.ESTADO_EN_MANTENIMIENTO:
