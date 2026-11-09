@@ -573,6 +573,7 @@ class OperacionCompartidaTest(unittest.TestCase):
                     headers={'Authorization':'Bearer '+token}, json={'nota_reparacion':nota})
                 self.assertEqual(r.status_code, 200, r.get_json())
                 self.assertEqual(r.get_json()['reporte']['nota_reparacion'], nota)
+                self.assertEqual(r.get_json()['reporte']['camion_nombre'], 'Marca Modelo (AAA111)')
                 self.assertEqual(reporte.to_dict()['nota_reparacion'], nota)
                 self.assertEqual(ReporteController.preparar_respuesta_reporte(reporte)['nota_reparacion'], nota)
                 self.assertEqual(MecanicoController.preparar_respuesta_reporte(reporte)['nota_reparacion'], nota)
@@ -953,6 +954,12 @@ class OperacionCompartidaTest(unittest.TestCase):
                 self.assertEqual(anterior.tipo, 'reporte_reasignado')
                 self.assertIn('#2', anterior.mensaje)
                 self.assertEqual(nuevo.tipo, 'reporte_asignado')
+                self.assertEqual(nuevo.mensaje, 'Se te asignó el reporte #2 del camión Marca Modelo (AAA111).')
+                token = create_access_token(identity='77', additional_claims={'rol':'mecanico'})
+                listado = self.fixture.app.test_client().get('/api/mecanico/reportes',
+                    headers={'Authorization':'Bearer '+token})
+                self.assertEqual(listado.status_code, 200, listado.get_json())
+                self.assertEqual(listado.get_json()['reportes'][0]['camion_nombre'], 'Marca Modelo (AAA111)')
                 self.assertEqual(self.reasignar_mecanico(rol).status_code, 200)
                 self.assertEqual(NotificacionModel.query.count(), 2)
         finally:

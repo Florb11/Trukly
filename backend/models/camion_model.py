@@ -1,3 +1,5 @@
+from html import unescape
+
 from db_instance import db
 
 
@@ -12,6 +14,10 @@ class CamionModel(db.Model):
     capacidad_carga = db.Column(db.Float, nullable=False)
     estado = db.Column(db.String(20), nullable=False)
     nroTanque = db.Column(db.Integer, nullable=False)
+
+    @property
+    def nombre_visible(self):
+        return unescape(f"{self.marca} {self.modelo} ({self.matricula})")
 
     def to_dict(self):
         return {

@@ -43,7 +43,8 @@ function DashboardMecanicoPage() {
   };
 
   useEffect(() => {
-    cargarReportes();
+    const tarea = window.setTimeout(cargarReportes, 0);
+    return () => window.clearTimeout(tarea);
   }, []);
 
   const reportesAsignados = reportes.length;
@@ -166,9 +167,7 @@ function DashboardMecanicoPage() {
 
                     <span>
                       Camión:{" "}
-                      {reporte.camion?.matricula ||
-                        reporte.Camion_id_camion ||
-                        "Sin datos"}
+                      {reporte.camion_nombre || reporte.camion?.matricula || "Sin datos"}
                     </span>
                   </div>
 

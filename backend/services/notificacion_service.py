@@ -5,6 +5,13 @@ from models.notificacion_model import NotificacionModel
 from src.Notificacion import Notificacion
 
 
+def mensaje_reporte_asignado(id_reporte, camion):
+    mensaje = f"Se te asignó el reporte #{id_reporte}"
+    if camion is not None:
+        mensaje += f" del camión {camion.nombre_visible}"
+    return f"{mensaje}."
+
+
 class NotificacionService:
 
     @staticmethod

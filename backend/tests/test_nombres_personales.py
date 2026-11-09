@@ -132,6 +132,30 @@ class NombresPersonalesTest(unittest.TestCase):
         historial = self.get('/api/operador/viajes/2/historial')
         self.assertEqual(historial[0]['actor_nombre'],"Juan O'Connor")
 
+    def test_notificaciones_de_asignacion_anteriores_muestran_camion(self):
+        mensaje = 'Se te asigno el reporte #2 del camion #1.'
+        anterior = NotificacionService.crear(3, 'Asignación', mensaje, 'reporte_asignado')
+        NotificacionService.crear(3, 'Asignación', 'Se te asignó el reporte #4 del camión #1.', 'reporte_asignado')
+        NotificacionService.crear(3, 'Asignación', 'Se te asignó el reporte #9 del camión #999.', 'reporte_asignado')
+        NotificacionService.crear(3, 'Otro aviso', mensaje, 'prueba')
+        db.session.commit()
+
+        datos = self.get('/api/notificaciones', 3, 'mecanico')['notificaciones']
+        esperado = 'Se te asignó el reporte #2 del camión Marca Modelo (AAA111).'
+        self.assertCountEqual([aviso['mensaje'] for aviso in datos], [
+            esperado,
+            'Se te asignó el reporte #4 del camión Marca Modelo (AAA111).',
+            'Se te asignó el reporte #9.',
+            mensaje,
+        ])
+
+        respuesta = self.client.put(f'/api/notificaciones/{anterior.id_notificacion}/leida',
+            headers=self.headers(3, 'mecanico'))
+        self.assertEqual(respuesta.status_code, 200, respuesta.get_json())
+        self.assertEqual(respuesta.get_json()['notificacion']['mensaje'], esperado)
+        self.assertTrue(respuesta.get_json()['notificacion']['leida'])
+        self.assertEqual(anterior.mensaje, mensaje)
+
     def test_login_devuelve_nombre_legible_sin_modificar_el_guardado(self):
         usuario = db.session.get(UsuarioModel,1)
         usuario.password = bcrypt.generate_password_hash('PruebaSolo123').decode('utf-8')
