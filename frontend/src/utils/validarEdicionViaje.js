@@ -1,6 +1,9 @@
 import { hoyOperativo } from "./fechaOperativa.js";
 
 export function validarEdicionViaje(form, viaje, hoy = hoyOperativo()) {
+  if (viaje.estado === "en curso" && ["Chofer_Usuario_idUsuario", "Camion_id_camion"].some(
+    (campo) => String(form[campo] ?? "") !== String(viaje[campo] ?? "")
+  )) return "No se puede cambiar el chofer ni el camión de un viaje en curso.";
   if (!form.origen.trim() || !form.destino.trim()) return "Origen y destino son obligatorios.";
   const fechaValida = (valor) => /^\d{4}-\d{2}-\d{2}$/.test(valor)
     && Number.isFinite(Date.parse(`${valor}T00:00:00Z`))

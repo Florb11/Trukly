@@ -89,13 +89,15 @@ function EditarViajeModal({ viaje, onClose, onActualizado }) {
           <div className="editar-modal__row">
             <div className="editar-modal__field">
               <label>ID Chofer</label>
-              <input type="number" name="Chofer_Usuario_idUsuario" value={form.Chofer_Usuario_idUsuario} onChange={handleChange} min="1" />
+              <input type="number" name="Chofer_Usuario_idUsuario" value={form.Chofer_Usuario_idUsuario} onChange={handleChange} min="1" disabled={viaje.estado === "en curso"} />
             </div>
             <div className="editar-modal__field">
               <label>ID Camión</label>
-              <input type="number" name="Camion_id_camion" value={form.Camion_id_camion} onChange={handleChange} min="1" />
+              <input type="number" name="Camion_id_camion" value={form.Camion_id_camion} onChange={handleChange} min="1" disabled={viaje.estado === "en curso"} />
             </div>
           </div>
+
+          {viaje.estado === "en curso" && <p className="editar-modal__nota">El chofer y el camión no se pueden cambiar mientras el viaje está en curso.</p>}
 
           <div className="editar-modal__field">
             <label>Recorrido (km)</label>

@@ -6,19 +6,11 @@ import DetalleReporteModal from "../components/DetalleReporteModal";
 import "./ChoferReportesPage.css";
 import { fetchConToken } from "../utils/fetchConToken";
 
-// 1. Sacamos el MOCK y dejamos el estado inicial limpio (sin la gravedad)
-const FORM_NUEVO_INICIAL = {
-  descripcion: "",
-  id_camion: "",
-};
-
 function ChoferReportesPage() {
   // 2. Inicializamos con un array vacío [] para evitar que el .filter() rompa la pantalla
   const [reportes, setReportes] = useState([]);
   const [reporteDetalle, setReporteDetalle] = useState(null);
   const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false);
-  const [formNuevo, setFormNuevo] = useState(FORM_NUEVO_INICIAL);
-  const [errorNuevo, setErrorNuevo] = useState("");
   const [mensajeReportes, setMensajeReportes] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todos");
@@ -55,56 +47,17 @@ function ChoferReportesPage() {
 
   const abrirNuevoReporte = () => {
     setMostrarModalNuevo(true);
-    setErrorNuevo("");
     setMensajeReportes("");
   };
 
   const cerrarNuevoReporte = () => {
     setMostrarModalNuevo(false);
-    setErrorNuevo("");
-    setFormNuevo(FORM_NUEVO_INICIAL);
   };
 
-  const handleNuevoChange = (e) => {
-    setFormNuevo({ ...formNuevo, [e.target.name]: e.target.value });
-  };
-
-  const guardarNuevoReporte = async (e) => {
-    e.preventDefault();
-
-    if (!formNuevo.descripcion.trim()) {
-      setErrorNuevo("La descripción es obligatoria.");
-      return;
-    }
-
-    if (!formNuevo.id_camion) {
-      setErrorNuevo("Debés indicar el ID del camión.");
-      return;
-    }
-
-    try {
-      const resultado = await fetchConToken(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/reportes`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            descripcion: formNuevo.descripcion.trim(),
-            Camion_id_camion: Number(formNuevo.id_camion),
-          }),
-        },
-      );
-      const { respuesta, data } = resultado;
-      if (!respuesta.ok)
-        throw new Error(data.mensaje || "Error al crear el reporte");
-
-      setMensajeReportes("Reporte creado correctamente.");
-      cerrarNuevoReporte();
-
-      // 4. Volvemos a pedir los datos al backend para que el nuevo reporte aparezca en la lista
-      cargarReportes();
-    } catch (error) {
-      setErrorNuevo(error.message);
-    }
+  const confirmarNuevoReporte = () => {
+    setMensajeReportes("Reporte creado correctamente.");
+    cerrarNuevoReporte();
+    cargarReportes();
   };
 
   const reportesFiltrados = reportes.filter((r) => {
@@ -289,10 +242,7 @@ function ChoferReportesPage() {
 
       {mostrarModalNuevo && (
         <NuevoReporteModal
-          formNuevo={formNuevo}
-          errorNuevo={errorNuevo}
-          onChange={handleNuevoChange}
-          onSubmit={guardarNuevoReporte}
+          onCreated={confirmarNuevoReporte}
           onClose={cerrarNuevoReporte}
         />
       )}
