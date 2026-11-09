@@ -162,15 +162,21 @@
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
-.reporte-modal__btn--guardar:hover {
+.reporte-modal__btn--guardar:hover:enabled {
   background: #1d4ed8;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
   transform: translateY(-1px);
 }
 
-.reporte-modal__btn--guardar:active {
+.reporte-modal__btn--guardar:active:enabled {
   transform: translateY(0);
   box-shadow: none;
+}
+
+.reporte-modal__btn:disabled,
+.reporte-modal__close:disabled {
+  cursor: default;
+  opacity: 0.65;
 }
 
 .reporte-modal__detalle-body {
@@ -207,33 +213,6 @@
   margin: 0;
   line-height: 1.5;
 }
- .reporte-modal__field select,
-  select#id_camion {
-    width: 100%;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 10px 14px;
-    font-size: 0.9rem;
-    color: #111827;
-    background-color: #ffffff;
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    font-family: inherit;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 36px;
-    box-sizing: border-box;
-  }
-
-  select#id_camion:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-  }
-
 .app-shell--chofer[data-theme="dark"] .reporte-modal {
   color: var(--ui-text);
   background: var(--ui-surface);
@@ -264,7 +243,7 @@
   background: var(--ui-accent-soft);
 }
 
-.app-shell--chofer[data-theme="dark"] .reporte-modal__field :is(input, textarea, select) {
+.app-shell--chofer[data-theme="dark"] .reporte-modal__field :is(input, textarea) {
   color: var(--ui-text);
   background-color: var(--ui-soft);
   border-color: var(--ui-border);
