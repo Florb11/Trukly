@@ -4,6 +4,8 @@ import { fetchConToken } from "../utils/fetchConToken";
 import MecanicoResolverModal from "../components/MecanicoResolverModal";
 import "./MecanicoReportesPage.css";
 
+const CAMION_SIN_DATOS = "Camión sin datos";
+
 function MecanicoReportesPage() {
   const [reportes, setReportes] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -48,7 +50,8 @@ function MecanicoReportesPage() {
   };
 
   useEffect(() => {
-    cargarReportes();
+    const tarea = window.setTimeout(cargarReportes, 0);
+    return () => window.clearTimeout(tarea);
   }, []);
 
   const abrirModalResolver = (reporte) => {
@@ -73,11 +76,11 @@ function MecanicoReportesPage() {
     ...new Set(reportes.map((reporte) => reporte.estado).filter(Boolean)),
   ];
 
-  const camionesDisponibles = [
-    ...new Set(
-      reportes.map((reporte) => reporte.Camion_id_camion).filter(Boolean)
-    ),
-  ];
+  const camionesDisponibles = new Map(
+    reportes
+      .filter((reporte) => reporte.Camion_id_camion)
+      .map((reporte) => [reporte.Camion_id_camion, reporte.camion_nombre])
+  );
 
   const reportesFiltrados = reportes.filter((reporte) => {
     const texto = textoBusqueda.trim().toLowerCase();
@@ -87,6 +90,7 @@ function MecanicoReportesPage() {
       reporte.id_reporte?.toString().includes(texto) ||
       reporte.fecha_hora?.toLowerCase().includes(texto) ||
       reporte.Camion_id_camion?.toString().includes(texto) ||
+      reporte.camion_nombre?.toLowerCase().includes(texto) ||
       reporte.descripcion?.toLowerCase().includes(texto) ||
       reporte.nota_reparacion?.toLowerCase().includes(texto);
 
@@ -222,9 +226,9 @@ function MecanicoReportesPage() {
                   onChange={(e) => setFiltroCamion(e.target.value)}
                 >
                   <option value="todos">Todos</option>
-                  {camionesDisponibles.map((camion) => (
-                    <option key={camion} value={camion}>
-                      Camión {camion}
+                  {Array.from(camionesDisponibles, ([id, nombre]) => (
+                    <option key={id} value={id}>
+                      {nombre || CAMION_SIN_DATOS}
                     </option>
                   ))}
                 </select>
@@ -255,7 +259,7 @@ function MecanicoReportesPage() {
                   <tr key={reporte.id_reporte}>
                     <td>#{reporte.id_reporte}</td>
                     <td>{reporte.fecha_hora}</td>
-                    <td>{reporte.Camion_id_camion}</td>
+                    <td>{reporte.camion_nombre || CAMION_SIN_DATOS}</td>
                     <td>{reporte.descripcion}</td>
                     <td>
                       <span className={getEstadoClass(reporte.estado)}>

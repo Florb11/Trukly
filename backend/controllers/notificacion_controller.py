@@ -1,9 +1,13 @@
+import re
+
 from utils.texto_personal import texto_personal
 from services.admin_notificacion_service import AdminNotificacionService
 from services.avisos_licencias_service import generar_aviso_licencia
+from services.notificacion_service import mensaje_reporte_asignado
 from flask import g, jsonify
 
 from db_instance import db
+from models.camion_model import CamionModel
 from models.notificacion_model import NotificacionModel
 from models.usuario_model import UsuarioModel
 
@@ -14,6 +18,10 @@ from utils.app_logger import get_app_logger
 
 
 logger = get_app_logger()
+
+MENSAJE_ASIGNACION_ANTERIOR = re.compile(
+    r"Se te asign[oó] el reporte #([0-9]+) del cami[oó]n #([0-9]{1,10})\."
+)
 
 
 class NotificacionController:
@@ -87,6 +95,34 @@ class NotificacionController:
         return datos
 
     @staticmethod
+    def convertir_notificaciones(notificaciones):
+        datos = [
+            NotificacionController.convertir_notificacion(notificacion)
+            for notificacion in notificaciones
+        ]
+        asignaciones_anteriores = []
+        for aviso in datos:
+            if aviso["tipo"] != "reporte_asignado":
+                continue
+            coincidencia = MENSAJE_ASIGNACION_ANTERIOR.fullmatch(aviso["mensaje"])
+            if coincidencia:
+                id_reporte, id_camion = coincidencia.groups()
+                asignaciones_anteriores.append((aviso, id_reporte, int(id_camion)))
+
+        if asignaciones_anteriores:
+            ids_camiones = {id_camion for _, _, id_camion in asignaciones_anteriores}
+            camiones = {
+                camion.id_camion: camion
+                for camion in CamionModel.query.filter(
+                    CamionModel.id_camion.in_(ids_camiones)
+                ).all()
+            }
+            for aviso, id_reporte, id_camion in asignaciones_anteriores:
+                aviso["mensaje"] = mensaje_reporte_asignado(id_reporte, camiones.get(id_camion))
+
+        return datos
+
+    @staticmethod
     @usuario_required
     def listar_mis_notificaciones():
         # lista notificaciones del usuario logueado
@@ -106,10 +142,7 @@ class NotificacionController:
         )
 
         return jsonify({
-            "notificaciones": [
-                NotificacionController.convertir_notificacion(notificacion)
-                for notificacion in notificaciones
-            ]
+            "notificaciones": NotificacionController.convertir_notificaciones(notificaciones)
         }), 200
 
     @staticmethod
@@ -161,7 +194,5 @@ class NotificacionController:
 
         return jsonify({
             "mensaje": "Notificacion marcada como leida",
-            "notificacion": NotificacionController.convertir_notificacion(
-                notificacion_model
-            )
+            "notificacion": NotificacionController.convertir_notificaciones([notificacion_model])[0]
         }), 200

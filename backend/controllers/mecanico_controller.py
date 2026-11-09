@@ -77,9 +77,12 @@ class MecanicoController:
             reporte_model
         )
 
-        return MecanicoController.preparar_respuesta_reporte_clase(
+        datos = MecanicoController.preparar_respuesta_reporte_clase(
             reporte_clase
         )
+        camion = reporte_model.camion
+        datos["camion_nombre"] = camion.nombre_visible if camion else None
+        return datos
 
     @staticmethod
     def preparar_respuesta_reporte_clase(reporte_clase):

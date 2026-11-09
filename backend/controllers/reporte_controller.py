@@ -24,7 +24,7 @@ from src.observer.NotificacionReporteListener import (
 )
 
 from services.auth_service import AuthService
-from services.notificacion_service import NotificacionService
+from services.notificacion_service import NotificacionService, mensaje_reporte_asignado
 from services.camion_disponibilidad_service import actualizar_camion_tras_cierre_reporte, marcar_camion_tras_reporte
 from utils.auth_decorators import obtener_admin_actual_desde_token
 from utils.auth_decorators import roles_required
@@ -238,10 +238,7 @@ class ReporteController:
         camion = reporte_model.camion
         chofer = reporte_model.chofer_usuario
         mecanico = reporte_model.mecanico_usuario
-        datos["camion_nombre"] = (
-            f"{camion.marca} {camion.modelo} ({camion.matricula})"
-            if camion else None
-        )
+        datos["camion_nombre"] = camion.nombre_visible if camion else None
         datos["chofer_nombre"] = (
             nombre_completo(chofer) if chofer else None
         )
@@ -283,7 +280,7 @@ class ReporteController:
         return marcar_camion_tras_reporte(reporte_clase.id_camion)
 
     @staticmethod
-    def notificar_reporte_asignado(reporte_clase, mecanico):
+    def notificar_reporte_asignado(reporte_model, mecanico):
         # notifica al mecanico cuando se le asigna un reporte
         event_manager = EventManager()
         listener_notificacion = NotificacionReporteListener(
@@ -299,10 +296,9 @@ class ReporteController:
             "reporte_asignado",
             {
                 "id_usuario": mecanico.id_usuario,
-                "titulo": "Nueva reparacion asignada",
-                "mensaje": (
-                    f"Se te asigno el reporte #{reporte_clase.id_reporte} "
-                    f"del camion #{reporte_clase.id_camion}."
+                "titulo": "Nueva reparación asignada",
+                "mensaje": mensaje_reporte_asignado(
+                    reporte_model.id_reporte, reporte_model.camion
                 ),
                 "tipo": "reporte_asignado",
             }
@@ -556,7 +552,7 @@ class ReporteController:
             camion_liberado = ReporteController.liberar_camion_si_corresponde(reporte_clase)
             camion_en_mantenimiento = ReporteController.marcar_camion_en_mantenimiento_si_corresponde(reporte_clase)
             if mecanico_asignado:
-                ReporteController.notificar_reporte_asignado(reporte_clase, mecanico_asignado)
+                ReporteController.notificar_reporte_asignado(reporte_db, mecanico_asignado)
                 ReporteController.notificar_reasignacion_anterior(reporte_clase, id_mecanico_anterior)
             if nuevo_estado == ReporteFalla.ESTADO_CANCELADO:
                 mensaje = f"El reporte #{reporte_db.id_reporte} fue cancelado."
@@ -642,7 +638,7 @@ class ReporteController:
         try:
             # La notificacion se confirma junto con la asignacion.
             if id_mecanico_anterior != id_mecanico:
-                ReporteController.notificar_reporte_asignado(reporte_clase, mecanico)
+                ReporteController.notificar_reporte_asignado(reporte_db, mecanico)
                 ReporteController.notificar_reasignacion_anterior(reporte_clase, id_mecanico_anterior)
             db.session.commit()
             NotificacionService.enviar_push_pendientes()
