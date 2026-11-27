@@ -117,7 +117,7 @@ input:focus, textarea:focus { border-color: #087f8c; box-shadow: 0 0 0 3px rgba(
 .profile-card { text-align: center; }
 .profile-avatar { width: 72px; height: 72px; display: grid; place-items: center; margin: 0 auto 10px; border-radius: 50%; color: #fff; background: #087f8c; font-size: 28px; }
 .profile-card h2 { margin: 0 0 3px; }
-.profile-card > span { color: #70818d; font-size: 12px; }
+.profile-card > span { display: block; color: #70818d; font-size: 12px; }
 .profile-card dl { margin: 20px 0 0; text-align: left; }
 .profile-card dl div { display: flex; justify-content: space-between; gap: 12px; padding: 13px 0; border-top: 1px solid #e8eef1; }
 .profile-card dt { display: flex; align-items: center; gap: 6px; color: #70818d; }
