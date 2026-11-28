@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { FaGoogle } from "react-icons/fa";
 import CambiarCorreoFirebase from "./CambiarCorreoFirebase";
 import {
   confirmarGoogle, confirmarPassword, elegirGoogleParaVincular, mensajeAcceso,
@@ -12,6 +13,21 @@ const nombres = {
   password: "Cambiar contraseña",
   correo: "Cambiar correo de acceso",
 };
+
+function BotonGoogle({ children, destacado = false, type = "button", onClick, disabled }) {
+  const clase = destacado
+    ? "metodos-acceso__google metodos-acceso__google--destacado"
+    : "metodos-acceso__google";
+
+  return (
+    <button type={type} className={clase} onClick={onClick} disabled={disabled}>
+      <span className="metodos-acceso__google-icono" aria-hidden="true">
+        <FaGoogle focusable="false" />
+      </span>
+      <span className="metodos-acceso__google-texto">{children}</span>
+    </button>
+  );
+}
 
 export default function MetodosAcceso({ perfil, solicitar, onActualizado }) {
   const [acceso, setAcceso] = useState(null);
@@ -140,6 +156,9 @@ export default function MetodosAcceso({ perfil, solicitar, onActualizado }) {
   const googlePendiente = !google && acceso?.google_en_firebase;
   const muestraPassword = accion === "password" || accion === "desvincular" || (accion === "vincular" && !vinculo);
   const muestraNueva = accion === "configurar" || accion === "password";
+  const confirmaConGoogle = accion === "configurar" || (accion === "vincular" && vinculo);
+  const textoEnvio = ocupado ? "Un momento..." : confirmaConGoogle
+    ? "Confirmar con Google" : accion === "vincular" ? "Continuar" : nombres[accion];
 
   return (
     <section className="metodos-acceso" aria-labelledby="titulo-metodos-acceso">
@@ -159,12 +178,16 @@ export default function MetodosAcceso({ perfil, solicitar, onActualizado }) {
           {!accion && (
             <div className="metodos-acceso__acciones">
               {google && !tienePassword && <button type="button" onClick={() => abrir("configurar")}>{nombres.configurar}</button>}
-              {(google || googlePendiente) && tienePassword && (
-                <button type="button" onClick={() => abrir("desvincular")}>
-                  {googlePendiente ? "Quitar vínculo pendiente" : nombres.desvincular}
-                </button>
+              {tienePassword && (
+                <div className="metodos-acceso__acciones metodos-acceso__google-fila">
+                  {(google || googlePendiente) && (
+                    <BotonGoogle destacado={google} onClick={() => abrir("desvincular")}>
+                      {googlePendiente ? "Quitar vínculo pendiente" : nombres.desvincular}
+                    </BotonGoogle>
+                  )}
+                  {!google && <BotonGoogle onClick={() => abrir("vincular")}>{nombres.vincular}</BotonGoogle>}
+                </div>
               )}
-              {!google && tienePassword && <button type="button" onClick={() => abrir("vincular")}>{nombres.vincular}</button>}
               {puedeCambiarCorreo && <button type="button" onClick={() => abrir("correo")}>{nombres.correo}</button>}
               {puedeCambiarPassword && <button type="button" onClick={() => abrir("password")}>{nombres.password}</button>}
             </div>
@@ -203,10 +226,11 @@ export default function MetodosAcceso({ perfil, solicitar, onActualizado }) {
               </fieldset>
               {accion === "vincular" && vinculo && <p>Elegí en Google la cuenta que usa el correo {perfil.email}.</p>}
               <div className="metodos-acceso__acciones">
-                <button type="submit" className="metodos-acceso__principal" disabled={ocupado}>
-                  {ocupado ? "Un momento..." : accion === "configurar" || (accion === "vincular" && vinculo)
-                    ? "Confirmar con Google" : accion === "vincular" ? "Continuar" : nombres[accion]}
-                </button>
+                {confirmaConGoogle ? (
+                  <BotonGoogle type="submit" destacado disabled={ocupado}>{textoEnvio}</BotonGoogle>
+                ) : (
+                  <button type="submit" className="metodos-acceso__principal" disabled={ocupado}>{textoEnvio}</button>
+                )}
                 <button type="button" onClick={() => abrir("")} disabled={ocupado}>Cancelar</button>
               </div>
             </form>
