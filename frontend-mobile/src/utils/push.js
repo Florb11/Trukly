@@ -19,9 +19,14 @@ export async function activarPush(pedirPermiso = true) {
 export async function desactivarPush() {
   const token = localStorage.getItem("trukly_push_token");
   if (!token) return;
-  await deleteToken(getMessaging(app));
-  localStorage.removeItem("trukly_push_token");
-  try {
-    await apiFetch("/api/notificaciones/dispositivo", { method: "DELETE", body: JSON.stringify({ token }), signal: AbortSignal.timeout(10000) });
-  } catch { /* Firebase ya invalido el token; el backend lo limpiara al enviar. */ }
+  const [servidor, dispositivo] = await Promise.allSettled([
+    apiFetch("/api/notificaciones/dispositivo", {
+      method: "DELETE", body: JSON.stringify({ token }), signal: AbortSignal.timeout(10000),
+    }),
+    Promise.resolve().then(() => deleteToken(getMessaging(app))),
+  ]);
+  const revocado = (servidor.status === "fulfilled" && servidor.value?.response.ok)
+    || (dispositivo.status === "fulfilled" && dispositivo.value);
+  if (!revocado) throw new Error("No se pudieron desactivar los avisos. Volvé a intentar.");
+  if (localStorage.getItem("trukly_push_token") === token) localStorage.removeItem("trukly_push_token");
 }

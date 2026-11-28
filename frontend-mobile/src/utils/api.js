@@ -1,3 +1,6 @@
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
+
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export async function apiFetch(path, options = {}) {
@@ -14,9 +17,10 @@ export async function apiFetch(path, options = {}) {
   let data;
   try { data = text ? JSON.parse(text) : {}; } catch { data = { mensaje: "Respuesta inválida del servidor" }; }
 
-  if ([401, 422].includes(response.status) && token) {
+  if ([401, 422].includes(response.status) && token && token === localStorage.getItem("trukly_mobile_token")) {
     localStorage.removeItem("trukly_mobile_token");
     localStorage.removeItem("trukly_mobile_user");
+    await signOut(auth).catch(() => {});
     window.location.href = "/login?sesionExpirada=true";
     return null;
   }

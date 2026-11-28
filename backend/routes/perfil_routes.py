@@ -1,9 +1,25 @@
 from flask import Blueprint, send_from_directory
 
+from controllers.acceso_perfil_controller import AccesoPerfilController
 from controllers.perfil_controller import PerfilController
 
 
 perfil_routes = Blueprint("perfil_routes", __name__)
+
+
+@perfil_routes.route("/api/perfil/acceso", methods=["GET"])
+def ruta_metodos_acceso():
+    return AccesoPerfilController.obtener()
+
+
+@perfil_routes.route("/api/perfil/acceso/password", methods=["POST"])
+def ruta_configurar_password():
+    return AccesoPerfilController.crear_password()
+
+
+@perfil_routes.route("/api/perfil/acceso/google", methods=["POST", "DELETE"])
+def ruta_acceso_google():
+    return AccesoPerfilController.google()
 
 
 @perfil_routes.route("/api/perfil/correo/disponibilidad", methods=["POST"])

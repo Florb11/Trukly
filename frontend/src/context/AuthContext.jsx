@@ -1,4 +1,6 @@
 import { createContext, useContext, useState } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 
 const AuthContext = createContext();
 
@@ -51,7 +53,7 @@ export function AuthProvider({ children }) {
     setUsuario(usuarioActualizado);
   };
 
-  const logout = () => {
+  const logout = async () => {
     localStorage.removeItem("token");
     localStorage.removeItem("usuario");
     sessionStorage.removeItem("token");
@@ -60,6 +62,7 @@ export function AuthProvider({ children }) {
     setStorageActivo(localStorage);
     setToken(null);
     setUsuario(null);
+    await signOut(auth).catch(() => {});
   };
 
   const estaLogueado = !!token;

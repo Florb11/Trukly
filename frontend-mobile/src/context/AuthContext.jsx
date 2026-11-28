@@ -1,4 +1,6 @@
 import { createContext, useContext, useState } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 import { desactivarPush } from "../utils/push";
 
 const AuthContext = createContext(null);
@@ -17,11 +19,13 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await desactivarPush();
+    desactivarPush().catch(() => {});
+    localStorage.removeItem("trukly_push_token");
     localStorage.removeItem("trukly_mobile_token");
     localStorage.removeItem("trukly_mobile_user");
     setToken(null);
     setUsuario(null);
+    await signOut(auth).catch(() => {});
   };
 
   const actualizarUsuario = (datos) => {

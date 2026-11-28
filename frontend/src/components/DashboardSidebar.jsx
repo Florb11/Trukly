@@ -312,8 +312,8 @@ function DashboardSidebar({ isOpen, onClose }) {
     };
   }, [usuario, API_URL]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     onClose();
     navigate("/login");
   };

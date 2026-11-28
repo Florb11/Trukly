@@ -33,6 +33,8 @@ class UsuarioModel(db.Model):
         unique=True
     )
 
+    google_autorizado = db.Column(db.Boolean, nullable=True)
+
     nombre = db.Column(
         db.String(100),
         nullable=False

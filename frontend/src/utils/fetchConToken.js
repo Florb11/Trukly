@@ -1,3 +1,6 @@
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
+
 export const fetchConToken = async (url, opciones = {}) => {
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
@@ -24,12 +27,14 @@ export const fetchConToken = async (url, opciones = {}) => {
     };
   }
 
-  if (respuesta.status === 401 || respuesta.status === 422) {
+  const tokenActual = localStorage.getItem("token") || sessionStorage.getItem("token");
+  if ([401, 422].includes(respuesta.status) && token === tokenActual) {
     localStorage.removeItem("token");
     localStorage.removeItem("usuario");
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("usuario");
 
+    await signOut(auth).catch(() => {});
     window.location.href = "/login?sesionExpirada=true";
     return null;
   }

@@ -1,5 +1,5 @@
 import FotoPerfil from "../components/FotoPerfil";
-import CambiarCorreoFirebase from "../components/CambiarCorreoFirebase";
+import MetodosAcceso from "../components/MetodosAcceso";
 import { useEffect, useState } from "react";
 import { FaCamera, FaSave, FaSignOutAlt } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
@@ -89,12 +89,12 @@ export default function PerfilPage() {
         </>}
         <button className="button primary wide"><FaSave />{ocupado ? "Guardando..." : "Guardar cambios"}</button>
       </fieldset></form>}
-      {perfil?.firebase_uid && <CambiarCorreoFirebase perfil={perfil} solicitar={apiFetch}
+      {perfil && <MetodosAcceso perfil={perfil} solicitar={apiFetch}
         onActualizado={(datos) => { setPerfil(datos); setForm((actual) => ({ ...actual, email: datos.email })); actualizarUsuario(datos); }} />}
     </>}
     <button className="logout-button" onClick={async () => {
       setOcupado(true);
-      try { await logout(); } catch { setError("No se pudieron desactivar los avisos de este dispositivo. Revisá tu conexión antes de cerrar sesión."); }
+      try { await logout(); }
       finally { setOcupado(false); }
     }} disabled={ocupado}><FaSignOutAlt /> Cerrar sesión</button>
   </section>;

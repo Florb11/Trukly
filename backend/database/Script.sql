@@ -29,6 +29,7 @@ CREATE TABLE `usuario` (
   `username`     VARCHAR(30)  NOT NULL,
   `email`        VARCHAR(150) DEFAULT NULL,
   `firebase_uid` VARCHAR(128) DEFAULT NULL,
+  `google_autorizado` BOOLEAN DEFAULT NULL,
   `password`     VARCHAR(255) NOT NULL,
   `nombre`       VARCHAR(30)  NOT NULL,
   `apellido`     VARCHAR(30)  NOT NULL,

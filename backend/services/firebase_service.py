@@ -80,6 +80,24 @@ class FirebaseAuthService:
         return auth.verify_id_token(id_token, check_revoked=check_revoked)
 
     @staticmethod
+    def proveedor_identidad(identidad):
+        return (identidad.get("firebase") or {}).get("sign_in_provider")
+
+    @staticmethod
+    def confirmar_identidad(uid, token, proveedor):
+        identidad = FirebaseAuthService.verificar_token(token, check_revoked=True)
+        antiguedad = time.time() - float(identidad.get("auth_time", 0))
+        if (identidad.get("uid") != uid or not 0 <= antiguedad <= 300
+                or FirebaseAuthService.proveedor_identidad(identidad) != proveedor):
+            raise ValueError("La confirmación de identidad no corresponde a esta cuenta o venció.")
+        return identidad
+
+    @staticmethod
+    def desvincular_google(uid):
+        FirebaseAuthService.inicializar()
+        return auth.update_user(uid, providers_to_delete=["google.com"])
+
+    @staticmethod
     def cambiar_password(uid, password):
         FirebaseAuthService.inicializar()
         return auth.update_user(uid, password=password)

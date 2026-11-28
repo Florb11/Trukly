@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash, FaGoogle, FaLock, FaTruck } from "react-icons/fa";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, signOut } from "firebase/auth";
+import { GoogleAuthProvider, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signOut } from "firebase/auth";
 import { useAuth } from "../context/AuthContext";
 import { auth } from "../firebase";
 import { API_URL } from "../utils/api";
@@ -16,6 +16,10 @@ export default function LoginPage() {
   const [cargando, setCargando] = useState(false);
   const [googleProcesando, setGoogleProcesando] = useState(false);
   const [error, setError] = useState("");
+  const [mostrarRecuperacion, setMostrarRecuperacion] = useState(false);
+  const [correoRecuperacion, setCorreoRecuperacion] = useState("");
+  const [recuperando, setRecuperando] = useState(false);
+  const [mensaje, setMensaje] = useState("");
 
   if (token && ["chofer", "mecanico", "operador"].includes(usuario?.rol)) return <Navigate to="/" replace />;
 
@@ -23,6 +27,7 @@ export default function LoginPage() {
     event.preventDefault();
     setCargando(true);
     setError("");
+    setMensaje("");
     try {
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
@@ -67,6 +72,7 @@ export default function LoginPage() {
     if (googleProcesando) return;
     setGoogleProcesando(true);
     setError("");
+    setMensaje("");
 
     try {
       const credencial = await signInWithPopup(auth, new GoogleAuthProvider());
@@ -97,6 +103,29 @@ export default function LoginPage() {
     }
   };
 
+  const recuperarPassword = async (event) => {
+    event.preventDefault();
+    if (recuperando) return;
+    const confirmacion = "Si el correo tiene acceso por contraseña, vas a recibir un enlace para recuperarla.";
+    setRecuperando(true);
+    setError("");
+    setMensaje("");
+    try {
+      await sendPasswordResetEmail(auth, correoRecuperacion.trim());
+      setMensaje(confirmacion);
+      setMostrarRecuperacion(false);
+    } catch (err) {
+      if (err.code === "auth/user-not-found") {
+        setMensaje(confirmacion);
+        setMostrarRecuperacion(false);
+      } else {
+        setError("No se pudo enviar la recuperación. Volvé a intentarlo.");
+      }
+    } finally {
+      setRecuperando(false);
+    }
+  };
+
   const params = new URLSearchParams(location.search);
   return (
     <main className="login-page">
@@ -111,11 +140,34 @@ export default function LoginPage() {
         <div className="login-card-title"><FaTruck /><div><h2>Iniciar sesión</h2><p>Choferes, mecánicos y operadores.</p></div></div>
         {(params.get("sesionExpirada") || params.get("rolInvalido")) && <p className="feedback error">Volvé a iniciar sesión con una cuenta habilitada.</p>}
         {error && <p className="feedback error">{error}</p>}
+        {mensaje && <p className="feedback ok" role="status">{mensaje}</p>}
         <form onSubmit={submit}>
           <label>Usuario o email<input value={form.username} onChange={(event) => setForm({ ...form, username: event.target.value })} autoComplete="username" required /></label>
           <label>Contraseña<div className="password-field"><FaLock /><input type={mostrar ? "text" : "password"} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} autoComplete="current-password" required /><button type="button" onClick={() => setMostrar(!mostrar)} aria-label={mostrar ? "Ocultar contraseña" : "Mostrar contraseña"}>{mostrar ? <FaEyeSlash /> : <FaEye />}</button></div></label>
           <button className="button primary wide" disabled={cargando}>{cargando ? "Ingresando..." : "Entrar"}</button>
         </form>
+        {mostrarRecuperacion ? (
+          <form onSubmit={recuperarPassword}>
+            <label>
+              Correo de recuperación
+              <input type="email" autoComplete="email" value={correoRecuperacion} required
+                onChange={(event) => setCorreoRecuperacion(event.target.value)} />
+            </label>
+            <button className="button primary wide" type="submit" disabled={recuperando}>
+              {recuperando ? "Enviando..." : "Enviar recuperación"}
+            </button>
+            <button className="button secondary wide" type="button" disabled={recuperando}
+              onClick={() => setMostrarRecuperacion(false)}>Cancelar</button>
+          </form>
+        ) : (
+          <button className="button secondary wide" type="button" disabled={cargando || googleProcesando}
+            onClick={() => {
+              setCorreoRecuperacion(form.username.includes("@") ? form.username : "");
+              setError("");
+              setMensaje("");
+              setMostrarRecuperacion(true);
+            }}>Olvidé mi contraseña</button>
+        )}
         <div className="login-divider"><span>o</span></div>
         <button className="button google wide" type="button" onClick={loginGoogle} disabled={googleProcesando || cargando}>
           <FaGoogle /> {googleProcesando ? "Conectando..." : "Continuar con Google"}
