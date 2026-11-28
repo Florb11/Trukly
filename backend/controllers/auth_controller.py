@@ -242,7 +242,7 @@ class AuthController:
         )
 
     @staticmethod
-    def _crear_usuario_model_firebase(datos, password_hash, firebase_uid):
+    def _crear_usuario_model_firebase(datos, password_hash, firebase_uid, google_autorizado):
         return UsuarioModel(
             username=datos["username"],
             email=datos["email"],
@@ -252,6 +252,7 @@ class AuthController:
             estado=Usuario.ESTADO_PENDIENTE,
             rol=Usuario.ROL_CHOFER,
             firebase_uid=firebase_uid,
+            google_autorizado=google_autorizado,
         )
 
     @staticmethod
@@ -443,7 +444,8 @@ class AuthController:
         nuevo_usuario = AuthController._crear_usuario_model_firebase(
             datos,
             password_hash,
-            firebase_uid
+            firebase_uid,
+            FirebaseAuthService.proveedor_identidad(firebase_usuario) == "google.com",
         )
         nuevo_chofer = None
         campos_chofer = [
@@ -527,9 +529,9 @@ class AuthController:
 
         if not isinstance(firebase_uid, str) or not firebase_uid or not isinstance(firebase_email, str):
             return jsonify({"mensaje": "La cuenta de Firebase no tiene una identidad y correo válidos."}), 401
-        usuario = UsuarioModel.query.filter_by(firebase_uid=firebase_uid).first()
+        usuario = UsuarioModel.query.filter_by(firebase_uid=firebase_uid).with_for_update().first()
         if usuario is None:
-            usuario = UsuarioModel.query.filter_by(email=firebase_email.lower()).first()
+            usuario = UsuarioModel.query.filter_by(email=firebase_email.lower()).with_for_update().first()
 
         if usuario is None:
             return jsonify({
@@ -552,8 +554,10 @@ class AuthController:
         if not usuario.firebase_uid:
             return jsonify({"mensaje": "Confirmá tu contraseña anterior de Trukly para vincular el acceso.",
                             "codigo": "migracion_pendiente"}), 409
+        if FirebaseAuthService.proveedor_identidad(firebase_usuario) == "google.com" and not usuario.google_autorizado:
+            return jsonify({"mensaje": "Ingresá con correo y contraseña y vinculá Google desde tu perfil."}), 403
         try:
-            actualizado = sincronizar_verificado(usuario, firebase_usuario)
+            actualizado = not usuario.google_autorizado and sincronizar_verificado(usuario, firebase_usuario)
             # Al confirmar el acceso Firebase se retira cualquier credencial local antigua.
             if permite_password_local(usuario):
                 usuario.password = crear_password_interna_firebase()
@@ -650,6 +654,8 @@ class AuthController:
             ).first():
                 raise FirebaseMigrationConflict("La cuenta de Firebase ya está vinculada a otro usuario.")
             usuario.firebase_uid = firebase_usuario.uid
+            if usuario.google_autorizado is None:
+                usuario.google_autorizado = False
             usuario.password = crear_password_interna_firebase()
             db.session.commit()
         except FirebaseMigrationConflict as error:

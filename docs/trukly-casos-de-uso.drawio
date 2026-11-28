@@ -1,0 +1,533 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="trukly-cdu-general" name="Casos de uso">
+    <mxGraphModel dx="3185" dy="2288" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="2530" pageHeight="1910" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="sistema" parent="1" style="rounded=0;strokeWidth=1.6;strokeColor=#96ABC0;fillColor=#F8FBFF;connectable=0;locked=1;" value="" vertex="1">
+          <mxGeometry height="1610" width="2044" x="238" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="titulo" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=36;fontStyle=1;fontFamily=Arial;fontColor=#162B43;spacing=0;connectable=0;" value="Diagrama de casos de uso" vertex="1">
+          <mxGeometry height="53" width="1000" x="238" y="24" as="geometry" />
+        </mxCell>
+        <mxCell id="nombre-sistema" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=22;fontStyle=1;fontFamily=Arial;fontColor=#2B4B65;spacing=0;connectable=0;" value="Trukly · web y móvil" vertex="1">
+          <mxGeometry height="41" width="310" x="264" y="234" as="geometry" />
+        </mxCell>
+        <mxCell id="linea-cuenta" parent="1" style="rounded=0;fillColor=#D9E4EF;strokeColor=none;connectable=0;locked=1;" value="" vertex="1">
+          <mxGeometry height="1.25" width="1988" x="264" y="392" as="geometry" />
+        </mxCell>
+        <mxCell id="linea-areas" parent="1" style="rounded=0;fillColor=#D9E4EF;strokeColor=none;connectable=0;locked=1;" value="" vertex="1">
+          <mxGeometry height="1350" width="1.25" x="1262" y="418" as="geometry" />
+        </mxCell>
+        <mxCell id="linea-compartida" parent="1" style="rounded=0;fillColor=#D9E4EF;strokeColor=none;connectable=0;locked=1;" value="" vertex="1">
+          <mxGeometry height="1.25" width="886" x="340" y="936" as="geometry" />
+        </mxCell>
+        <mxCell id="linea-taller" parent="1" style="rounded=0;fillColor=#D9E4EF;strokeColor=none;connectable=0;locked=1;" value="" vertex="1">
+          <mxGeometry height="1.25" width="924" x="1300" y="743" as="geometry" />
+        </mxCell>
+        <mxCell id="usuario" parent="1" style="shape=umlActor;html=1;verticalLabelPosition=bottom;verticalAlign=top;align=center;fontSize=17;fontStyle=1;fontColor=#162B43;fontFamily=Arial;strokeColor=#2C4862;strokeWidth=2;fillColor=#FFFFFF;spacingTop=7;verticalLabelPosition=top;verticalAlign=bottom;spacingBottom=6;spacingTop=0;" value="Usuario" vertex="1">
+          <mxGeometry height="164" width="109" x="1205.5" y="51" as="geometry" />
+        </mxCell>
+        <mxCell id="administrador" parent="1" style="shape=umlActor;html=1;verticalLabelPosition=bottom;verticalAlign=top;align=center;fontSize=17;fontStyle=1;fontColor=#162B43;fontFamily=Arial;strokeColor=#2C4862;strokeWidth=2;fillColor=#FFFFFF;spacingTop=7;" value="Administrador" vertex="1">
+          <mxGeometry height="78" width="62" x="92" y="626" as="geometry" />
+        </mxCell>
+        <mxCell id="operador" parent="1" style="shape=umlActor;html=1;verticalLabelPosition=bottom;verticalAlign=top;align=center;fontSize=17;fontStyle=1;fontColor=#162B43;fontFamily=Arial;strokeColor=#2C4862;strokeWidth=2;fillColor=#FFFFFF;spacingTop=7;" value="Operador&lt;br&gt;logístico" vertex="1">
+          <mxGeometry height="78" width="62" x="92" y="1330" as="geometry" />
+        </mxCell>
+        <mxCell id="mecanico" parent="1" style="shape=umlActor;html=1;verticalLabelPosition=bottom;verticalAlign=top;align=center;fontSize=17;fontStyle=1;fontColor=#162B43;fontFamily=Arial;strokeColor=#2C4862;strokeWidth=2;fillColor=#FFFFFF;spacingTop=7;" value="Mecánico" vertex="1">
+          <mxGeometry height="78" width="62" x="2370" y="572" as="geometry" />
+        </mxCell>
+        <mxCell id="chofer" parent="1" style="shape=umlActor;html=1;verticalLabelPosition=bottom;verticalAlign=top;align=center;fontSize=17;fontStyle=1;fontColor=#162B43;fontFamily=Arial;strokeColor=#2C4862;strokeWidth=2;fillColor=#FFFFFF;spacingTop=7;" value="Chofer" vertex="1">
+          <mxGeometry height="78" width="62" x="2370" y="1115" as="geometry" />
+        </mxCell>
+        <mxCell id="iniciar-sesion" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Iniciar sesión" vertex="1">
+          <mxGeometry height="64" width="222" x="555" y="291" as="geometry" />
+        </mxCell>
+        <mxCell id="editar-perfil" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Editar perfil" vertex="1">
+          <mxGeometry height="64" width="222" x="875" y="291" as="geometry" />
+        </mxCell>
+        <mxCell id="consultar-notificaciones" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Consultar&lt;br&gt;notificaciones" vertex="1">
+          <mxGeometry height="64" width="222" x="1195" y="291" as="geometry" />
+        </mxCell>
+        <mxCell id="marcar-leida" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Marcar aviso&lt;br&gt;como leído" vertex="1">
+          <mxGeometry height="64" width="222" x="1545" y="291" as="geometry" />
+        </mxCell>
+        <mxCell id="area-flota" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=18;fontStyle=1;fontColor=#3F617C;fontFamily=Arial;spacing=0;connectable=0;" value="Flota" vertex="1">
+          <mxGeometry height="27" width="300" x="350" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="consultar-flota" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Consultar lista&lt;br&gt;de camiones" vertex="1">
+          <mxGeometry height="64" width="222" x="350" y="518" as="geometry" />
+        </mxCell>
+        <mxCell id="registrar-camion" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Registrar camión" vertex="1">
+          <mxGeometry height="64" width="222" x="715" y="435" as="geometry" />
+        </mxCell>
+        <mxCell id="modificar-camion" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Modificar camión" vertex="1">
+          <mxGeometry height="64" width="222" x="715" y="518" as="geometry" />
+        </mxCell>
+        <mxCell id="activar-camion" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Activar o desactivar&lt;br&gt;camión" vertex="1">
+          <mxGeometry height="64" width="222" x="715" y="601" as="geometry" />
+        </mxCell>
+        <mxCell id="area-usuarios" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=18;fontStyle=1;fontColor=#3F617C;fontFamily=Arial;spacing=0;connectable=0;" value="Usuarios" vertex="1">
+          <mxGeometry height="27" width="300" x="350" y="689" as="geometry" />
+        </mxCell>
+        <mxCell id="consultar-usuarios" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Consultar usuarios" vertex="1">
+          <mxGeometry height="64" width="222" x="350" y="776" as="geometry" />
+        </mxCell>
+        <mxCell id="registrar-usuario" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Registrar usuario" vertex="1">
+          <mxGeometry height="64" width="222" x="715" y="693" as="geometry" />
+        </mxCell>
+        <mxCell id="modificar-usuario" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Modificar usuario" vertex="1">
+          <mxGeometry height="64" width="222" x="715" y="776" as="geometry" />
+        </mxCell>
+        <object label="Activar o desactivar&lt;br&gt;usuario" tooltip="También abarca la activación de una cuenta pendiente de aprobación." id="activar-usuario">
+          <mxCell parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" vertex="1">
+            <mxGeometry height="64" width="222" x="715" y="859" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="area-compartida" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=18;fontStyle=1;fontColor=#3F617C;fontFamily=Arial;spacing=0;connectable=0;" value="Viajes y reportes" vertex="1">
+          <mxGeometry height="27" width="300" x="350" y="947" as="geometry" />
+        </mxCell>
+        <mxCell id="consultar-reportes" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Consultar reportes&lt;br&gt;de falla" vertex="1">
+          <mxGeometry height="64" width="222" x="350" y="987" as="geometry" />
+        </mxCell>
+        <mxCell id="cambiar-estado-reporte" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Cambiar estado&lt;br&gt;de reporte" vertex="1">
+          <mxGeometry height="64" width="222" x="686" y="987" as="geometry" />
+        </mxCell>
+        <object label="Cancelar reporte" tooltip="Para Administrador, la cancelación requiere indicar un motivo." id="cancelar-reporte">
+          <mxCell parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" vertex="1">
+            <mxGeometry height="64" width="222" x="1015" y="987" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="consultar-viajes" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Consultar viajes" vertex="1">
+          <mxGeometry height="64" width="222" x="350" y="1100" as="geometry" />
+        </mxCell>
+        <object label="Cancelar viaje" tooltip="Disponible para viajes pendientes o aceptados, con motivo de cancelación." id="cancelar-viaje">
+          <mxCell parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" vertex="1">
+            <mxGeometry height="64" width="222" x="686" y="1065" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="historial-viaje" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Consultar historial&lt;br&gt;del viaje" vertex="1">
+          <mxGeometry height="64" width="222" x="686" y="1142" as="geometry" />
+        </mxCell>
+        <mxCell id="area-planificacion" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=18;fontStyle=1;fontColor=#3F617C;fontFamily=Arial;spacing=0;connectable=0;" value="Planificación y cargas" vertex="1">
+          <mxGeometry height="27" width="300" x="350" y="1211" as="geometry" />
+        </mxCell>
+        <mxCell id="crear-viaje" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Crear viaje" vertex="1">
+          <mxGeometry height="64" width="222" x="350" y="1255" as="geometry" />
+        </mxCell>
+        <mxCell id="asignar-chofer" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Asignar chofer" vertex="1">
+          <mxGeometry height="64" width="222" x="715" y="1220" as="geometry" />
+        </mxCell>
+        <mxCell id="asignar-camion" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Asignar camión" vertex="1">
+          <mxGeometry height="64" width="222" x="715" y="1303" as="geometry" />
+        </mxCell>
+        <object label="Modificar viaje" tooltip="Permite revisar los datos y cambiar la asignación cuando las reglas del estado del viaje lo permiten." id="modificar-viaje">
+          <mxCell parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" vertex="1">
+            <mxGeometry height="64" width="222" x="350" y="1339" as="geometry" />
+          </mxCell>
+        </object>
+        <object label="Asignar mecánico&lt;br&gt;a reporte" tooltip="Acción del operador logístico. Asigna un mecánico activo y deja el reporte en revisión." id="asignar-mecanico">
+          <mxCell parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" vertex="1">
+            <mxGeometry height="64" width="222" x="350" y="1423" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="consultar-disponibilidad" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Consultar disponibilidad&lt;br&gt;de camiones" vertex="1">
+          <mxGeometry height="64" width="222" x="350" y="1507" as="geometry" />
+        </mxCell>
+        <mxCell id="consultar-cargas" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Consultar cargas&lt;br&gt;del viaje" vertex="1">
+          <mxGeometry height="64" width="222" x="350" y="1610" as="geometry" />
+        </mxCell>
+        <mxCell id="agregar-carga" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Agregar carga" vertex="1">
+          <mxGeometry height="64" width="222" x="715" y="1527" as="geometry" />
+        </mxCell>
+        <mxCell id="editar-carga" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Editar carga" vertex="1">
+          <mxGeometry height="64" width="222" x="715" y="1610" as="geometry" />
+        </mxCell>
+        <mxCell id="quitar-carga" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Quitar carga" vertex="1">
+          <mxGeometry height="64" width="222" x="715" y="1693" as="geometry" />
+        </mxCell>
+        <mxCell id="area-taller" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=18;fontStyle=1;fontColor=#3F617C;fontFamily=Arial;spacing=0;connectable=0;" value="Taller" vertex="1">
+          <mxGeometry height="27" width="300" x="1320" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="consultar-asignados" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Consultar reportes&lt;br&gt;asignados" vertex="1">
+          <mxGeometry height="64" width="235" x="1970" y="515" as="geometry" />
+        </mxCell>
+        <mxCell id="finalizar-reparacion" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Finalizar reparación" vertex="1">
+          <mxGeometry height="64" width="222" x="1635" y="515" as="geometry" />
+        </mxCell>
+        <mxCell id="nota-reparacion" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Registrar nota&lt;br&gt;de reparación" vertex="1">
+          <mxGeometry height="64" width="222" x="1300" y="515" as="geometry" />
+        </mxCell>
+        <mxCell id="consultar-mantenimiento" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Consultar camiones&lt;br&gt;en mantenimiento" vertex="1">
+          <mxGeometry height="64" width="235" x="1970" y="635" as="geometry" />
+        </mxCell>
+        <mxCell id="area-asignaciones" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=18;fontStyle=1;fontColor=#3F617C;fontFamily=Arial;spacing=0;connectable=0;" value="Asignaciones y controles" vertex="1">
+          <mxGeometry height="27" width="300" x="1635" y="776" as="geometry" />
+        </mxCell>
+        <mxCell id="consultar-viajes-propios" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Consultar viajes&lt;br&gt;asignados" vertex="1">
+          <mxGeometry height="64" width="235" x="1970" y="830" as="geometry" />
+        </mxCell>
+        <mxCell id="aceptar-viaje" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Aceptar viaje" vertex="1">
+          <mxGeometry height="64" width="222" x="1635" y="830" as="geometry" />
+        </mxCell>
+        <mxCell id="registrar-salida" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Registrar salida" vertex="1">
+          <mxGeometry height="64" width="235" x="1970" y="958" as="geometry" />
+        </mxCell>
+        <object label="Identificar viaje&lt;br&gt;habilitado" tooltip="Identifica un viaje vinculado a la cuenta, con el QR de la empresa o por ingreso manual del ID." id="identificar-viaje">
+          <mxCell parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" vertex="1">
+            <mxGeometry height="64" width="222" x="1635" y="1028" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="registrar-regreso" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Registrar regreso" vertex="1">
+          <mxGeometry height="64" width="235" x="1970" y="1098" as="geometry" />
+        </mxCell>
+        <mxCell id="historial-movimientos" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Consultar historial&lt;br&gt;de movimientos" vertex="1">
+          <mxGeometry height="64" width="235" x="1970" y="1227" as="geometry" />
+        </mxCell>
+        <mxCell id="area-fallas-propias" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=18;fontStyle=1;fontColor=#3F617C;fontFamily=Arial;spacing=0;connectable=0;" value="Fallas en viaje" vertex="1">
+          <mxGeometry height="27" width="300" x="1785" y="1348" as="geometry" />
+        </mxCell>
+        <object label="Generar reporte&lt;br&gt;de falla" tooltip="Al registrar la falla se toma el camión asociado al viaje en curso." id="reportar-falla">
+          <mxCell parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" vertex="1">
+            <mxGeometry height="64" width="235" x="1970" y="1400" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="consultar-reportes-propios" parent="1" style="ellipse;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#E6F0FC;strokeColor=#6B8CAC;strokeWidth=1.55;fontColor=#162B43;fontSize=18;fontFamily=Arial;spacing=4;" value="Consultar reportes&lt;br&gt;propios" vertex="1">
+          <mxGeometry height="64" width="235" x="1970" y="1505" as="geometry" />
+        </mxCell>
+        <mxCell id="generalizacion--administrador--usuario" edge="1" parent="1" source="administrador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.3333;exitPerimeter=0;entryX=0.5;entryY=0.56;entryPerimeter=0;endArrow=block;endFill=0;endSize=14;strokeColor=#274761;strokeWidth=1.9;rounded=0;" target="usuario" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="61" y="652" />
+              <mxPoint x="61" y="145.12" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="generalizacion--operador--usuario" edge="1" parent="1" source="operador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.3333;exitPerimeter=0;entryX=0;entryY=0.3333;entryPerimeter=0;endArrow=block;endFill=0;endSize=14;strokeColor=#274761;strokeWidth=1.9;rounded=0;" target="usuario" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="28" y="1356" />
+              <mxPoint x="28" y="105.66" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="generalizacion--mecanico--usuario" edge="1" parent="1" source="mecanico" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0.5;entryY=0.56;entryPerimeter=0;endArrow=block;endFill=0;endSize=14;strokeColor=#274761;strokeWidth=1.9;rounded=0;" target="usuario" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2460" y="598" />
+              <mxPoint x="2460" y="145.12" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="generalizacion--chofer--usuario" edge="1" parent="1" source="chofer" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=1;entryY=0.3333;entryPerimeter=0;endArrow=block;endFill=0;endSize=14;strokeColor=#274761;strokeWidth=1.9;rounded=0;" target="usuario" value="">
+          <mxGeometry relative="1" x="0.0034" as="geometry">
+            <Array as="points">
+              <mxPoint x="2493" y="1141" />
+              <mxPoint x="2493" y="105.66" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--usuario--iniciar-sesion" edge="1" parent="1" source="usuario" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0.2;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="iniciar-sesion" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="asociacion--usuario--editar-perfil" edge="1" parent="1" source="usuario" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0.5;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="editar-perfil" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="asociacion--usuario--consultar-notificaciones" edge="1" parent="1" source="usuario" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0.8;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="consultar-notificaciones" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="asociacion--administrador--registrar-camion" edge="1" parent="1" source="administrador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="registrar-camion" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="174" y="634.64" />
+              <mxPoint x="174" y="467" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--administrador--consultar-flota" edge="1" parent="1" source="administrador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="consultar-flota" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="208" y="641.92" />
+              <mxPoint x="208" y="550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--administrador--registrar-usuario" edge="1" parent="1" source="administrador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="registrar-usuario" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="220" y="653.12" />
+              <mxPoint x="220" y="725" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--administrador--consultar-usuarios" edge="1" parent="1" source="administrador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="consultar-usuarios" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="206" y="658.16" />
+              <mxPoint x="206" y="808" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--administrador--consultar-reportes" edge="1" parent="1" source="administrador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0.0417;entryY=0.3;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="consultar-reportes" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="194" y="663.76" />
+              <mxPoint x="194" y="1006.2" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--administrador--consultar-viajes" edge="1" parent="1" source="administrador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0.0335;entryY=0.32;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="consultar-viajes" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="184" y="671.6" />
+              <mxPoint x="184" y="1120.48" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--operador--consultar-reportes" edge="1" parent="1" source="operador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0.0417;entryY=0.7;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="consultar-reportes" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="179" y="1337.52" />
+              <mxPoint x="179" y="1031.8" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--operador--consultar-viajes" edge="1" parent="1" source="operador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0.0417;entryY=0.7;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="consultar-viajes" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="194" y="1344.24" />
+              <mxPoint x="194" y="1144.8" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--operador--crear-viaje" edge="1" parent="1" source="operador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="crear-viaje" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="209" y="1350.96" />
+              <mxPoint x="209" y="1287" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--operador--modificar-viaje" edge="1" parent="1" source="operador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="modificar-viaje" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="225" y="1357.12" />
+              <mxPoint x="225" y="1371" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--operador--asignar-mecanico" edge="1" parent="1" source="operador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="asignar-mecanico" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="210" y="1364.4" />
+              <mxPoint x="210" y="1455" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--operador--consultar-disponibilidad" edge="1" parent="1" source="operador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="consultar-disponibilidad" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="194" y="1371.12" />
+              <mxPoint x="194" y="1539" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--operador--consultar-cargas" edge="1" parent="1" source="operador" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.3333;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="consultar-cargas" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="178" y="1377.84" />
+              <mxPoint x="178" y="1642" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--mecanico--consultar-asignados" edge="1" parent="1" source="mecanico" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.3333;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="consultar-asignados" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2315" y="582.88" />
+              <mxPoint x="2315" y="547" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--mecanico--consultar-mantenimiento" edge="1" parent="1" source="mecanico" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.3333;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="consultar-mantenimiento" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2315" y="610.88" />
+              <mxPoint x="2315" y="667" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--chofer--consultar-viajes-propios" edge="1" parent="1" source="chofer" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.3333;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="consultar-viajes-propios" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2347" y="1121.4" />
+              <mxPoint x="2347" y="862" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--chofer--registrar-salida" edge="1" parent="1" source="chofer" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.3333;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="registrar-salida" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2330" y="1128.68" />
+              <mxPoint x="2330" y="990" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--chofer--registrar-regreso" edge="1" parent="1" source="chofer" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.3333;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="registrar-regreso" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2313" y="1135.96" />
+              <mxPoint x="2313" y="1130" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--chofer--historial-movimientos" edge="1" parent="1" source="chofer" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.3333;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="historial-movimientos" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2313" y="1146.04" />
+              <mxPoint x="2313" y="1259" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--chofer--reportar-falla" edge="1" parent="1" source="chofer" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.3333;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="reportar-falla" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2330" y="1150.52" />
+              <mxPoint x="2330" y="1432" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="asociacion--chofer--consultar-reportes-propios" edge="1" parent="1" source="chofer" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.3333;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;endArrow=none;strokeColor=#647F95;strokeWidth=1.6;rounded=1;arcSize=10;jumpStyle=arc;jumpSize=7;" target="consultar-reportes-propios" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2347" y="1157.8" />
+              <mxPoint x="2347" y="1537" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <object label="«extend»" tooltip="Al consultar un aviso sin leer y elegir marcarlo como leído." id="extend--marcar-leida--consultar-notificaciones">
+          <mxCell edge="1" parent="1" source="marcar-leida" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="consultar-notificaciones">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object label="«extend»" tooltip="Al seleccionar Editar para un camión de la lista." id="extend--modificar-camion--consultar-flota">
+          <mxCell edge="1" parent="1" source="modificar-camion" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=0.9984;entryY=0.46;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="consultar-flota">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object label="«extend»" tooltip="Al elegir Activar o Desactivar sobre una unidad elegible." id="extend--activar-camion--consultar-flota">
+          <mxCell edge="1" parent="1" source="activar-camion" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=0.9208;entryY=0.77;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="consultar-flota">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object label="«extend»" tooltip="Al seleccionar Editar para un usuario de la lista." id="extend--modificar-usuario--consultar-usuarios">
+          <mxCell edge="1" parent="1" source="modificar-usuario" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=0.9984;entryY=0.46;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="consultar-usuarios">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object label="«extend»" tooltip="Al elegir Activar o Desactivar para un usuario de la lista." id="extend--activar-usuario--consultar-usuarios">
+          <mxCell edge="1" parent="1" source="activar-usuario" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=0.9208;entryY=0.77;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="consultar-usuarios">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object label="«extend»" tooltip="Cuando se solicita cambiar el estado de un reporte activo." id="extend--cambiar-estado-reporte--consultar-reportes">
+          <mxCell edge="1" parent="1" source="cambiar-estado-reporte" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="consultar-reportes">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object label="«extend»" tooltip="Cuando se elige el estado Cancelado." id="extend--cancelar-reporte--cambiar-estado-reporte">
+          <mxCell edge="1" parent="1" source="cancelar-reporte" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="cambiar-estado-reporte">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object label="«extend»" tooltip="Al seleccionar Cancelar para un viaje pendiente o aceptado." id="extend--cancelar-viaje--consultar-viajes">
+          <mxCell edge="1" parent="1" source="cancelar-viaje" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=0.949;entryY=0.28;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="consultar-viajes">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object label="«extend»" tooltip="Al abrir el detalle del viaje y consultar sus cambios." id="extend--historial-viaje--consultar-viajes">
+          <mxCell edge="1" parent="1" source="historial-viaje" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=0.9386;entryY=0.74;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="consultar-viajes">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <mxCell id="include--crear-viaje--asignar-chofer" edge="1" parent="1" source="crear-viaje" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0.949;exitY=0.28;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="asignar-chofer" value="«include»">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="include--crear-viaje--asignar-camion" edge="1" parent="1" source="crear-viaje" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0.933;exitY=0.75;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="asignar-camion" value="«include»">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <object label="«extend»" tooltip="Al agregar una carga desde la consulta de un viaje editable." id="extend--agregar-carga--consultar-cargas">
+          <mxCell edge="1" parent="1" source="agregar-carga" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=0.8923;entryY=0.19;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="consultar-cargas">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object label="«extend»" tooltip="Al seleccionar una carga editable para modificarla." id="extend--editar-carga--consultar-cargas">
+          <mxCell edge="1" parent="1" source="editar-carga" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="consultar-cargas">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object label="«extend»" tooltip="Al confirmar que se quiere quitar una carga de un viaje editable." id="extend--quitar-carga--consultar-cargas">
+          <mxCell edge="1" parent="1" source="quitar-carga" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=0.8923;entryY=0.81;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="consultar-cargas">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object label="«extend»" tooltip="Al seleccionar Finalizar reparación para un reporte activo asignado al mecánico." id="extend--finalizar-reparacion--consultar-asignados">
+          <mxCell edge="1" parent="1" source="finalizar-reparacion" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="consultar-asignados">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <mxCell id="include--finalizar-reparacion--nota-reparacion" edge="1" parent="1" source="finalizar-reparacion" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="nota-reparacion" value="«include»">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <object label="«extend»" tooltip="Si el viaje asignado está pendiente y el chofer decide aceptarlo." id="extend--aceptar-viaje--consultar-viajes-propios">
+          <mxCell edge="1" parent="1" source="aceptar-viaje" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="consultar-viajes-propios">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint y="-10" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <mxCell id="include--registrar-salida--identificar-viaje" edge="1" parent="1" source="registrar-salida" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=0.933;entryY=0.25;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="identificar-viaje" value="«include»">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="include--registrar-regreso--identificar-viaje" edge="1" parent="1" source="registrar-regreso" style="edgeStyle=none;noEdgeStyle=1;html=1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=0.933;entryY=0.75;entryPerimeter=0;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;endSize=10;strokeColor=#355B80;strokeWidth=1.5;fontSize=15;fontColor=#274E74;fontFamily=Arial;labelBackgroundColor=#F8FBFF;" target="identificar-viaje" value="«include»">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

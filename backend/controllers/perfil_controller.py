@@ -2,7 +2,6 @@ from utils.nombres_validacion import validar_nombres
 from services.horas_viaje_service import horas_chofer
 from services.foto_perfil_service import validar_contenido_foto
 import os
-import time
 
 from flask import g, jsonify, request
 
@@ -10,7 +9,7 @@ from db_instance import db
 from extensions import bcrypt
 from services.firebase_service import FirebaseAuthService
 from services.credenciales_service import permite_password_local
-from services.correo_service import ErrorCorreo, validar_disponibilidad, sincronizar_verificado
+from services.correo_service import ErrorCorreo, validar_cambio_correo, validar_disponibilidad, sincronizar_verificado
 
 from models.usuario_model import UsuarioModel
 from models.administrador_model import AdministradorModel
@@ -45,8 +44,10 @@ class PerfilController:
     )
 
     @staticmethod
-    def _obtener_usuario_actual():
+    def _obtener_usuario_actual(bloquear=False):
         # obtiene el usuario logueado desde g
+        if bloquear:
+            return UsuarioModel.query.filter_by(id_usuario=g.usuario_actual.id_usuario).populate_existing().with_for_update().one()
         return g.usuario_actual
 
     @staticmethod
@@ -380,6 +381,7 @@ class PerfilController:
         if not isinstance(cuerpo, dict):
             return jsonify({"mensaje": "Los datos del correo no son válidos."}), 400
         try:
+            validar_cambio_correo(usuario)
             email = validar_disponibilidad(cuerpo.get("email"), usuario.id_usuario)
             return jsonify({"email": email}), 200
         except ErrorCorreo as error:
@@ -388,7 +390,7 @@ class PerfilController:
     @staticmethod
     @usuario_required
     def sincronizar_correo():
-        usuario = PerfilController._obtener_usuario_actual()
+        usuario = PerfilController._obtener_usuario_actual(bloquear=True)
         cuerpo = request.get_json(silent=True)
         if not isinstance(cuerpo, dict):
             return jsonify({"mensaje": "Los datos de verificación no son válidos."}), 400
@@ -396,6 +398,7 @@ class PerfilController:
         if not token:
             return jsonify({"mensaje": "Confirmá tu identidad para actualizar el correo."}), 403
         try:
+            validar_cambio_correo(usuario)
             try:
                 identidad = FirebaseAuthService.verificar_token(token, check_revoked=True)
             except Exception:
@@ -416,7 +419,9 @@ class PerfilController:
     @usuario_required
     def cambiar_password():
         # cambia la contrasena del usuario logueado
-        usuario_db = PerfilController._obtener_usuario_actual()
+        usuario_db = PerfilController._obtener_usuario_actual(bloquear=True)
+        if usuario_db.google_autorizado:
+            return jsonify({"mensaje": "Desvinculá Google para cambiar la contraseña desde Perfil."}), 403
 
         datos = InputSanitizer.sanitizar_campos(
             request.get_json(silent=True) or {},
@@ -448,12 +453,7 @@ class PerfilController:
             if not token:
                 return jsonify({"mensaje": "Volvé a confirmar tu contraseña actual."}), 403
             try:
-                identidad = FirebaseAuthService.verificar_token(token, check_revoked=True)
-                antiguedad = time.time() - float(identidad.get("auth_time", 0))
-                if (identidad.get("uid") != usuario_db.firebase_uid
-                        or not 0 <= antiguedad <= 300
-                        or identidad.get("firebase", {}).get("sign_in_provider") != "password"):
-                    return jsonify({"mensaje": "Volvé a confirmar tu contraseña actual."}), 403
+                FirebaseAuthService.confirmar_identidad(usuario_db.firebase_uid, token, "password")
             except Exception:
                 return jsonify({"mensaje": "No se pudo verificar tu identidad. Volvé a intentarlo."}), 403
             try:

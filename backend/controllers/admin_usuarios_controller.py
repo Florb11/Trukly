@@ -406,6 +406,7 @@ class AdminUsuariosController:
     @staticmethod
     def _preparar_respuesta_usuario(usuario_db):
         datos_usuario = usuario_db.to_dict()
+        datos_usuario["google_autorizado"] = bool(usuario_db.google_autorizado)
 
         return AdminUsuariosController._agregar_datos_por_rol(
             datos_usuario,
@@ -940,6 +941,7 @@ class AdminUsuariosController:
             estado=usuario_clase.estado,
             rol=usuario_clase.rol,
             firebase_uid=firebase_usuario.uid,
+            google_autorizado=False,
         )
 
         try:
@@ -997,13 +999,16 @@ class AdminUsuariosController:
                 "mensaje": "El usuario no tiene email configurado"
             }), 400
 
+        if usuario_db.google_autorizado:
+            return jsonify({"mensaje": "La cuenta tiene Google vinculado. La persona puede configurar su contraseña desde Perfil."}), 409
+
         display_name = nombre_completo(usuario_db)
 
         try:
-            firebase_usuario = FirebaseAuthService.crear_o_obtener_usuario(
-                usuario_db.email,
-                display_name
-            )
+            if usuario_db.firebase_uid:
+                firebase_usuario = FirebaseAuthService.obtener_usuario_por_uid(usuario_db.firebase_uid)
+            else:
+                firebase_usuario = FirebaseAuthService.crear_o_obtener_usuario(usuario_db.email, display_name)
         except FirebaseConfigError as error:
             logger.exception("Firebase Admin no está configurado")
             return jsonify({"mensaje": str(error)}), 500
@@ -1013,7 +1018,12 @@ class AdminUsuariosController:
                 "mensaje": "No se pudo preparar el acceso en Firebase"
             }), 500
 
+        if (firebase_usuario.email or "").casefold() != usuario_db.email.casefold():
+            return jsonify({"mensaje": "El correo de acceso requiere revisión antes de enviar la invitación."}), 409
+
         usuario_db.firebase_uid = firebase_usuario.uid
+        if usuario_db.google_autorizado is None:
+            usuario_db.google_autorizado = False
 
         try:
             db.session.commit()

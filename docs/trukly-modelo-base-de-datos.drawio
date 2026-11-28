@@ -1,0 +1,277 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram id="trukly-erd" name="Modelo lógico">
+    <mxGraphModel dx="1610" dy="1138" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;fontSize=26;fontStyle=1;align=left;fontColor=#172b43;" value="Trukly · Modelo lógico de base de datos" vertex="1">
+          <mxGeometry height="42" width="850" x="35" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="Administrador" parent="1" style="group;container=1;collapsible=0;recursiveResize=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="81" width="365" x="400" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="Administrador-head" parent="Administrador" style="html=1;fillColor=#c5def2;strokeColor=#4d7494;fontColor=#142f48;fontStyle=1;fontSize=16;" value="Administrador" vertex="1">
+          <mxGeometry height="34" width="365" as="geometry" />
+        </mxCell>
+        <mxCell id="Administrador-fields" parent="Administrador" style="html=1;fillColor=#ffffff;strokeColor=#4d7494;fontColor=#172b43;fontSize=12;align=left;verticalAlign=top;spacingTop=7;spacingLeft=9;" value="Usuario_idUsuario  INT  [PK · FK]&lt;br&gt;legajo  VARCHAR(45)" vertex="1">
+          <mxGeometry height="47" width="365" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="Camion" parent="1" style="group;container=1;collapsible=0;recursiveResize=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="171" width="365" x="140" y="1200" as="geometry" />
+        </mxCell>
+        <mxCell id="Camion-head" parent="Camion" style="html=1;fillColor=#c5def2;strokeColor=#4d7494;fontColor=#142f48;fontStyle=1;fontSize=16;" value="Camion" vertex="1">
+          <mxGeometry height="34" width="365" as="geometry" />
+        </mxCell>
+        <mxCell id="Camion-fields" parent="Camion" style="html=1;fillColor=#ffffff;strokeColor=#4d7494;fontColor=#172b43;fontSize=12;align=left;verticalAlign=top;spacingTop=7;spacingLeft=9;" value="id_camion  INT  [PK · AI]&lt;br&gt;matricula  VARCHAR(15)  [UQ]&lt;br&gt;marca  VARCHAR(20)&lt;br&gt;modelo  VARCHAR(30)&lt;br&gt;capacidad_carga  DOUBLE&lt;br&gt;estado  VARCHAR(20)&lt;br&gt;nroTanque  INT  [UQ]" vertex="1">
+          <mxGeometry height="137" width="365" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="Carga" parent="1" style="group;container=1;collapsible=0;recursiveResize=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="189" width="365" x="1450" y="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="Carga-head" parent="Carga" style="html=1;fillColor=#c5def2;strokeColor=#4d7494;fontColor=#142f48;fontStyle=1;fontSize=16;" value="Carga" vertex="1">
+          <mxGeometry height="34" width="365" as="geometry" />
+        </mxCell>
+        <mxCell id="Carga-fields" parent="Carga" style="html=1;fillColor=#ffffff;strokeColor=#4d7494;fontColor=#172b43;fontSize=12;align=left;verticalAlign=top;spacingTop=7;spacingLeft=9;" value="id_carga  INT  [PK · AI]&lt;br&gt;descripcion  VARCHAR(255)&lt;br&gt;tipo  VARCHAR(45)&lt;br&gt;peso  DECIMAL(12,3)&lt;br&gt;estado  VARCHAR(45)&lt;br&gt;Viaje_id_viaje  INT  [FK]&lt;br&gt;bultos  INT  [NULL]&lt;br&gt;remito  VARCHAR(80)  [NULL]" vertex="1">
+          <mxGeometry height="155" width="365" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="Chofer" parent="1" style="group;container=1;collapsible=0;recursiveResize=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="117" width="365" x="1450" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="Chofer-head" parent="Chofer" style="html=1;fillColor=#c5def2;strokeColor=#4d7494;fontColor=#142f48;fontStyle=1;fontSize=16;" value="Chofer" vertex="1">
+          <mxGeometry height="34" width="365" as="geometry" />
+        </mxCell>
+        <mxCell id="Chofer-fields" parent="Chofer" style="html=1;fillColor=#ffffff;strokeColor=#4d7494;fontColor=#172b43;fontSize=12;align=left;verticalAlign=top;spacingTop=7;spacingLeft=9;" value="Usuario_idUsuario  INT  [PK · FK]&lt;br&gt;licencia  VARCHAR(45)&lt;br&gt;vencimientoLicencia  DATE&lt;br&gt;legajo  VARCHAR(30)" vertex="1">
+          <mxGeometry height="83" width="365" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="Mecanico" parent="1" style="group;container=1;collapsible=0;recursiveResize=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="99" width="365" x="140" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="Mecanico-head" parent="Mecanico" style="html=1;fillColor=#c5def2;strokeColor=#4d7494;fontColor=#142f48;fontStyle=1;fontSize=16;" value="Mecanico" vertex="1">
+          <mxGeometry height="34" width="365" as="geometry" />
+        </mxCell>
+        <mxCell id="Mecanico-fields" parent="Mecanico" style="html=1;fillColor=#ffffff;strokeColor=#4d7494;fontColor=#172b43;fontSize=12;align=left;verticalAlign=top;spacingTop=7;spacingLeft=9;" value="Usuario_idUsuario  INT  [PK · FK]&lt;br&gt;legajo  VARCHAR(20)&lt;br&gt;especialidad  VARCHAR(30)" vertex="1">
+          <mxGeometry height="65" width="365" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="Notificacion" parent="1" style="group;container=1;collapsible=0;recursiveResize=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="171" width="365" x="880" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="Notificacion-head" parent="Notificacion" style="html=1;fillColor=#c5def2;strokeColor=#4d7494;fontColor=#142f48;fontStyle=1;fontSize=16;" value="Notificacion" vertex="1">
+          <mxGeometry height="34" width="365" as="geometry" />
+        </mxCell>
+        <mxCell id="Notificacion-fields" parent="Notificacion" style="html=1;fillColor=#ffffff;strokeColor=#4d7494;fontColor=#172b43;fontSize=12;align=left;verticalAlign=top;spacingTop=7;spacingLeft=9;" value="id_notificacion  INT  [PK · AI]&lt;br&gt;Usuario_idUsuario  INT  [FK]&lt;br&gt;titulo  VARCHAR(100)&lt;br&gt;mensaje  VARCHAR(255)&lt;br&gt;leida  TINYINT(1)  [NULL · DEFAULT &amp;#x27;0&amp;#x27;]&lt;br&gt;fecha_hora  DATETIME&lt;br&gt;tipo  VARCHAR(45)  [NULL]" vertex="1">
+          <mxGeometry height="137" width="365" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="OperadorLogistico" parent="1" style="group;container=1;collapsible=0;recursiveResize=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="99" width="365" x="1450" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="OperadorLogistico-head" parent="OperadorLogistico" style="html=1;fillColor=#c5def2;strokeColor=#4d7494;fontColor=#142f48;fontStyle=1;fontSize=16;" value="OperadorLogistico" vertex="1">
+          <mxGeometry height="34" width="365" as="geometry" />
+        </mxCell>
+        <mxCell id="OperadorLogistico-fields" parent="OperadorLogistico" style="html=1;fillColor=#ffffff;strokeColor=#4d7494;fontColor=#172b43;fontSize=12;align=left;verticalAlign=top;spacingTop=7;spacingLeft=9;" value="Usuario_idUsuario  INT  [PK · FK]&lt;br&gt;legajo  VARCHAR(45)&lt;br&gt;sector  VARCHAR(45)" vertex="1">
+          <mxGeometry height="65" width="365" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="PushDispositivo" parent="1" style="group;container=1;collapsible=0;recursiveResize=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="117" width="365" x="1360" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="PushDispositivo-head" parent="PushDispositivo" style="html=1;fillColor=#c5def2;strokeColor=#4d7494;fontColor=#142f48;fontStyle=1;fontSize=16;" value="PushDispositivo" vertex="1">
+          <mxGeometry height="34" width="365" as="geometry" />
+        </mxCell>
+        <mxCell id="PushDispositivo-fields" parent="PushDispositivo" style="html=1;fillColor=#ffffff;strokeColor=#4d7494;fontColor=#172b43;fontSize=12;align=left;verticalAlign=top;spacingTop=7;spacingLeft=9;" value="id  INT  [PK · AI]&lt;br&gt;Usuario_idUsuario  INT  [FK]&lt;br&gt;token_hash  VARCHAR(64)  [UQ]&lt;br&gt;token  TEXT" vertex="1">
+          <mxGeometry height="83" width="365" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="RegistroIngresoSalida" parent="1" style="group;container=1;collapsible=0;recursiveResize=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="135" width="365" x="1450" y="1390" as="geometry" />
+        </mxCell>
+        <mxCell id="RegistroIngresoSalida-head" parent="RegistroIngresoSalida" style="html=1;fillColor=#c5def2;strokeColor=#4d7494;fontColor=#142f48;fontStyle=1;fontSize=16;" value="RegistroIngresoSalida" vertex="1">
+          <mxGeometry height="34" width="365" as="geometry" />
+        </mxCell>
+        <mxCell id="RegistroIngresoSalida-fields" parent="RegistroIngresoSalida" style="html=1;fillColor=#ffffff;strokeColor=#4d7494;fontColor=#172b43;fontSize=12;align=left;verticalAlign=top;spacingTop=7;spacingLeft=9;" value="id_registro  INT  [PK · AI]&lt;br&gt;fecha_hora  DATETIME&lt;br&gt;tipo_registro  VARCHAR(45)&lt;br&gt;observacion  VARCHAR(100)  [NULL]&lt;br&gt;Viaje_id_viaje  INT  [FK]" vertex="1">
+          <mxGeometry height="101" width="365" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="ReporteFalla" parent="1" style="group;container=1;collapsible=0;recursiveResize=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="225" width="365" x="140" y="765" as="geometry" />
+        </mxCell>
+        <mxCell id="ReporteFalla-head" parent="ReporteFalla" style="html=1;fillColor=#c5def2;strokeColor=#4d7494;fontColor=#142f48;fontStyle=1;fontSize=16;" value="ReporteFalla" vertex="1">
+          <mxGeometry height="34" width="365" as="geometry" />
+        </mxCell>
+        <mxCell id="ReporteFalla-fields" parent="ReporteFalla" style="html=1;fillColor=#ffffff;strokeColor=#4d7494;fontColor=#172b43;fontSize=12;align=left;verticalAlign=top;spacingTop=7;spacingLeft=9;" value="id_reporte  INT  [PK · AI]&lt;br&gt;fecha_hora  DATETIME&lt;br&gt;descripcion  VARCHAR(200)&lt;br&gt;estado  VARCHAR(45)&lt;br&gt;Camion_id_camion  INT  [FK]&lt;br&gt;Mecanico_Usuario_idUsuario  INT  [FK · NULL]&lt;br&gt;Chofer_Usuario_idUsuario  INT  [FK]&lt;br&gt;nota_reparacion  VARCHAR(255)  [NULL]&lt;br&gt;fecha_resolucion  DATETIME  [NULL]&lt;br&gt;motivo_cancelacion  VARCHAR(255)  [NULL]" vertex="1">
+          <mxGeometry height="191" width="365" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="Usuario" parent="1" style="group;container=1;collapsible=0;recursiveResize=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="225" width="365" x="880" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="Usuario-head" parent="Usuario" style="html=1;fillColor=#c5def2;strokeColor=#4d7494;fontColor=#142f48;fontStyle=1;fontSize=16;" value="Usuario" vertex="1">
+          <mxGeometry height="34" width="365" as="geometry" />
+        </mxCell>
+        <mxCell id="Usuario-fields" parent="Usuario" style="html=1;fillColor=#ffffff;strokeColor=#4d7494;fontColor=#172b43;fontSize=12;align=left;verticalAlign=top;spacingTop=7;spacingLeft=9;" value="id_usuario  INT  [PK · AI]&lt;br&gt;username  VARCHAR(30)  [UQ]&lt;br&gt;email  VARCHAR(150)  [UQ · NULL]&lt;br&gt;firebase_uid  VARCHAR(128)  [UQ · NULL]&lt;br&gt;password  VARCHAR(255)&lt;br&gt;nombre  VARCHAR(30)&lt;br&gt;apellido  VARCHAR(30)&lt;br&gt;estado  VARCHAR(45)&lt;br&gt;rol  VARCHAR(50)  [DEFAULT &amp;#x27;chofer&amp;#x27;]&lt;br&gt;foto_perfil  VARCHAR(255)  [NULL]" vertex="1">
+          <mxGeometry height="191" width="365" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="Viaje" parent="1" style="group;container=1;collapsible=0;recursiveResize=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="315" width="365" x="880" y="1010" as="geometry" />
+        </mxCell>
+        <mxCell id="Viaje-head" parent="Viaje" style="html=1;fillColor=#c5def2;strokeColor=#4d7494;fontColor=#142f48;fontStyle=1;fontSize=16;" value="Viaje" vertex="1">
+          <mxGeometry height="34" width="365" as="geometry" />
+        </mxCell>
+        <mxCell id="Viaje-fields" parent="Viaje" style="html=1;fillColor=#ffffff;strokeColor=#4d7494;fontColor=#172b43;fontSize=12;align=left;verticalAlign=top;spacingTop=7;spacingLeft=9;" value="id_viaje  INT  [PK · AI]&lt;br&gt;OperadorLogistico_Usuario_idUsuario  INT  [FK]&lt;br&gt;Chofer_Usuario_idUsuario  INT  [FK]&lt;br&gt;Camion_id_camion  INT  [FK]&lt;br&gt;fecha_salida  DATE&lt;br&gt;fecha_llegada  DATE  [NULL]&lt;br&gt;origen  VARCHAR(255)&lt;br&gt;destino  VARCHAR(255)&lt;br&gt;estado  VARCHAR(45)&lt;br&gt;observaciones  VARCHAR(200)  [NULL]&lt;br&gt;recorrido  DOUBLE&lt;br&gt;origen_lat  DOUBLE  [NULL]&lt;br&gt;origen_lon  DOUBLE  [NULL]&lt;br&gt;destino_lat  DOUBLE  [NULL]&lt;br&gt;destino_lon  DOUBLE  [NULL]" vertex="1">
+          <mxGeometry height="281" width="365" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="ViajeCambio" parent="1" style="group;container=1;collapsible=0;recursiveResize=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="171" width="365" x="1930" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="ViajeCambio-head" parent="ViajeCambio" style="html=1;fillColor=#c5def2;strokeColor=#4d7494;fontColor=#142f48;fontStyle=1;fontSize=16;" value="ViajeCambio" vertex="1">
+          <mxGeometry height="34" width="365" as="geometry" />
+        </mxCell>
+        <mxCell id="ViajeCambio-fields" parent="ViajeCambio" style="html=1;fillColor=#ffffff;strokeColor=#4d7494;fontColor=#172b43;fontSize=12;align=left;verticalAlign=top;spacingTop=7;spacingLeft=9;" value="id_cambio  INT  [PK · AI]&lt;br&gt;id_viaje  INT  [FK]&lt;br&gt;id_usuario  INT  [FK]&lt;br&gt;actor_nombre  VARCHAR(201)&lt;br&gt;accion  VARCHAR(45)&lt;br&gt;fecha_hora  DATETIME&lt;br&gt;datos  JSON" vertex="1">
+          <mxGeometry height="137" width="365" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="fk-Administrador-Usuario_idUsuario" edge="1" parent="1" source="Usuario" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToOne;startSize=12;endSize=12;exitX=0.1643835616438356;exitY=0;entryX=0.7671232876712328;entryY=1;labelBackgroundColor=#ffffff;fontSize=11;" target="Administrador" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="940" y="370" />
+              <mxPoint x="680" y="370" />
+              <mxPoint x="680" y="250" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-Carga-Viaje_id_viaje" edge="1" parent="1" source="Viaje" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=12;endSize=12;exitX=1;exitY=0.4444444444444444;entryX=0;entryY=0.582010582010582;dashed=1;labelBackgroundColor=#ffffff;fontSize=11;" target="Carga" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1270" y="1150" />
+              <mxPoint x="1430" y="1150" />
+              <mxPoint x="1430" y="1170" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-Chofer-Usuario_idUsuario" edge="1" parent="1" source="Usuario" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToOne;startSize=12;endSize=12;exitX=1;exitY=0.26666666666666666;entryX=0;entryY=0.3418803418803419;labelBackgroundColor=#ffffff;fontSize=11;" target="Chofer" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1270" y="450" />
+              <mxPoint x="1430" y="450" />
+              <mxPoint x="1430" y="440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-Mecanico-Usuario_idUsuario" edge="1" parent="1" source="Usuario" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToOne;startSize=12;endSize=12;exitX=0;exitY=0.2222222222222222;entryX=1;entryY=0.5050505050505051;labelBackgroundColor=#ffffff;fontSize=11;" target="Mecanico" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="860" y="440" />
+              <mxPoint x="530" y="440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-Notificacion-Usuario_idUsuario" edge="1" parent="1" source="Usuario" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=12;endSize=12;exitX=0.4931506849315068;exitY=0;entryX=0.4931506849315068;entryY=1;dashed=1;labelBackgroundColor=#ffffff;fontSize=11;" target="Notificacion" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1060" y="370" />
+              <mxPoint x="1060" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-OperadorLogistico-Usuario_idUsuario" edge="1" parent="1" source="Usuario" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToOne;startSize=12;endSize=12;exitX=1;exitY=0.8444444444444444;entryX=0;entryY=0.40404040404040403;labelBackgroundColor=#ffffff;fontSize=11;" target="OperadorLogistico" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1270" y="580" />
+              <mxPoint x="1430" y="580" />
+              <mxPoint x="1430" y="710" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-PushDispositivo-Usuario_idUsuario" edge="1" parent="1" source="Usuario" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=12;endSize=12;exitX=0.8493150684931506;exitY=0;entryX=0.2191780821917808;entryY=1;dashed=1;labelBackgroundColor=#ffffff;fontSize=11;" target="PushDispositivo" value="ON DELETE CASCADE">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1190" y="370" />
+              <mxPoint x="1440" y="370" />
+              <mxPoint x="1440" y="280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-RegistroIngresoSalida-Viaje_id_viaje" edge="1" parent="1" source="Viaje" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=12;endSize=12;exitX=1;exitY=0.8253968253968254;entryX=0;entryY=0.37037037037037035;dashed=1;labelBackgroundColor=#ffffff;fontSize=11;" target="RegistroIngresoSalida" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1270" y="1270" />
+              <mxPoint x="1270" y="1440" />
+              <mxPoint x="1430" y="1440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-ReporteFalla-Camion_id_camion" edge="1" parent="1" source="Camion" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=12;endSize=12;exitX=0.4931506849315068;exitY=0;entryX=0.4931506849315068;entryY=1;dashed=1;labelBackgroundColor=#ffffff;fontSize=11;" target="ReporteFalla" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="320" y="1180" />
+              <mxPoint x="320" y="1010" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-ReporteFalla-Mecanico_Usuario_idUsuario" edge="1" parent="1" source="Mecanico" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=12;endSize=12;exitX=0.3287671232876712;exitY=1;entryX=0.3287671232876712;entryY=0;dashed=1;labelBackgroundColor=#ffffff;fontSize=11;" target="ReporteFalla" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="260" y="510" />
+              <mxPoint x="260" y="740" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-ReporteFalla-Chofer_Usuario_idUsuario" edge="1" parent="1" source="Chofer" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=12;endSize=12;exitX=0.273972602739726;exitY=1;entryX=0.7945205479452054;entryY=0;dashed=1;labelBackgroundColor=#ffffff;fontSize=11;" target="ReporteFalla" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1550" y="540" />
+              <mxPoint x="1260" y="540" />
+              <mxPoint x="1260" y="740" />
+              <mxPoint x="430" y="740" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-Viaje-OperadorLogistico_Usuario_idUsuario" edge="1" parent="1" source="OperadorLogistico" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=12;endSize=12;exitX=0.4383561643835616;exitY=1;entryX=0.8493150684931506;entryY=0;dashed=1;labelBackgroundColor=#ffffff;fontSize=11;" target="Viaje" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1610" y="790" />
+              <mxPoint x="1190" y="790" />
+              <mxPoint x="1190" y="990" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-Viaje-Chofer_Usuario_idUsuario" edge="1" parent="1" source="Chofer" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=12;endSize=12;exitX=0;exitY=0.7692307692307693;entryX=0.6575342465753424;entryY=0;dashed=1;labelBackgroundColor=#ffffff;fontSize=11;" target="Viaje" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1430" y="490" />
+              <mxPoint x="1270" y="490" />
+              <mxPoint x="1270" y="780" />
+              <mxPoint x="1120" y="780" />
+              <mxPoint x="1120" y="990" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-Viaje-Camion_id_camion" edge="1" parent="1" source="Camion" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=12;endSize=12;exitX=1;exitY=0.4093567251461988;entryX=0;entryY=0.6984126984126984;dashed=1;labelBackgroundColor=#ffffff;fontSize=11;entryDx=0;entryDy=0;entryPerimeter=0;" target="Viaje" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="530" y="1270" />
+              <mxPoint x="860" y="1270" />
+              <mxPoint x="860" y="1230" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-ViajeCambio-id_viaje" edge="1" parent="1" source="Viaje" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=12;endSize=12;exitX=1;exitY=0.15873015873015872;entryX=0.684931506849315;entryY=1;dashed=1;labelBackgroundColor=#ffffff;fontSize=11;" target="ViajeCambio" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1270" y="1060" />
+              <mxPoint x="1270" y="800" />
+              <mxPoint x="2180" y="800" />
+              <mxPoint x="2180" y="620" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk-ViajeCambio-id_usuario" edge="1" parent="1" source="Usuario" style="edgeStyle=segmentEdgeStyle;orthogonalLoop=1;rounded=0;html=1;strokeColor=#49647d;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=12;endSize=12;exitX=1;exitY=0.5333333333333333;entryX=0;entryY=0.3508771929824561;dashed=1;labelBackgroundColor=#ffffff;fontSize=11;" target="ViajeCambio" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1270" y="510" />
+              <mxPoint x="1430" y="510" />
+              <mxPoint x="1430" y="530" />
+              <mxPoint x="1910" y="530" />
+              <mxPoint x="1910" y="480" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

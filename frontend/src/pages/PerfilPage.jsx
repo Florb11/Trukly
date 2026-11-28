@@ -1,12 +1,11 @@
 import FotoPerfil from "../components/FotoPerfil";
-import CambiarCorreoFirebase from "../components/CambiarCorreoFirebase";
+import MetodosAcceso from "../components/MetodosAcceso";
 import HorasViajeResumen from "../components/HorasViajeResumen";
 import { useEffect, useRef, useState } from "react";
 import {
   FaCamera,
   FaEnvelope,
   FaIdBadge,
-  FaLock,
   FaSave,
   FaTruckMoving,
   FaUser,
@@ -14,9 +13,8 @@ import {
 import { fetchConToken } from "../utils/fetchConToken";
 import { useAuth } from "../context/AuthContext";
 import "./PerfilPage.css";
-import { EmailAuthProvider, reauthenticateWithCredential, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
-import { obtenerMensajeAuth } from "../utils/authErrors";
+
+const solicitarPerfil = (ruta, opciones) => fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${ruta}`, opciones);
 
 function PerfilPage() {
   const [perfil, setPerfil] = useState(null);
@@ -28,14 +26,8 @@ function PerfilPage() {
     vencimientoLicencia: "",
     legajo: "",
   });
-  const [formPassword, setFormPassword] = useState({
-    password_actual: "",
-    password_nueva: "",
-    confirmar_password: "",
-  });
   const [cargando, setCargando] = useState(true);
   const [guardandoPerfil, setGuardandoPerfil] = useState(false);
-  const [guardandoPassword, setGuardandoPassword] = useState(false);
   const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
@@ -115,14 +107,6 @@ function PerfilPage() {
     }));
   };
 
-  const handlePasswordChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormPassword((formActual) => ({
-      ...formActual,
-      [name]: value,
-    }));
-  };
 
   const guardarPerfil = async (e) => {
     e.preventDefault();
@@ -160,72 +144,6 @@ function PerfilPage() {
     }
   };
 
-  const cambiarPassword = async (e) => {
-    e.preventDefault();
-    if (guardandoPassword) return;
-
-    try {
-      setGuardandoPassword(true);
-      setMensaje("");
-      setError("");
-
-      const datos = { ...formPassword };
-      if (datos.password_nueva !== datos.confirmar_password) {
-        throw new Error("Las contraseñas nuevas no coinciden.");
-      }
-      if (perfil.firebase_uid && !perfil.password_local) {
-        await auth.authStateReady();
-        const actual = auth.currentUser;
-        let credencial;
-        if (actual?.uid === perfil.firebase_uid) {
-          if (!actual.providerData.some((proveedor) => proveedor.providerId === "password")) {
-            throw new Error("Tu cuenta usa Google. Usá ‘Olvidé mi contraseña’ en el inicio de sesión para crear una contraseña de acceso.");
-          }
-          credencial = await reauthenticateWithCredential(actual,
-            EmailAuthProvider.credential(actual.email, datos.password_actual));
-        } else {
-          credencial = await signInWithEmailAndPassword(auth, perfil.email, datos.password_actual);
-        }
-        if (credencial.user.uid !== perfil.firebase_uid) {
-          throw new Error("La cuenta de Firebase no coincide con tu perfil. Volvé a iniciar sesión.");
-        }
-        datos.firebaseToken = await credencial.user.getIdToken(true);
-      }
-
-      const resultado = await fetchConToken(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/perfil/password`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(datos),
-        }
-      );
-
-      if (!resultado) return;
-
-      const { respuesta, data } = resultado;
-
-      if (!respuesta.ok) {
-        throw new Error(
-          data.mensaje || data.msg || "Error al cambiar la contraseña"
-        );
-      }
-
-      setMensaje(data.mensaje || "Contraseña actualizada correctamente");
-
-      setFormPassword({
-        password_actual: "",
-        password_nueva: "",
-        confirmar_password: "",
-      });
-    } catch (error) {
-      setError(obtenerMensajeAuth(error, "No se pudo cambiar la contraseña."));
-    } finally {
-      setGuardandoPassword(false);
-    }
-  };
 
   const seleccionarFoto = () => {
     inputFotoRef.current?.click();
@@ -510,62 +428,14 @@ function PerfilPage() {
             </form>
           </article>
 
-          <article className="admin-perfil-card">
-            <div className="admin-perfil-card__header">
-              <div>
-                <h2>Seguridad</h2>
-                <span>Cambiá la contraseña de tu cuenta</span>
-              </div>
-
-              <FaLock />
-            </div>
-
-            <form className="admin-perfil-form" onSubmit={cambiarPassword}>
-              <label>
-                <span>Contraseña actual</span>
-                <input
-                  type="password"
-                  name="password_actual"
-                  value={formPassword.password_actual}
-                  onChange={handlePasswordChange}
-                />
-              </label>
-
-              <div className="admin-perfil-form__row">
-                <label>
-                  <span>Nueva contraseña</span>
-                  <input
-                    type="password"
-                    name="password_nueva"
-                    value={formPassword.password_nueva}
-                    onChange={handlePasswordChange}
-                  />
-                </label>
-
-                <label>
-                  <span>Confirmar contraseña</span>
-                  <input
-                    type="password"
-                    name="confirmar_password"
-                    value={formPassword.confirmar_password}
-                    onChange={handlePasswordChange}
-                  />
-                </label>
-              </div>
-
-              <div className="admin-perfil-form__footer">
-                <button type="submit" disabled={guardandoPassword}>
-                  <FaLock />
-                  {guardandoPassword ? "Actualizando..." : "Cambiar contraseña"}
-                </button>
-              </div>
-            </form>
-          </article>
+          <MetodosAcceso perfil={perfil} solicitar={solicitarPerfil}
+            onActualizado={(actualizado) => {
+              setPerfil(actualizado);
+              setFormPerfil((anterior) => ({ ...anterior, email: actualizado.email }));
+              actualizarUsuarioGuardado(actualizado);
+            }} />
         </div>
       </div>
-      {perfil.firebase_uid && <CambiarCorreoFirebase perfil={perfil}
-        solicitar={(ruta, opciones) => fetchConToken(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${ruta}`, opciones)}
-        onActualizado={(actualizado) => { setPerfil(actualizado); setFormPerfil((anterior) => ({ ...anterior, email: actualizado.email })); actualizarUsuarioGuardado(actualizado); }} />}
     </section>
   );
 }

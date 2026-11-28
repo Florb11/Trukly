@@ -177,6 +177,17 @@ class AuthFirebaseTest(unittest.TestCase):
         usuario = UsuarioModel.query.filter_by(username='registro_auth').one()
         self.assertFalse(bcrypt.check_password_hash(usuario.password, 'firebase:uid-registro'))
         self.assertEqual(usuario.estado, 'pendiente')
+        self.assertFalse(usuario.google_autorizado)
+
+    def test_alta_publica_con_google_habilita_el_metodo_para_chofer_pendiente(self):
+        _, codigo = self.registrar(identidad={
+            'uid': 'uid-registro', 'email': 'registro@example.invalid',
+            'firebase': {'sign_in_provider': 'google.com'},
+        })
+        self.assertEqual(codigo, 201)
+        usuario = UsuarioModel.query.filter_by(username='registro_auth').one()
+        self.assertTrue(usuario.google_autorizado)
+        self.assertEqual((usuario.rol, usuario.estado), ('chofer', 'pendiente'))
 
     def cambiar_password(self, identidad=None, datos=None, error=None):
         payload = {'password_actual': 'ActualFirebase123', 'password_nueva': 'NuevaFirebase123',

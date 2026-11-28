@@ -10,6 +10,11 @@ class ErrorCorreo(ValueError):
         self.codigo = codigo
 
 
+def validar_cambio_correo(usuario):
+    if usuario.google_autorizado:
+        raise ErrorCorreo("Desvinculá Google para cambiar el correo de acceso.", 403)
+
+
 def validar_disponibilidad(email, id_usuario):
     if not isinstance(email, str):
         raise ErrorCorreo("Ingresá un correo válido.")
@@ -24,6 +29,7 @@ def validar_disponibilidad(email, id_usuario):
 
 
 def sincronizar_verificado(usuario, identidad):
+    validar_cambio_correo(usuario)
     if not usuario.firebase_uid or identidad.get("uid") != usuario.firebase_uid:
         raise ErrorCorreo("La identidad confirmada no corresponde a tu cuenta.", 403)
     email = identidad.get("email")

@@ -346,13 +346,11 @@ function AdminUsuariosPage() {
                 Editar
             </button>
 
-            <button
-                type="button"
-                className="btn-accion btn-accion--detalle"
-                onClick={() => enviarAcceso(usuario)}
-            >
-                Enviar acceso
-            </button>
+            {!usuario.google_autorizado && (
+                <button type="button" className="btn-accion btn-accion--detalle" onClick={() => enviarAcceso(usuario)}>
+                    Enviar acceso
+                </button>
+            )}
         </div>
     );
 
